@@ -11,4 +11,4 @@ Build the R2C2 marketing site as the first site on R2C2.
 
 Done when it passes the house rules, publishes through the Loft and renders correctly on the local edge.
 
-Spec: [SPEC §1, §12](../../SPEC.md)
+Related: [SPEC §1](../../SPEC.md#1-milestone-1), [SPEC §12](../../SPEC.md#12-html-house-rules)

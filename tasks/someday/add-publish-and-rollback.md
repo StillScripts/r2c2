@@ -12,4 +12,4 @@ Done when a publish shows up on the local edge, a rollback restores the old page
 
 Review checkpoint: ask for an outside review of the publish pipeline before T14.
 
-Spec: [SPEC §4](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works)

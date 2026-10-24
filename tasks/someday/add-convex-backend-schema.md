@@ -11,6 +11,4 @@ Create `packages/backend` with the data model and access checks.
 
 Done when convex-test covers membership checks and cross-site access is refused.
 
-Needs: `choose-convex-deployment-region`
-
-Spec: [SPEC §6](../../SPEC.md)
+Related: [SPEC §6](../../SPEC.md#6-data-model-convex-milestone-1), `choose-convex-deployment-region`

@@ -10,4 +10,4 @@ Create `apps/loft`, the staff app.
 
 Done when a signed-in user sees their sites list.
 
-Spec: [SPEC §2](../../SPEC.md)
+Related: [SPEC §2](../../SPEC.md#2-locked-decisions)

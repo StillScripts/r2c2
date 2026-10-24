@@ -10,4 +10,4 @@ Create `apps/edge`, the Cloudflare Worker that serves published sites.
 
 Done when a hello-world gateway and renderer run locally and in a test.
 
-Spec: [SPEC §2, §8](../../SPEC.md)
+Related: [SPEC §2](../../SPEC.md#2-locked-decisions), [SPEC §8](../../SPEC.md#8-environments-and-secrets)

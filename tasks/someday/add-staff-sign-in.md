@@ -10,6 +10,4 @@ Let staff sign in and limit them to their own sites.
 
 Done when signed-out calls and calls for another site are rejected in tests.
 
-Needs: `choose-staff-sign-in-method`
-
-Spec: [SPEC §2, §7](../../SPEC.md)
+Related: [SPEC §2](../../SPEC.md#2-locked-decisions), [SPEC §7](../../SPEC.md#7-security-rules), `choose-staff-sign-in-method`

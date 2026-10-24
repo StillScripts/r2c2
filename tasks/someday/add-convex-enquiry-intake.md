@@ -9,4 +9,4 @@ Accept signed enquiries from the edge and store them.
 
 Done when tests reject unsigned, stale, unknown-form and extra-field requests.
 
-Spec: [SPEC §5, §7](../../SPEC.md)
+Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore), [SPEC §7](../../SPEC.md#7-security-rules)

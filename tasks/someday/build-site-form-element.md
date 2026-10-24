@@ -10,4 +10,4 @@ Create `packages/elements`, starting with the enquiry form element.
 
 Done when the form works with JavaScript on and off in a browser test.
 
-Spec: [SPEC §4, §5](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §5](../../SPEC.md#5-contracts-packagescore)

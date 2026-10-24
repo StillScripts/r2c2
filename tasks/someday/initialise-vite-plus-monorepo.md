@@ -12,4 +12,4 @@ Set up the workspace every other task builds on. The repo already has a Vite+ wo
 
 Done when `vp install`, `vp check` and `vp test` pass on a clean clone.
 
-Spec: [SPEC §2, §3](../../SPEC.md)
+Related: [SPEC §2](../../SPEC.md#2-locked-decisions), [SPEC §3](../../SPEC.md#3-repo-layout)

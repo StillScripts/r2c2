@@ -10,4 +10,4 @@ Let staff create and edit pages without publishing.
 
 Done when a page can be created, edited and previewed without publishing, and a test shows snapshots recorded on the right events only.
 
-Spec: [SPEC §4, §6](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §6](../../SPEC.md#6-data-model-convex-milestone-1)

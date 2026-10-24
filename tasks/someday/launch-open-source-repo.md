@@ -9,4 +9,4 @@ Make the project easy to pick up from a fresh clone.
 
 Done when a fresh clone can follow the README to a running local stack, and the repo is public.
 
-Spec: [SPEC §1](../../SPEC.md)
+Related: [SPEC §1](../../SPEC.md#1-milestone-1)

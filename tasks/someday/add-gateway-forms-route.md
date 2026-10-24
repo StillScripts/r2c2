@@ -12,4 +12,4 @@ Done when an end-to-end test submits the form on a local site and the enquiry la
 
 Review checkpoint: ask for an outside review of the enquiry path before T22.
 
-Spec: [SPEC §4, §5, §7](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §5](../../SPEC.md#5-contracts-packagescore), [SPEC §7](../../SPEC.md#7-security-rules)

@@ -73,7 +73,7 @@ Skills here are usually adapted from others and renamed to short verb-first name
 
 Track work as one markdown file per task under `tasks/<status>/<slug>.md`, where the folder (`active`, `waiting-on`, `someday`, `done`) is the status. See `tasks/README.md` and the `task-management` skill.
 
-The project spec is `SPEC.md`. Build tasks (T01 to T24) point to the sections to read before starting.
+The project spec is `SPEC.md`; tasks taken from it link the sections to read before starting.
 
 # Plans and Decisions
 

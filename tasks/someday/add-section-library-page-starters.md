@@ -5,4 +5,4 @@ created: 2026-10-24
 
 Add copyable sections (hero, services, team, testimonials, FAQ, contact) and page starters; a page owns its HTML once copied.
 
-Spec: [SPEC §11 Templates](../../SPEC.md)
+Related: [SPEC §11](../../SPEC.md#11-later-specs-outlines)

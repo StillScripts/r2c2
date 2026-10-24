@@ -10,4 +10,4 @@ Put publishing and history in the Loft.
 
 Done when publish, rollback and draft restore all work from the Loft against the local edge.
 
-Spec: [SPEC §4, §6](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §6](../../SPEC.md#6-data-model-convex-milestone-1)

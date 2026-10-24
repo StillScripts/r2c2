@@ -10,4 +10,4 @@ Prove Workers Cache does what the edge design needs before building on it.
 
 Done when the decision is recorded; if the fallback is chosen, update T06 to T08 to match before starting them.
 
-Spec: [SPEC §10](../../SPEC.md)
+Related: [SPEC §10](../../SPEC.md#10-things-to-prove-early-t05-spike)

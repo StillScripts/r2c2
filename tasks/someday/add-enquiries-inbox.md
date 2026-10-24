@@ -9,4 +9,4 @@ Let staff read and handle enquiries in the Loft.
 
 Done when a seeded enquiry can be read and marked handled, with an audit entry.
 
-Spec: [SPEC §6](../../SPEC.md)
+Related: [SPEC §6](../../SPEC.md#6-data-model-convex-milestone-1)

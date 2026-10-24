@@ -11,4 +11,4 @@ Build `packages/core`, the helpers and contracts the edge and backend share.
 
 Done when unit tests cover every path rule, key helper and signing case, including expired and tampered signatures.
 
-Spec: [SPEC §5](../../SPEC.md)
+Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore)

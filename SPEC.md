@@ -221,10 +221,9 @@ Commit `.env.example` files only. Environments: local (Convex dev deployment, `w
 
 **Branches and PRs**
 
-- One task, one branch, run with the `handle-task` skill. The branch is `<type>/<slug>`, where the slug is the task's filename (e.g. `feat/build-edge-request-gateway` for T07). Branch from an up-to-date `master`.
-- Small commits. Titles follow the naming conventions in `AGENTS.md`, e.g. `feat(edge): add gateway routing`. List the task's "Done when" criteria in the PR as a checklist.
+- Run each task with the `handle-task` skill, which follows the naming conventions in `AGENTS.md`: one task, one branch, from an up-to-date `master`, and the task moves to `tasks/done/` in the same PR.
+- Small commits. List the task's "Done when" criteria in the PR as a checklist.
 - CI must pass: `vp check` and `vp test`. Squash merge. Delete the branch.
-- In the same PR, move the task file to `tasks/done/` with its `completed:` date (`mark-pr-ready` does this).
 
 **Definition of done**
 

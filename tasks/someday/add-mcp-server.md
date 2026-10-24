@@ -7,4 +7,4 @@ Add a `/mcp` route on the Loft that calls the same Convex functions as the Loft,
 
 Blocked until `@convex-dev/better-auth` supports Better Auth 1.7.
 
-Spec: [SPEC §11](../../SPEC.md)
+Related: [SPEC §11](../../SPEC.md#11-later-specs-outlines)

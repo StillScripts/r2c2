@@ -10,4 +10,4 @@ Connect Convex to the edge's storage.
 
 Done when a domain added in Convex appears in KV and a test object round-trips through R2.
 
-Spec: [SPEC §5, §8](../../SPEC.md)
+Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore), [SPEC §8](../../SPEC.md#8-environments-and-secrets)

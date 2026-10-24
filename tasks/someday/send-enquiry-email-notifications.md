@@ -9,4 +9,4 @@ Tell the site owner about each new enquiry.
 
 Done when a test enquiry produces an email in Resend's test mode.
 
-Spec: [SPEC §8](../../SPEC.md)
+Related: [SPEC §8](../../SPEC.md#8-environments-and-secrets)

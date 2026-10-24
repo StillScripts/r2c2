@@ -5,6 +5,6 @@ created: 2026-10-24
 
 Pick the project's license. MIT is the simple default for a public starter.
 
-- Waiting on: a decision, since 2026-10-24
+- Waiting on: a decision from the project owner, since 2026-10-24
 
-Needed for T02. Record the choice with `document-decisions`.
+Needed for `add-ci-and-repo-basics` (T02). Record the choice with `document-decisions`.

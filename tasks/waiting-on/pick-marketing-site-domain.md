@@ -5,8 +5,8 @@ created: 2026-10-24
 
 Choose the domain the R2C2 marketing site goes live on.
 
-- Waiting on: a decision, since 2026-10-24
+- Waiting on: a decision from the project owner, since 2026-10-24
 
-Needed for T23.
+Needed for `deploy-to-production` (T23).
 
-Spec: [SPEC §1](../../SPEC.md)
+Related: [SPEC §1](../../SPEC.md#1-milestone-1)

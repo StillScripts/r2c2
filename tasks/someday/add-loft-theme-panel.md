@@ -5,4 +5,4 @@ created: 2026-10-24
 
 Add one small theme panel with a live preview.
 
-Spec: [SPEC §11 Templates](../../SPEC.md)
+Related: [SPEC §11](../../SPEC.md#11-later-specs-outlines)

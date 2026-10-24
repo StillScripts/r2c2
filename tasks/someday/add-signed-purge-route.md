@@ -11,4 +11,4 @@ Done when unsigned, stale and tampered requests get 401, and a valid one clears 
 
 Review checkpoint: ask for an outside review of the edge before T09.
 
-Spec: [SPEC §5](../../SPEC.md)
+Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore)

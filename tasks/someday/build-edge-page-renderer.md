@@ -10,4 +10,4 @@ Serve published pages and assets from R2.
 
 Done when tests cover hit, miss, 404, assets and headers.
 
-Spec: [SPEC §4, §5](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §5](../../SPEC.md#5-contracts-packagescore)

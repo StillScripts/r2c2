@@ -10,6 +10,4 @@ Run `vp check` and `vp test` on every PR and add the files a public repo needs.
 
 Done when a PR shows a green check and `master` is protected.
 
-Needs: `choose-project-license`
-
-Spec: [SPEC §9](../../SPEC.md)
+Related: [SPEC §9](../../SPEC.md#9-working-rules), `choose-project-license`

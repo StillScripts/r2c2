@@ -10,4 +10,4 @@ Create `packages/html`, which checks, cleans and compiles page HTML.
 
 Done when tests cover every house rule, script and event handler stripping, `javascript:` URLs, ID stability across edits and form extraction.
 
-Spec: [SPEC §4, §7, §12](../../SPEC.md)
+Related: [SPEC §4](../../SPEC.md#4-how-it-works), [SPEC §7](../../SPEC.md#7-security-rules), [SPEC §12](../../SPEC.md#12-html-house-rules)
