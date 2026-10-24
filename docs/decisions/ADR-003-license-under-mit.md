@@ -11,8 +11,7 @@ Accepted
 ## Context
 
 R2C2 is a public repo meant as a starter others can fork and run for their own sites
-(SPEC T24). It needs a license before CI and the other public-repo basics land (T02).
-The skills in `.claude/skills/` keep their own upstream licenses (Apache-2.0 and MIT, in
+(SPEC T24). The skills in `.claude/skills/` keep their own upstream licenses (Apache-2.0 and MIT, in
 each folder's `LICENSE.txt`).
 
 ## Decision
@@ -35,6 +34,5 @@ License the project under MIT, in `LICENSE` at the repo root.
 
 ## Consequences
 
-- Anyone can use, change and sell R2C2, keeping the copyright notice.
-- Adapted skills stay under their own licenses; `LICENSE` covers everything else.
+- `LICENSE` covers everything except the adapted skills.
 - Dependencies must stay compatible with MIT distribution; avoid copyleft packages.
