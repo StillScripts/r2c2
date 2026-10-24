@@ -36,8 +36,8 @@ export const pageHeaders = (page: {
 export const notFoundHeaders = (siteId: string) =>
   htmlHeaders("public, max-age=0, s-maxage=60", [siteTag(siteId)])
 
-export const assetHeaders = () => ({
+export const ASSET_HEADERS = {
   "cache-control": "public, max-age=31536000, immutable",
-})
+}
 
-export const apiHeaders = () => ({ "cache-control": "no-store" })
+export const API_HEADERS = { "cache-control": "no-store" }

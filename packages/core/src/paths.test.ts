@@ -3,25 +3,14 @@ import { normaliseHost, normalisePath, stripTrackingParams } from "./paths"
 
 describe("normaliseHost", () => {
   it.each([
-    ["r2c2.dev", "r2c2.dev"],
-    ["R2C2.Dev", "r2c2.dev"],
-    ["r2c2.dev:8787", "r2c2.dev"],
-    ["r2c2.dev.", "r2c2.dev"],
-    ["WWW.R2C2.DEV.:443", "www.r2c2.dev"],
-    ["[::1]:8787", "[::1]"],
-  ])("normalises %s to %s", (host, expected) => {
-    expect(normaliseHost(host)).toBe(expected)
-  })
-
-  it.each([
-    "",
-    "evil.com@r2c2.dev",
-    "r2c2.dev/path",
-    "r2c2 .dev",
-    "a?b",
-    "a#b",
-  ])("rejects %j", (host) => {
-    expect(normaliseHost(host)).toBeNull()
+    ["https://r2c2.dev/", "r2c2.dev"],
+    ["https://R2C2.Dev/", "r2c2.dev"],
+    ["http://r2c2.dev:8787/", "r2c2.dev"],
+    ["https://r2c2.dev./", "r2c2.dev"],
+    ["https://WWW.R2C2.DEV.:443/about", "www.r2c2.dev"],
+    ["https://bücher.example/", "xn--bcher-kva.example"],
+  ])("normalises %s to %s", (url, expected) => {
+    expect(normaliseHost(new URL(url))).toBe(expected)
   })
 })
 

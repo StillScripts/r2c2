@@ -3,11 +3,12 @@ import { sign, signedHeaders, verify, type SignedRequest } from "./signing"
 
 const secret = "test-secret"
 const now = Date.UTC(2026, 9, 24, 12)
+const body = '{"name":"Ada"}'
 const request: SignedRequest = {
   siteId: "s_r2c2",
   method: "POST",
   path: "/_api/forms/contact",
-  body: '{"name":"Ada"}',
+  body,
 }
 
 describe("sign", () => {
@@ -17,29 +18,9 @@ describe("sign", () => {
     )
   })
 
-  it("matches an independent HMAC of the canonical string", async () => {
-    const encoder = new TextEncoder()
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      encoder.encode(request.body as string)
-    )
-    const hex = (buffer: ArrayBuffer) =>
-      Array.from(new Uint8Array(buffer), (b) =>
-        b.toString(16).padStart(2, "0")
-      ).join("")
-    const key = await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(secret),
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"]
-    )
-    const message = `${now / 1000}\ns_r2c2\nPOST\n/_api/forms/contact\n${hex(digest)}`
-    const expected = hex(
-      await crypto.subtle.sign("HMAC", key, encoder.encode(message))
-    )
+  it("matches a known HMAC-SHA256 of the canonical string", async () => {
     expect(await sign(secret, request, now)).toBe(
-      `t=${now / 1000},v1=${expected}`
+      "t=1792843200,v1=f7e32b4731b43e86824cad7aa532ca5ef9a5114f61bef25367c956d0ffd6a987"
     )
   })
 
@@ -62,7 +43,7 @@ describe("verify", () => {
     const bytes = {
       ...request,
       method: "post",
-      body: new TextEncoder().encode(request.body as string),
+      body: new TextEncoder().encode(body),
     }
     expect(await verify(secret, bytes, header, now)).toBe(true)
   })

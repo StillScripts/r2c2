@@ -19,14 +19,25 @@ const toHex = (buffer: ArrayBuffer) =>
 const fromHex = (hex: string) =>
   Uint8Array.from(hex.match(/../g) ?? [], (byte) => parseInt(byte, 16))
 
-const importKey = (secret: string) =>
-  crypto.subtle.importKey(
-    "raw",
-    encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  )
+const keys = new Map<string, Promise<CryptoKey>>()
+
+function importKey(secret: string) {
+  let key = keys.get(secret)
+  if (!key) {
+    key = crypto.subtle.importKey(
+      "raw",
+      encoder.encode(secret),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign", "verify"]
+    )
+    keys.set(secret, key)
+  }
+  return key
+}
+
+const prepare = (secret: string, request: SignedRequest, timestamp: number) =>
+  Promise.all([importKey(secret), canonical(request, timestamp)])
 
 async function canonical(request: SignedRequest, timestamp: number) {
   const body =
@@ -53,11 +64,8 @@ export async function sign(
   now = Date.now()
 ): Promise<string> {
   const timestamp = nowSeconds(now)
-  const signature = await crypto.subtle.sign(
-    "HMAC",
-    await importKey(secret),
-    await canonical(request, timestamp)
-  )
+  const [key, message] = await prepare(secret, request, timestamp)
+  const signature = await crypto.subtle.sign("HMAC", key, message)
   return `t=${timestamp},v1=${toHex(signature)}`
 }
 
@@ -85,10 +93,6 @@ export async function verify(
   if (Math.abs(nowSeconds(now) - timestamp) > SIGNATURE_WINDOW_SECONDS) {
     return false
   }
-  return crypto.subtle.verify(
-    "HMAC",
-    await importKey(secret),
-    fromHex(match[2]),
-    await canonical(request, timestamp)
-  )
+  const [key, message] = await prepare(secret, request, timestamp)
+  return crypto.subtle.verify("HMAC", key, fromHex(match[2]), message)
 }

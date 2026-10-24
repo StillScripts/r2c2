@@ -2,10 +2,8 @@ const site = (siteId: string) => `sites/${siteId}`
 
 export const routeKey = (host: string) => `host:${host}`
 
-export function liveKey(siteId: string, path: string): string {
-  const page = path === "/" ? "" : `${path.slice(1)}/`
-  return `${site(siteId)}/live/${page}index.html`
-}
+export const liveKey = (siteId: string, path: string) =>
+  `${site(siteId)}/live/${path === "/" ? "" : `${path.slice(1)}/`}index.html`
 
 export const versionKey = (siteId: string, hash: string) =>
   `${site(siteId)}/versions/${hash}.html`

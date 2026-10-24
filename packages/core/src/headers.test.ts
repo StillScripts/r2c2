@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 import {
-  apiHeaders,
-  assetHeaders,
+  API_HEADERS,
+  ASSET_HEADERS,
   CSP,
   notFoundHeaders,
   pageHeaders,
@@ -38,9 +38,9 @@ describe("response headers", () => {
   })
 
   it("caches assets forever and never caches the API", () => {
-    expect(assetHeaders()).toEqual({
+    expect(ASSET_HEADERS).toEqual({
       "cache-control": "public, max-age=31536000, immutable",
     })
-    expect(apiHeaders()).toEqual({ "cache-control": "no-store" })
+    expect(API_HEADERS).toEqual({ "cache-control": "no-store" })
   })
 })

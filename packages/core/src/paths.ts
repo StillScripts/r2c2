@@ -1,13 +1,6 @@
 const TRACKING_PARAMS = new Set(["gclid", "fbclid"])
 
-export function normaliseHost(host: string): string | null {
-  if (/[/\\?#@\s]/.test(host)) return null
-  try {
-    return new URL(`http://${host}`).hostname.replace(/\.$/, "") || null
-  } catch {
-    return null
-  }
-}
+export const normaliseHost = (url: URL) => url.hostname.replace(/\.$/, "")
 
 export function normalisePath(pathname: string): string | null {
   let decoded: string
@@ -19,9 +12,7 @@ export function normalisePath(pathname: string): string | null {
   if (/[\\\0]/.test(decoded)) return null
 
   const segments = decoded.split("/").filter(Boolean)
-  if (segments.some((segment) => segment === "." || segment === "..")) {
-    return null
-  }
+  if (segments.includes(".") || segments.includes("..")) return null
   return `/${segments.join("/")}`
 }
 
