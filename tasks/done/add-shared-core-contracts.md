@@ -1,6 +1,7 @@
 ---
 title: T03 Add shared contracts
 created: 2026-10-24
+completed: 2026-10-24
 ---
 
 Build `packages/core`, the helpers and contracts the edge and backend share.
