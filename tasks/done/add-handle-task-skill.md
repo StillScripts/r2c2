@@ -1,6 +1,7 @@
 ---
 title: Add handle-task skill
 created: 2026-10-24
+completed: 2026-10-24
 ---
 
 Add a `handle-task` skill that runs one task end to end by chaining the existing skills:
