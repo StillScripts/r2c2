@@ -5,7 +5,7 @@ description: Open a draft GitHub pull request, or refresh an existing one, with 
 
 # Create PR
 
-> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files; points to `create-branch` and `commit`; title length and case match `commit`.
+> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files; pushes the branch first; points to `create-branch` and `commit`; title length and case match `commit`.
 
 Write the PR body as a cover note for reviewers, not a changelog, template,
 validation log, or file-by-file summary.
@@ -114,6 +114,12 @@ notice. Omit it when prose is clearer.
   `Refs <issue>` only links.
 
 ## Create or Update
+
+Push the branch first, so the PR (new or existing) has every local commit:
+
+```bash
+git push -u origin HEAD
+```
 
 Create new PRs as drafts. Write the body to a temporary Markdown file, then run:
 
