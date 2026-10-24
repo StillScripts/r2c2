@@ -18,6 +18,8 @@
       "Skill(find-skills *)",
       "Skill(fix-ci)",
       "Skill(fix-ci *)",
+      "Skill(handle-task)",
+      "Skill(handle-task *)",
       "Skill(task-management)",
       "Skill(task-management *)"
     ]
