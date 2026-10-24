@@ -62,7 +62,7 @@ Conventional Commits format. No fluff. Why over what.
 
 **Subject line:**
 
-- `<type>(<scope>): <imperative summary>` — `<scope>` optional: the workspace or area touched (`web`, `ui`, `skills`, `tasks`, `docs`)
+- `<type>(<scope>): <imperative summary>` — `<scope>` optional: the workspace or area touched (`loft`, `ui`, `skills`, `tasks`, `docs`)
 - Type from Sentry's list (shared with `create-branch` and `create-pr`); when unsure, `feat` for new things, `ref` for restructuring, `chore` for maintenance:
 
 | Type      | Use when                                   |
