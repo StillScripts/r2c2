@@ -1,12 +1,12 @@
 ---
 name: handle-task
-description: Run one task end to end, from task to draft PR, by chaining the project skills. Use when asked to "handle this task", "do this task end to end", "take this from task to PR", or /handle-task.
+description: Run one task end to end, from task to a PR ready for review, by chaining the project skills. Use when asked to "handle this task", "do this task end to end", "take this from task to PR", or /handle-task.
 ---
 
 # Handle Task
 
-Take one task from idea to draft PR. This skill only sets the order; each step's rules
-live in the skill it calls.
+Take one task from idea to a PR ready for review. This skill only sets the order; each
+step's rules live in the skill it calls.
 
 ## Workflow
 
@@ -46,17 +46,22 @@ looks clean. If it changed files, run `vp test` again when code changed, then `c
 those changes on their own, usually as `ref(<scope>): simplify <what>`. If it changed
 nothing, there's no commit; say so in the report.
 
-### 7. Move the task to done
-
-If the task's work is complete, move it to `done/` with `task-management` and `commit`
-that alone as `chore(tasks): complete <slug>`. If something is still outstanding (a
-follow-up in this PR, an answer from the user), leave the task in `active/` and say why.
-
-### 8. Open the PR
+### 7. Open a draft PR
 
 Run `create-pr` to push the branch and open a draft PR.
 
-### 9. Report
+### 8. Review (not yet)
+
+A review step goes here later: a person or an agent reviews the draft PR and the
+feedback is worked through. For now, go straight to step 9.
+
+### 9. Mark the PR ready
+
+Run `mark-pr-ready`. It commits the task's move to `done/` as the third commit, pushes,
+and marks the PR ready for review. If something is still outstanding (a follow-up, an
+answer from the user), leave the PR as a draft and the task in `active/`, and say why.
+
+### 10. Report
 
 Give the PR link, the commits made (work, simplify if any, task done), and anything
 left open. Then stop.
@@ -65,5 +70,5 @@ left open. Then stop.
 
 - One task per run; never commits to the default branch.
 - Doesn't watch or fix CI. If checks fail, the user runs `fix-ci` or asks for it.
-- Doesn't merge, mark the PR ready for review, or delete the branch.
+- Doesn't merge the PR or delete the branch.
 - Stops and asks whenever a called skill would.
