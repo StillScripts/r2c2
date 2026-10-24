@@ -31,3 +31,7 @@ package:
 ```tsx
 import { Button } from "@workspace/ui/components/button"
 ```
+
+## License
+
+[MIT](LICENSE)

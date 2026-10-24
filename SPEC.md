@@ -223,7 +223,7 @@ Commit `.env.example` files only. Environments: local (Convex dev deployment, `w
 
 - Run each task with the `handle-task` skill, which follows the naming conventions in `AGENTS.md`: one task, one branch, from an up-to-date `master`, and the task moves to `tasks/done/` in the same PR.
 - Small commits. List the task's "Done when" criteria in the PR as a checklist.
-- CI must pass: `vp check` and `vp test`. Squash merge. Delete the branch.
+- CI must pass: `vp check`, `vp test` and `vp run build`. Squash merge. Delete the branch.
 
 **Definition of done**
 
