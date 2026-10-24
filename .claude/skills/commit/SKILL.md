@@ -8,7 +8,7 @@ description: >
 
 # Commit
 
-> **Source:** adapted from [`juliusbrussee/caveman` › `skills/caveman-commit`](https://github.com/juliusbrussee/caveman/tree/main/skills/caveman-commit), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `caveman-commit`; now stages and commits instead of only writing the message; follows the project's attribution rule.
+> **Source:** adapted from [`juliusbrussee/caveman` › `skills/caveman-commit`](https://github.com/juliusbrussee/caveman/tree/main/skills/caveman-commit), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `caveman-commit`; now stages and commits instead of only writing the message; uses Sentry's commit types and issue keywords (as `create-branch` and `create-pr` do); follows the project's attribution rule.
 
 Stage only what belongs in this commit, write the message, and commit. Terse and exact.
 Conventional Commits format. No fluff. Why over what.
@@ -62,12 +62,29 @@ Conventional Commits format. No fluff. Why over what.
 
 **Subject line:**
 
-- `<type>(<scope>): <imperative summary>` — `<scope>` optional
-- Types: `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `chore`, `build`, `ci`, `style`, `revert`
+- `<type>(<scope>): <imperative summary>` — `<scope>` optional: the workspace or area touched (`web`, `ui`, `skills`, `tasks`, `docs`)
+- Type from Sentry's list (shared with `create-branch` and `create-pr`); when unsure, `feat` for new things, `ref` for restructuring, `chore` for maintenance:
+
+| Type      | Use when                                   |
+| --------- | ------------------------------------------ |
+| `feat`    | New functionality                          |
+| `fix`     | Broken behavior now works                  |
+| `ref`     | Behavior stays the same, structure changes |
+| `chore`   | Maintenance of existing tooling/config     |
+| `perf`    | Same behavior, faster                      |
+| `style`   | Visual or formatting only                  |
+| `docs`    | Documentation only                         |
+| `test`    | Tests only                                 |
+| `ci`      | CI/CD config                               |
+| `build`   | Build system                               |
+| `meta`    | Repo metadata                              |
+| `license` | License changes                            |
+| `revert`  | Undoes an earlier commit                   |
+
 - Imperative mood: "add", "fix", "remove" — not "added", "adds", "adding"
 - ≤50 chars when possible, hard cap 72
 - No trailing period
-- Match project convention for capitalization after the colon
+- Lowercase after the colon, unless the word is a proper noun
 
 **Body (only if needed):**
 
@@ -75,7 +92,7 @@ Conventional Commits format. No fluff. Why over what.
 - Add body only for: non-obvious _why_, breaking changes, migration notes, linked issues
 - Wrap at 72 chars
 - Bullets `-` not `*`
-- Reference issues/PRs at end: `Closes #42`, `Refs #17`
+- Reference issues/PRs at end: `Fixes #42` closes the issue, `Refs #17` only links
 
 **Trailers:**
 
@@ -104,7 +121,7 @@ Diff: new endpoint for user profile with body explaining the why
   Mobile client needs profile data without the full user payload
   to reduce LTE bandwidth on cold-launch screens.
 
-  Closes #128
+  Fixes #128
   ```
 
 Diff: breaking API change

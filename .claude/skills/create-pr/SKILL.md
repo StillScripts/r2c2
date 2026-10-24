@@ -5,7 +5,7 @@ description: Open a draft GitHub pull request, or refresh an existing one, with 
 
 # Create PR
 
-> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files.
+> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files; points to `create-branch` and `commit`; title length and case match `commit`.
 
 Write the PR body as a cover note for reviewers, not a changelog, template,
 validation log, or file-by-file summary.
@@ -31,9 +31,9 @@ git log "$BASE"..HEAD --oneline
 git diff "$BASE"...HEAD
 ```
 
-If on `main` or `master`, create a feature branch first. Ensure intended
-changes are committed and review the whole branch diff, not only the latest
-commit or existing PR text.
+If on `main` or `master`, create a feature branch first with the `create-branch`
+skill. Ensure intended changes are committed (the `commit` skill) and review the
+whole branch diff, not only the latest commit or existing PR text.
 
 ## Core Rules
 
@@ -59,6 +59,8 @@ Allowed types: `feat`, `fix`, `ref`, `perf`, `docs`, `test`, `build`,
   affected surface in the body.
 - Avoid vague subjects such as `update`, `cleanup`, `misc`, `fix stuff`,
   or `address feedback`. Do not add a trailing period.
+- Lowercase after the colon unless the word is a proper noun; keep the whole
+  title within 72 characters.
 - Keep an existing title only when it still describes the whole diff.
 
 ## Body Shape

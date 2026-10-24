@@ -1,7 +1,6 @@
 ---
 name: task-management
 description: File-per-task tracking in a tasks/ folder where status is the parent folder. Reference this when the user asks about their tasks, wants to add/complete tasks, or needs help tracking commitments.
-user-invocable: false
 ---
 
 # Task Management
@@ -10,7 +9,7 @@ Tasks are tracked as **one markdown file per task** under a `tasks/` folder at t
 root. A task's **status is its parent folder**, so changing status is a file move, not a
 text edit.
 
-> **Source:** adapted from [`anthropics/knowledge-work-plugins` › `productivity/skills/task-management`](https://github.com/anthropics/knowledge-work-plugins/tree/main/productivity/skills/task-management), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** one file per task in status folders instead of a single `TASKS.md`; `plan:` links; dashboard reworked for the folder layout. Arrived by way of [`StillScripts/now`](https://github.com/StillScripts/now).
+> **Source:** adapted from [`anthropics/knowledge-work-plugins` › `productivity/skills/task-management`](https://github.com/anthropics/knowledge-work-plugins/tree/main/productivity/skills/task-management), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** one file per task in status folders instead of a single `TASKS.md`; `plan:` links; dashboard reworked for the folder layout, and its slugs follow the shared slug rule. Arrived by way of [`StillScripts/now`](https://github.com/StillScripts/now).
 
 ## Layout
 
@@ -29,8 +28,10 @@ tasks/
 
 ## Task file
 
-`tasks/<status>/<slug>.md`, where `<slug>` is the kebab-case task slug. The slug is the
-task's canonical id; reuse it for the branch name (`<type>/<slug>`) and any related docs.
+`tasks/<status>/<slug>.md`, where `<slug>` is the task's canonical id: kebab-case, ASCII,
+3–6 words, no leading articles (e.g. `add-dark-mode-toggle`). The same slug names its plan
+(`docs/plans/<slug>.md`) and branch (`<type>/<slug>`), so it must read cleanly as a branch
+name. If the slug is taken, pick a more specific one rather than overwriting.
 
 ```markdown
 ---

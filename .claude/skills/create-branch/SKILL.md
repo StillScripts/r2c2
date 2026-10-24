@@ -6,7 +6,7 @@ argument-hint: "[optional description of the work]"
 
 # Create Branch
 
-> **Source:** adapted from [`getsentry/skills` › `skills/create-branch`](https://github.com/getsentry/skills/tree/main/skills/create-branch), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** none; kept as upstream.
+> **Source:** adapted from [`getsentry/skills` › `skills/create-branch`](https://github.com/getsentry/skills/tree/main/skills/create-branch), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** uses the Active task's slug when there is one; adds `revert`; asks GitHub for the default branch before guessing `main`.
 
 Create a git branch following Sentry naming conventions.
 Keep this workflow non-interactive unless the user explicitly asks to choose the name manually.
@@ -15,6 +15,9 @@ Keep this workflow non-interactive unless the user explicitly asks to choose the
 
 1. Resolve the work description:
    - If `$ARGUMENTS` is present, use it
+   - Otherwise, if exactly one task file sits in `tasks/active/` (ignoring `.gitkeep`), use
+     its filename as the description, unchanged: the task slug is shared by the task, its
+     plan, and its branch
    - Otherwise inspect:
      ```bash
      git diff
@@ -40,6 +43,7 @@ Keep this workflow non-interactive unless the user explicitly asks to choose the
 | `build`   | Build system                               |
 | `meta`    | Repo metadata                              |
 | `license` | License changes                            |
+| `revert`  | Undoes an earlier commit                   |
 
 When unsure: use `feat` for new things, `ref` for restructuring, `chore` for maintenance.
 
@@ -53,7 +57,9 @@ When unsure: use `feat` for new things, `ref` for restructuring, `chore` for mai
    git remote | grep -qx origin && echo origin || git remote | head -1
    git symbolic-ref refs/remotes/<remote>/HEAD 2>/dev/null | sed 's|refs/remotes/<remote>/||' | tr -d '[:space:]'
    ```
-   - If default branch detection fails, fall back to `main`, then `master`, then the current branch
+   - If that prints nothing (the clone never recorded the remote's default), ask GitHub:
+     `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`
+   - If that fails too, use whichever of `main` or `master` exists locally, else the current branch
    - If on a detached HEAD, branch from the current commit
    - If already on a non-default branch, branch from the current branch
    - Only switch to the default branch when the user explicitly asks

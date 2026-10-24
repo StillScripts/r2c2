@@ -73,8 +73,8 @@ matching task file's `plan:` line.
 title: <Human readable title, matching the task's title if there is one>
 depth: simple | detailed
 created: YYYY-MM-DD
-decisions: # detailed only, and only once an ADR exists
-  - docs/decisions/ADR-001-<title>.md
+decisions: # only once an ADR exists
+  - docs/decisions/ADR-001-<kebab-title>.md
 ---
 ```
 
@@ -165,7 +165,7 @@ Drop any section that would only say "none".
 ## Decisions
 
 When a plan settles something expensive to reverse (a library or framework, a data
-model, auth, hosting, a public API contract), list it under **Decisions** as
+model, auth, hosting, a public API contract, a repo-wide convention), list it under **Decisions** as
 `Needs ADR: <decision>`. Recording it is the `document-decisions` skill's job; once
 the ADR exists, replace the line with a link and add its path to `decisions:` in the
 frontmatter. Plans say _what we'll do_; ADRs say _why we chose it_ and outlive the plan.

@@ -5,13 +5,13 @@ description: "Use when a user asks to debug or fix failing GitHub PR checks that
 
 # Fix CI
 
-> **Source:** adapted from [`openai/skills` › `skills/.curated/gh-fix-ci`](https://github.com/openai/skills/tree/main/skills/.curated/gh-fix-ci), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `gh-fix-ci`; `python` → `python3` (macOS has no `python`); dropped Codex-only `agents/` and `assets/`.
+> **Source:** adapted from [`openai/skills` › `skills/.curated/gh-fix-ci`](https://github.com/openai/skills/tree/main/skills/.curated/gh-fix-ci), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `gh-fix-ci`; `python` → `python3` (macOS has no `python`); dropped Codex-only `agents/` and `assets/`; plans inline instead of writing a plan file; commits with the `commit` skill and pushes to the PR branch; checks with `vp`.
 
 ## Overview
 
 Use gh to locate failing PR checks, fetch GitHub Actions logs for actionable failures, summarize the failure snippet, then propose a fix plan and implement after explicit approval.
 
-- If a plan-oriented skill (for example `create-plan`) is available, use it; otherwise draft a concise plan inline and request approval before implementing.
+- Draft the fix plan inline in `create-plan`'s simple format (scope + checklist), but don't write a file to `docs/plans/`: a CI fix belongs to the PR's existing task. Request approval before implementing.
 
 Prereq: authenticate with the standard GitHub CLI once (for example, run `gh auth login`), then confirm with `gh auth status` (repo + workflow scopes are typically required).
 
@@ -53,11 +53,13 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
    - Provide the failing check name, run URL (if any), and a concise log snippet.
    - Call out missing logs explicitly.
 6. Create a plan.
-   - Use the `create-plan` skill to draft a concise plan and request approval.
+   - Draft it inline in `create-plan`'s simple format and request approval.
 7. Implement after approval.
-   - Apply the approved plan, summarize diffs/tests, and ask about opening a PR.
+   - Apply the approved plan and run `vp check` and `vp test` locally.
+   - Commit with the `commit` skill (usually `fix` or `ci`) and push to the PR's branch.
+     Don't open a new PR.
 8. Recheck status.
-   - After changes, suggest re-running the relevant tests and `gh pr checks` to confirm.
+   - Run `gh pr checks` until the checks finish, and repeat from step 3 if any still fail.
 
 ## Bundled Resources
 

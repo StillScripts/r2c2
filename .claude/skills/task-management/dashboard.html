@@ -1445,11 +1445,17 @@
         return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`
       }
 
+      // shared slug rule (task-management SKILL.md): kebab-case ASCII, no leading
+      // article, at most 6 words, so the slug also works as a branch name
       function slugify(text) {
         return text
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-|-$/g, "")
+          .replace(/^(the|a|an)-/, "")
+          .split("-")
+          .slice(0, 6)
+          .join("-")
       }
 
       function colName(id) {

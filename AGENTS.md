@@ -79,6 +79,13 @@ The task slug is the shared id: a task, its plan, and its branch all use the sam
 - Plans and ADRs link both ways: an ADR from a plan lists it under `## Related`, and the plan lists the ADR under `decisions:` and in its `## Decisions` section.
 - Write `vp` commands (e.g. `vp check`, `vp test`, `vp run <script>`) rather than `npm`/`pnpm` ones in docs, READMEs, and plans.
 
-# Commits
+# Naming Conventions
 
-Every commit an agent writes ends with a `Co-Authored-By: <model name> <noreply@anthropic.com>` trailer naming the model, so commits can later be charted by model.
+Sentry's conventions are the reference ([ADR-002](docs/decisions/ADR-002-use-sentry-naming-conventions.md)). `create-branch`, `commit`, and `create-pr` all use them.
+
+- **Types:** `feat`, `fix`, `ref`, `perf`, `docs`, `test`, `build`, `ci`, `chore`, `style`, `meta`, `license`, `revert`. Use `ref` for restructuring, not `refactor`.
+- **Slugs:** kebab-case ASCII, 3–6 words, no leading article. One slug names a task, its plan, and its branch.
+- **Branches:** `<type>/<slug>`, with no username prefix.
+- **Commit subjects and PR titles:** `<type>(<scope>): <summary>`. The scope is optional and names the workspace or area (`web`, `ui`, `skills`, `tasks`, `docs`). Imperative mood, lowercase after the colon, no trailing period, at most 72 characters. Add `!` only for a breaking change and explain it in the body.
+- **Issue references:** `Fixes #N` closes an issue; `Refs #N` only links it.
+- **Attribution:** every commit an agent writes ends with a `Co-Authored-By: <model name> <noreply@anthropic.com>` trailer naming the model, so commits can later be charted by model.
