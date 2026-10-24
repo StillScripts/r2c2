@@ -10,6 +10,8 @@
       "Skill(create-plan *)",
       "Skill(create-pr)",
       "Skill(create-pr *)",
+      "Skill(create-task)",
+      "Skill(create-task *)",
       "Skill(document-decisions)",
       "Skill(document-decisions *)",
       "Skill(find-skills)",

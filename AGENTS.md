@@ -34,7 +34,8 @@ release. Add a tool name to select part of the graph. For example, run
 
 Use these project skills (in `.claude/skills/`) for each step:
 
-- `task-management`: track tasks in `tasks/`.
+- `create-task`: create a task in `tasks/<status>/<slug>.md`.
+- `task-management`: track and move tasks in `tasks/`.
 - `create-plan`: plan a task in `docs/plans/<slug>.md`.
 - `document-decisions`: record a decision as an ADR in `docs/decisions/`.
 - `create-branch`: create a branch.

@@ -96,10 +96,8 @@ The task board:
 
 **"add a task" / "remind me to":**
 
-- Create `tasks/someday/<slug>.md` (or `active/` if starting now, after the one-active
-  check) with the frontmatter above.
-- Include context in the body if provided.
-- If a plan for the same slug already exists in `docs/plans/`, add the `plan:` line.
+- Use the `create-task` skill. It picks the status, applies the one-active check, and
+  links any plan or decision.
 
 **"done with X" / "finished X":**
 
@@ -120,4 +118,4 @@ The task board:
 ## Extracting Tasks
 
 When summarizing meetings or conversations, offer to add extracted tasks (commitments,
-action items, follow-ups) as files in `tasks/someday/`. Ask before adding; don't auto-add.
+action items, follow-ups) with `create-task`. Ask before adding; don't auto-add.
