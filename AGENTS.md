@@ -43,6 +43,7 @@ npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
 - Do not pass `-g`; skills belong to this project, not the user's global config.
 - Commit both `.claude/skills/<skill-name>/` and the updated `skills-lock.json`.
 - If you customise an installed skill, remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite your changes (e.g. `task-management`).
+- `create-plan` was copied by hand from `openai/skills` at commit `a5119697` (`skills/.experimental/create-plan`), because upstream has since removed it. It is not in `skills-lock.json`. `gh-fix-ci` relies on it.
 
 # Task Tracking
 
