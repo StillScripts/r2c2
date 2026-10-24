@@ -1,6 +1,7 @@
 ---
 title: T01 Initialise the monorepo
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/initialise-vite-plus-monorepo.md
 ---
 
