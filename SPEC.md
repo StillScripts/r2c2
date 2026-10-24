@@ -70,7 +70,7 @@ sanitize-html: 2.18.1
 Known compatibility notes:
 
 - `pnpm-workspace.yaml` needs `overrides: { "vite@*": "npm:@voidzero-dev/vite-plus-core@1.4.0" }`, `peerDependencyRules.allowedVersions: { vite: "*", "better-auth>vitest": "5" }` and `allowBuilds: { esbuild: true }`. pnpm 11+ ignores the `pnpm` field in `package.json`.
-- `@cloudflare/vitest-pool-workers` requires Vitest 4, while Vite+ bundles Vitest 5. Keep Worker logic in `packages/core` as pure functions tested with `vp test`, and give `apps/edge` its own pinned Vitest 4 for runtime tests until the pool supports 5.
+- `@cloudflare/vitest-pool-workers` is deprecated and renamed `@cloudflare/vitest-plugin`, which supports Vitest 5. `apps/edge` runs its Workers runtime tests through that plugin under `vp test`, alongside everything else. Keep Worker logic in `packages/core` as pure functions where possible.
 
 ## 3. Repo layout
 
