@@ -176,7 +176,7 @@ Good items:
 
 - Are verb-first and atomic: "Add…", "Refactor…", "Verify…".
 - Run in order: discovery → changes → tests → rollout.
-- Point to likely files or modules: `apps/web/src/routes/...`, `packages/ui/...`.
+- Point to likely files or modules: `apps/loft/src/routes/...`, `packages/ui/...`.
 - Name concrete validation: "Run `vp check` and `vp test`", "Add a test for X".
 - Include at least one item for tests and one for edge cases or risk when relevant.
 
