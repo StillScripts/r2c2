@@ -24,7 +24,6 @@ export default defineConfig({
     ignorePatterns: [
       "dist/",
       "node_modules/",
-      ".turbo/",
       ".output/",
       ".nitro/",
       ".tanstack/",
@@ -32,6 +31,11 @@ export default defineConfig({
       "coverage/",
       "pnpm-lock.yaml",
       ".pnpm-store/",
+      "apps/loft/src/routeTree.gen.ts",
     ],
+  },
+  test: {
+    projects: ["apps/*", "packages/*"],
+    passWithNoTests: true,
   },
 })

@@ -12,8 +12,6 @@ dist-ssr
 __unconfig*
 todos.json
 
-# turbo
-.turbo
 
 # typescript
 *.tsbuildinfo
