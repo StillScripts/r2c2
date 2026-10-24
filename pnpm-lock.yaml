@@ -275,9 +275,6 @@ importers:
       '@vitejs/plugin-react':
         specifier: 'catalog:'
         version: 6.1.2(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
       vite:
         specifier: 'catalog:'
         version: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)'
@@ -285,29 +282,13 @@ importers:
         specifier: 'catalog:'
         version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
 
-  packages/backend:
-    devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
+  packages/backend: {}
 
-  packages/core:
-    devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
+  packages/core: {}
 
-  packages/elements:
-    devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
+  packages/elements: {}
 
-  packages/html:
-    devDependencies:
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
+  packages/html: {}
 
   packages/ui:
     dependencies:
@@ -339,12 +320,6 @@ importers:
         specifier: 'catalog:'
         version: 1.4.0
     devDependencies:
-      '@tailwindcss/vite':
-        specifier: 'catalog:'
-        version: 4.3.3(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))
-      '@types/node':
-        specifier: 'catalog:'
-        version: 24.19.2
       '@types/react':
         specifier: 'catalog:'
         version: 19.3.0
@@ -354,9 +329,6 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
-      typescript:
-        specifier: 'catalog:'
-        version: 7.0.2
 
 packages:
 

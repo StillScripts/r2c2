@@ -11,7 +11,7 @@ vp install   # install every workspace package
 vp run dev   # start the Loft
 vp check     # format, lint and type check the whole repo
 vp test      # run every package's tests
-vp run build # build every package that has a build script
+vp run build # build every app
 ```
 
 Versions are pinned once, in the `catalog` in `pnpm-workspace.yaml`; packages depend on

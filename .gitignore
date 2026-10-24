@@ -8,10 +8,8 @@ dist-ssr
 .tanstack
 .wrangler
 .output
-.vinxi
 __unconfig*
 todos.json
-
 
 # typescript
 *.tsbuildinfo
