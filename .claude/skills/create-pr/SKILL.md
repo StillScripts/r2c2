@@ -5,10 +5,11 @@ description: Open a draft GitHub pull request, or refresh an existing one, with 
 
 # Create PR
 
-> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files; pushes the branch first; points to `create-branch` and `commit`; title length and case match `commit`.
+> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files; pushes the branch first; points to `create-branch` and `commit`; title length and case match `commit`; the body follows a fixed template with "What does it do?" and "Why?" sections.
 
-Write the PR body as a cover note for reviewers, not a changelog, template,
-validation log, or file-by-file summary.
+Write the PR body as a cover note for reviewers, not a changelog, validation
+log, or file-by-file summary. It always uses the template under
+[Body Template](#body-template).
 
 ## Inspect the Change
 
@@ -39,7 +40,7 @@ whole branch diff, not only the latest commit or existing PR text.
 
 - Describe concrete changed behavior, affected surfaces, and reviewer impact
   before implementation detail.
-- Explain motivation, risk, tradeoffs, migration, or review focus only when
+- Put motivation under "Why?"; explain risk, tradeoffs, or migration only when
   useful.
 - Use the smallest structure that makes the change easier to review.
 - Replace internal prompt or process terminology with specific behavior.
@@ -63,28 +64,42 @@ Allowed types: `feat`, `fix`, `ref`, `perf`, `docs`, `test`, `build`,
   title within 72 characters.
 - Keep an existing title only when it still describes the whole diff.
 
-## Body Shape
+## Body Template
+
+Every PR body has exactly these two sections, in this order:
+
+```markdown
+## What does it do?
+
+<What changed and what effect it has, shaped by the table below.>
+
+## Why?
+
+<Why the change is needed.>
+```
+
+### What does it do?
 
 Choose the minimum useful shape:
 
 | Change                                    | Include                                                                                                                   |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Small or obvious                          | One concise paragraph without headings.                                                                                   |
+| Small or obvious                          | One concise paragraph.                                                                                                    |
 | Feature, bug fix, or refactor             | Changed behavior and effect; add root cause, unchanged behavior, or non-obvious approach when relevant.                   |
 | Contract or breaking change               | Affected API, schema, payload, config, permission, storage, or CLI surface; include compatibility and migration guidance. |
 | Operational, visual, or workflow change   | User/operator effect, measured impact, failure modes, or flow when useful.                                                |
-| Broad, generated, or cross-cutting change | Organizing principle, why the breadth is necessary, and where review should start.                                        |
-
-Default:
-
-```markdown
-<What changed and what effect it has.>
-
-<Why the approach, risk, migration, or review focus matters, if not obvious.>
-```
+| Broad, generated, or cross-cutting change | Organizing principle and why the breadth is necessary.                                                                    |
 
 For review-feedback updates, describe the resulting PR as a whole rather than
 the sequence of revisions.
+
+### Why?
+
+- One plain sentence when the reason is simple or the task says it all.
+- Go deeper when the branch has a plan (`docs/plans/<slug>.md`) or records an
+  ADR (`docs/decisions/ADR-NNN-*.md`): summarise the reasoning in a few
+  sentences and link the file that holds the rest.
+- Explain the reason for the change, not how to test or review it.
 
 ## Reviewer Aids
 
@@ -93,15 +108,16 @@ Use an aid only when it reduces reviewer reconstruction work:
 - A compact before/after or interface example for changed contracts.
 - A small Mermaid diagram for async flows or state transitions.
 - A screenshot or recording note when visual evidence exists.
-- A rollout, compatibility, risk, or review-order note when reviewers or
-  adopters need it.
+- A rollout, compatibility, or risk note when adopters need it.
 
 Introduce an artifact with one sentence explaining what reviewers should
 notice. Omit it when prose is clearer.
 
 ## Boundaries
 
-- Do not add default `Summary`, `Changes`, or `Test Plan` sections.
+- Use only the two template headings: no `Summary`, `Changes`, or `Test Plan`
+  sections.
+- Do not tell reviewers how to test or what to look for; it biases the review.
 - Omit routine validation unless it changes risk assessment or explains
   meaningful regression coverage. For docs, skills, copy, or config changes,
   omit it by default.
@@ -136,7 +152,7 @@ gh api -X PATCH repos/{owner}/{repo}/pulls/PR_NUMBER \
 ```
 
 Refresh the title and body when follow-up commits materially change scope,
-approach, breaking behavior, risk, migration, or review expectations. Skip
+approach, breaking behavior, risk, migration, or reasoning. Skip
 typo-only, formatting-only, and rename-only follow-ups.
 
 ## Examples
@@ -144,14 +160,21 @@ typo-only, formatting-only, and rename-only follow-ups.
 Small change:
 
 ```markdown
-The AI Customizations section now starts collapsed so it does not consume
-sidebar space before users need it. Expanding it preserves the existing saved
-preference behavior.
+## What does it do?
+
+The AI Customizations section now starts collapsed. Expanding it preserves the
+existing saved preference behavior.
+
+## Why?
+
+It took up sidebar space before users needed it.
 ```
 
 Breaking contract:
 
 ````markdown
+## What does it do?
+
 Run logs now emit chunk-level records instead of one skill-level record.
 Consumers that read top-level `findings` must iterate over
 `chunk.findings` for each record.
@@ -167,4 +190,10 @@ After:
 ```json
 {"schemaVersion": 1, "chunk": {"index": 1, "findings": [...]}}
 ```
+
+## Why?
+
+Large reviews are split into chunks, and one record per skill hid which chunk
+a finding came from. The trade-offs are in
+[ADR-007](docs/decisions/ADR-007-chunk-level-run-logs.md).
 ````
