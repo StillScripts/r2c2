@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "r2c2-edge",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-19",
+  "cache": { "enabled": true },
+  // Create once with an Oceania location hint:
+  // wrangler r2 bucket create r2c2-sites --location oc
+  "r2_buckets": [{ "binding": "SITES", "bucket_name": "r2c2-sites" }],
+  "kv_namespaces": [{ "binding": "ROUTES" }],
+}
