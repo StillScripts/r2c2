@@ -7,7 +7,8 @@ Build `packages/core`, the helpers and contracts the edge and backend share.
 
 - Host and path normalisation, tracking-param stripping, R2 key helpers, routing entry types, header builders, cache tag helpers
 - Request signing: `sign()` and `verify()` with Web Crypto, 60-second window
-- zod schema for the enquiry API
+- zod schema for the enquiry API (add `zod` to the catalog)
+- Remove `passWithNoTests` from the root `vite.config.ts` once these tests exist
 
 Done when unit tests cover every path rule, key helper and signing case, including expired and tampered signatures.
 

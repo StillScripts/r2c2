@@ -1,20 +1,32 @@
-# shadcn/ui monorepo template
+# R2C2
 
-This is a TanStack Start monorepo template with shadcn/ui.
+React + R2, Convex + Cloudflare. See `SPEC.md` for what we're building and `tasks/` for the work.
+
+## Getting started
+
+Needs Node 24 and [Vite+](https://viteplus.dev/guide/) (`vp`), which manages pnpm for you.
+
+```bash
+vp install   # install every workspace package
+vp run dev   # start the Loft
+vp check     # format, lint and type check the whole repo
+vp test      # run every package's tests
+vp run build # build every app
+```
+
+Versions are pinned once, in the `catalog` in `pnpm-workspace.yaml`; packages depend on
+`catalog:`. Internal packages ship as source and are used with `workspace:*`.
 
 ## Adding components
 
-To add components to your app, run the following command from the repo root:
+To add shadcn components for the Loft, run this from the repo root:
 
 ```bash
 vp dlx shadcn@latest add button -c apps/loft
 ```
 
-This will place the ui components in the `packages/ui/src/components` directory.
-
-## Using components
-
-To use the components in your app, import them from the `ui` package.
+This puts the components in `packages/ui/src/components`. Import them from the `ui`
+package:
 
 ```tsx
 import { Button } from "@workspace/ui/components/button"

@@ -21,17 +21,10 @@ export default defineConfig({
       stylesheet: "packages/ui/src/styles/globals.css",
       functions: ["cn", "cva"],
     },
-    ignorePatterns: [
-      "dist/",
-      "node_modules/",
-      ".turbo/",
-      ".output/",
-      ".nitro/",
-      ".tanstack/",
-      ".vinxi/",
-      "coverage/",
-      "pnpm-lock.yaml",
-      ".pnpm-store/",
-    ],
+    ignorePatterns: ["pnpm-lock.yaml", "**/*.gen.ts"],
+  },
+  test: {
+    projects: ["apps/*", "packages/*"],
+    passWithNoTests: true,
   },
 })

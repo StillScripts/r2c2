@@ -1,6 +1,8 @@
 ---
 title: T01 Initialise the monorepo
 created: 2026-10-24
+completed: 2026-10-25
+plan: docs/plans/initialise-vite-plus-monorepo.md
 ---
 
 Set up the workspace every other task builds on. The repo already has a Vite+ workspace (pnpm 11, turbo scripts, `apps/loft`, `packages/ui`); bring it in line with SPEC §2 and §3, including exact pins for the Loft's `latest` and TypeScript 6 dependencies.
