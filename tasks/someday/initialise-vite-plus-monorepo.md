@@ -3,7 +3,7 @@ title: T01 Initialise the monorepo
 created: 2026-10-24
 ---
 
-Set up the workspace every other task builds on. The repo already has a Vite+ workspace (pnpm 11, turbo scripts, `apps/web`, `packages/ui`); bring it in line with SPEC §2 and §3, and settle whether `apps/web` becomes `apps/loft`.
+Set up the workspace every other task builds on. The repo already has a Vite+ workspace (pnpm 11, turbo scripts, `apps/loft`, `packages/ui`); bring it in line with SPEC §2 and §3, including exact pins for the Loft's `latest` and TypeScript 6 dependencies.
 
 - pnpm 12 workspace with the catalog, overrides, peer rules and `allowBuilds` from SPEC §2
 - Root `vite.config.ts` (Vite+) with lint, format and test projects; base `tsconfig.json`; `.gitignore`; Node 24 in `engines`
