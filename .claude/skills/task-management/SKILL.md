@@ -10,9 +10,7 @@ Tasks are tracked as **one markdown file per task** under a `tasks/` folder at t
 root. A task's **status is its parent folder**, so changing status is a file move, not a
 text edit.
 
-Adapted from `anthropics/knowledge-work-plugins` `task-management`, which used a single
-`TASKS.md`. This version is not listed in `skills-lock.json`, so `npx skills update` won't
-overwrite it.
+> **Source:** adapted from [`anthropics/knowledge-work-plugins` › `productivity/skills/task-management`](https://github.com/anthropics/knowledge-work-plugins/tree/main/productivity/skills/task-management), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** one file per task in status folders instead of a single `TASKS.md`; `plan:` links; dashboard reworked for the folder layout. Arrived by way of [`StillScripts/now`](https://github.com/StillScripts/now).
 
 ## Layout
 

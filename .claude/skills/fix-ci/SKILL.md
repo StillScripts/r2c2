@@ -1,9 +1,11 @@
 ---
-name: "gh-fix-ci"
+name: fix-ci
 description: "Use when a user asks to debug or fix failing GitHub PR checks that run in GitHub Actions; use `gh` to inspect checks and logs, summarize failure context, draft a fix plan, and implement only after explicit approval. Treat external providers (for example Buildkite) as out of scope and report only the details URL."
 ---
 
-# Gh Pr Checks Plan Fix
+# Fix CI
+
+> **Source:** adapted from [`openai/skills` › `skills/.curated/gh-fix-ci`](https://github.com/openai/skills/tree/main/skills/.curated/gh-fix-ci), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `gh-fix-ci`; `python` → `python3` (macOS has no `python`); dropped Codex-only `agents/` and `assets/`.
 
 ## Overview
 
@@ -21,7 +23,7 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
 
 ## Quick start
 
-- `python "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
+- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
 - Add `--json` if you want machine-friendly output for summarization.
 
 ## Workflow
@@ -34,7 +36,7 @@ Prereq: authenticate with the standard GitHub CLI once (for example, run `gh aut
    - If the user provides a PR number or URL, use that directly.
 3. Inspect failing checks (GitHub Actions only).
    - Preferred: run the bundled script (handles gh field drift and job-log fallbacks):
-     - `python "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
+     - `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "<number-or-url>"`
      - Add `--json` for machine-friendly output.
    - Manual fallback:
      - `gh pr checks <pr> --json name,state,bucket,link,startedAt,completedAt,workflow`
@@ -65,6 +67,6 @@ Fetch failing PR checks, pull GitHub Actions logs, and extract a failure snippet
 
 Usage examples:
 
-- `python "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "123"`
-- `python "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "https://github.com/org/repo/pull/123" --json`
-- `python "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --max-lines 200 --context 40`
+- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "123"`
+- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --pr "https://github.com/org/repo/pull/123" --json`
+- `python3 "<path-to-skill>/scripts/inspect_pr_checks.py" --repo "." --max-lines 200 --context 40`

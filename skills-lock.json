@@ -1,41 +1,11 @@
 {
   "version": 1,
   "skills": {
-    "caveman-commit": {
-      "source": "juliusbrussee/caveman",
-      "sourceType": "github",
-      "skillPath": "skills/caveman-commit/SKILL.md",
-      "computedHash": "b416cf134b0f33ddadeca7977aebdbb2d3db79a166d0fce2e1aabeec98132766"
-    },
-    "create-branch": {
-      "source": "getsentry/skills",
-      "sourceType": "github",
-      "skillPath": "skills/create-branch/SKILL.md",
-      "computedHash": "95d14cb86e62d5d65c45bede5dc317ecfc18ff977df73871c3165585b24753d8"
-    },
-    "documentation-and-adrs": {
-      "source": "addyosmani/agent-skills",
-      "sourceType": "github",
-      "skillPath": "skills/documentation-and-adrs/SKILL.md",
-      "computedHash": "f1bd038e74194364c1dcdb3dd0a72194ffd3ca9d3a103c125ca1a62e801a0cc4"
-    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "b146008599c31057cef1c145774cea5d5afb30e8f43fa802e47a4b461419aaaf"
-    },
-    "gh-fix-ci": {
-      "source": "openai/skills",
-      "sourceType": "github",
-      "skillPath": "skills/.curated/gh-fix-ci/SKILL.md",
-      "computedHash": "1b1ce4eeeae2bfc175d05f1b69e07b17dfa1fddf99a96c22b6dcae7e5fb4e550"
-    },
-    "pr-writer": {
-      "source": "getsentry/skills",
-      "sourceType": "github",
-      "skillPath": "skills/pr-writer/SKILL.md",
-      "computedHash": "861743a9584737e2c7d824df27efaa8137bf94dbbdc55d8a4a65c585d9f831e7"
     }
   }
 }

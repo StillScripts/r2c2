@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Skill(commit)",
+      "Skill(commit *)",
+      "Skill(create-branch)",
+      "Skill(create-branch *)",
+      "Skill(create-plan)",
+      "Skill(create-plan *)",
+      "Skill(create-pr)",
+      "Skill(create-pr *)",
+      "Skill(document-decisions)",
+      "Skill(document-decisions *)",
+      "Skill(find-skills)",
+      "Skill(find-skills *)",
+      "Skill(fix-ci)",
+      "Skill(fix-ci *)",
+      "Skill(task-management)",
+      "Skill(task-management *)"
+    ]
+  }
+}

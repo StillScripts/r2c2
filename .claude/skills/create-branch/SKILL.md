@@ -6,6 +6,8 @@ argument-hint: "[optional description of the work]"
 
 # Create Branch
 
+> **Source:** adapted from [`getsentry/skills` › `skills/create-branch`](https://github.com/getsentry/skills/tree/main/skills/create-branch), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** none; kept as upstream.
+
 Create a git branch following Sentry naming conventions.
 Keep this workflow non-interactive unless the user explicitly asks to choose the name manually.
 

@@ -7,8 +7,7 @@ metadata:
 
 # Create Plan
 
-Adapted from `openai/skills` `create-plan` (Apache-2.0, commit `a5119697`). Changed to save
-plans as files, add a detailed depth, and run a reader test. Not in `skills-lock.json`.
+> **Source:** adapted from [`openai/skills` › `skills/.experimental/create-plan`](https://github.com/openai/skills/tree/a5119697b819090e00e5d11ee1d86834d7c1043a/skills/.experimental/create-plan), at commit `a5119697` (since removed upstream) (Apache-2.0, see `LICENSE.txt`). **Changes:** saves plans to `docs/plans/`, adds a detailed depth and a reader test.
 
 ## Goal
 
@@ -167,7 +166,7 @@ Drop any section that would only say "none".
 
 When a plan settles something expensive to reverse (a library or framework, a data
 model, auth, hosting, a public API contract), list it under **Decisions** as
-`Needs ADR: <decision>`. Recording it is the `documentation-and-adrs` skill's job; once
+`Needs ADR: <decision>`. Recording it is the `document-decisions` skill's job; once
 the ADR exists, replace the line with a link and add its path to `decisions:` in the
 frontmatter. Plans say _what we'll do_; ADRs say _why we chose it_ and outlive the plan.
 

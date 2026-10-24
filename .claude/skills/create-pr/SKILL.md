@@ -1,9 +1,11 @@
 ---
-name: pr-writer
-description: Create or refresh reviewer-facing PR titles and descriptions. Use when opening a PR, updating its title or body, or preparing branch changes for review.
+name: create-pr
+description: Open a draft GitHub pull request, or refresh an existing one, with a reviewer-facing title and description. Use when asked to "create a PR", "open a PR", update a PR's title or body, or prepare branch changes for review.
 ---
 
-# PR Writer
+# Create PR
+
+> **Source:** adapted from [`getsentry/skills` › `skills/pr-writer`](https://github.com/getsentry/skills/tree/main/skills/pr-writer), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** renamed from `pr-writer`; dropped upstream eval files.
 
 Write the PR body as a cover note for reviewers, not a changelog, template,
 validation log, or file-by-file summary.

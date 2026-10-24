@@ -30,6 +30,21 @@ release. Add a tool name to select part of the graph. For example, run
 
 <!--VITE PLUS END-->
 
+# Skills
+
+Use these project skills (in `.claude/skills/`) for each step:
+
+- `task-management`: track tasks in `tasks/`.
+- `create-plan`: plan a task in `docs/plans/<slug>.md`.
+- `document-decisions`: record a decision as an ADR in `docs/decisions/`.
+- `create-branch`: create a branch.
+- `commit`: stage the right changes and commit.
+- `create-pr`: open or update a pull request.
+- `fix-ci`: fix failing GitHub Actions checks on a PR.
+- `find-skills`: find and install new skills.
+
+`.claude/settings.json` allows all of them to run without a permission prompt; add new skills there too.
+
 # Installing Agent Skills
 
 Install skills from [skills.sh](https://skills.sh) at project level for Claude Code only, copying the files into `.claude/skills/`:
@@ -42,8 +57,14 @@ npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
 - `--copy` writes real files into `.claude/skills/` instead of symlinks.
 - Do not pass `-g`; skills belong to this project, not the user's global config.
 - Commit both `.claude/skills/<skill-name>/` and the updated `skills-lock.json`.
-- If you customise an installed skill, remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite your changes (e.g. `task-management`).
-- `create-plan` was copied by hand from `openai/skills` at commit `a5119697` (`skills/.experimental/create-plan`), because upstream has since removed it, and has since been adapted for this repo. It is not in `skills-lock.json`. `gh-fix-ci` relies on it.
+
+## Adapting a skill
+
+Skills here are usually adapted from others and renamed to short verb-first names. When you change or rename one (see [ADR-001](docs/decisions/ADR-001-adopt-and-adapt-agent-skills.md)):
+
+- Remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite it. Only unmodified skills stay in the lock file (currently just `find-skills`).
+- Credit the original right under the skill's heading with one line: ``> **Source:** adapted from [`owner/repo` › `path`](link), copied <date> (<licence>, see `LICENSE.txt`). **Changes:** <what changed>.``
+- Copy the source repository's licence into the skill folder as `LICENSE.txt`.
 
 # Task Tracking
 
@@ -54,6 +75,10 @@ Track work as one markdown file per task under `tasks/<status>/<slug>.md`, where
 The task slug is the shared id: a task, its plan, and its branch all use the same `<slug>`.
 
 - **Plans** live at `docs/plans/<slug>.md`, written by the `create-plan` skill. Frontmatter is `title`, `depth` (`simple` or `detailed`) and `created`, plus `decisions` once a plan has ADRs. A task links to its plan with `plan: docs/plans/<slug>.md`. Small tasks need no plan. Keep a plan up to date if the work diverges from it.
-- **Decisions** are ADRs at `docs/decisions/ADR-NNN-<kebab-title>.md` (e.g. `ADR-001-use-tanstack-start.md`), written by the `documentation-and-adrs` skill, numbered in sequence and never deleted. Write one for any choice that is expensive to reverse: a library or framework, a data model, auth, hosting, or a public API contract.
-- Plans and ADRs link both ways. An ADR that came from a plan ends with a `## Related` section linking `docs/plans/<slug>.md`, and the plan lists the ADR under `decisions:` and in its `## Decisions` section.
+- **Decisions** are ADRs at `docs/decisions/ADR-NNN-<kebab-title>.md`, written by the `document-decisions` skill, numbered in sequence and never deleted. Write one for any choice that is expensive to reverse: a library or framework, a data model, auth, hosting, a public API contract, or a repo-wide convention.
+- Plans and ADRs link both ways: an ADR from a plan lists it under `## Related`, and the plan lists the ADR under `decisions:` and in its `## Decisions` section.
 - Write `vp` commands (e.g. `vp check`, `vp test`, `vp run <script>`) rather than `npm`/`pnpm` ones in docs, READMEs, and plans.
+
+# Commits
+
+Every commit an agent writes ends with a `Co-Authored-By: <model name> <noreply@anthropic.com>` trailer naming the model, so commits can later be charted by model.
