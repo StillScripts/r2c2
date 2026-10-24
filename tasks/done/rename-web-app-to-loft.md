@@ -1,6 +1,7 @@
 ---
 title: Rename the web app to the Loft
 created: 2026-10-25
+completed: 2026-10-25
 ---
 
 Rename `apps/web` to `apps/loft`, the staff app from SPEC §1, and leave it as a clean
