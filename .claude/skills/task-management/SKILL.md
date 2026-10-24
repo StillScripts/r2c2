@@ -39,6 +39,7 @@ task's canonical id; reuse it for the branch name (`<type>/<slug>`) and any rela
 title: Human readable task title
 created: YYYY-MM-DD
 completed: YYYY-MM-DD # present ONLY when the file is in done/
+plan: docs/plans/<slug>.md # present ONLY when the task has a plan
 ---
 
 One short paragraph of context (for a backlog item) or what shipped (for a done item).
@@ -47,6 +48,15 @@ Sub-points as a bullet list if useful.
 
 Status is **never** stored in frontmatter; the folder is the single source of truth.
 `completed:` is stamped only when a task lands in `done/`.
+
+## Plans
+
+A task that needs more than its own body to explain the work gets a plan at
+`docs/plans/<slug>.md`, written by the `create-plan` skill with the **same slug** as the
+task. The task links to it with `plan: docs/plans/<slug>.md`; the plan's path never
+changes, so the link survives every status move. Small tasks ("change the button
+colour") need no plan: the body is enough. Decisions a plan settles are recorded as ADRs
+in `docs/decisions/` and linked from the plan, not from the task.
 
 ## Transitions
 
@@ -90,6 +100,7 @@ The task board:
 - Create `tasks/someday/<slug>.md` (or `active/` if starting now, after the one-active
   check) with the frontmatter above.
 - Include context in the body if provided.
+- If a plan for the same slug already exists in `docs/plans/`, add the `plan:` line.
 
 **"done with X" / "finished X":**
 
@@ -102,7 +113,8 @@ The task board:
 ## Conventions
 
 - One file per task; the **folder** is the status. Never duplicate status into frontmatter.
-- `title` is the human-readable line; the **filename slug** is the canonical id.
+- `title` is the human-readable line; the **filename slug** is the canonical id, shared
+  by the task, its plan, and its branch.
 - Use "for [person]" in the body for commitments; "due [date]" for deadlines.
 - Keep `done/` as the archive. It is the historical log, so there's no need to prune it.
 

@@ -14,13 +14,15 @@ tasks/
 ## Task file
 
 `tasks/<status>/<slug>.md`, where `<slug>` is the kebab-case task slug. The slug is
-the task's id and is reused for its branch name (`<type>/<slug>`).
+the task's id and is reused for its plan (`docs/plans/<slug>.md`) and branch name
+(`<type>/<slug>`).
 
 ```markdown
 ---
 title: Human readable task title
 created: 2026-10-24
 completed: 2026-10-24 # only once the file is in done/
+plan: docs/plans/foo.md # only when the task has a plan
 ---
 
 One short paragraph of context (for a backlog item) or what shipped (for a done item).

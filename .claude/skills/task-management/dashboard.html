@@ -1458,14 +1458,20 @@
 
       // ---- task file (de)serialization: YAML-ish frontmatter + markdown body ----
 
+      // fields the board owns; every other frontmatter line (e.g. `plan:`) is
+      // kept verbatim in `extra` so a drag or edit never drops it
+      const OWNED_FIELDS = ["title", "created", "completed"]
+
       function parseTaskFile(content, slug) {
         const fm = {}
+        const extra = []
         let body = content
         const m = content.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/)
         if (m) {
           for (const line of m[1].split("\n")) {
             const kv = line.match(/^([a-zA-Z][\w-]*):\s*(.*)$/)
-            if (kv) fm[kv[1]] = kv[2].trim()
+            if (kv && OWNED_FIELDS.includes(kv[1])) fm[kv[1]] = kv[2].trim()
+            else if (line.trim()) extra.push(line)
           }
           body = m[2]
         }
@@ -1474,8 +1480,7 @@
           title: fm.title || slug,
           created: fm.created || "",
           completed: fm.completed || "",
-          spec: fm.spec || "",
-          docs: fm.docs || "",
+          extra,
           body: body.trim(),
         }
       }
@@ -1484,8 +1489,7 @@
         const fm = ["---", `title: ${task.title}`]
         if (task.created) fm.push(`created: ${task.created}`)
         if (task.completed) fm.push(`completed: ${task.completed}`)
-        if (task.spec) fm.push(`spec: ${task.spec}`)
-        if (task.docs) fm.push(`docs: ${task.docs}`)
+        fm.push(...(task.extra || []))
         fm.push("---")
         let out = fm.join("\n") + "\n"
         if (task.body && task.body.trim()) out += "\n" + task.body.trim() + "\n"
@@ -1612,8 +1616,7 @@
           title: title.trim(),
           created: todayStr(),
           completed: colId === DONE_COL ? todayStr() : "",
-          spec: "",
-          docs: "",
+          extra: [],
           body: "",
         }
         ;(tasks[colId] = tasks[colId] || []).push(task)
@@ -1827,14 +1830,8 @@
         const metaBits = [
           `<div class="file-path">tasks/${colId}/${task.slug}.md</div>`,
         ]
-        if (task.spec)
-          metaBits.push(
-            `<div class="file-path">spec: ${escapeHtml(task.spec)}</div>`
-          )
-        if (task.docs)
-          metaBits.push(
-            `<div class="file-path">docs: ${escapeHtml(task.docs)}</div>`
-          )
+        for (const line of task.extra || [])
+          metaBits.push(`<div class="file-path">${escapeHtml(line)}</div>`)
         document.getElementById("modalBody").innerHTML = `
         <div class="form-group">
           <label>Title</label>

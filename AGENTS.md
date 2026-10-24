@@ -43,8 +43,17 @@ npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
 - Do not pass `-g`; skills belong to this project, not the user's global config.
 - Commit both `.claude/skills/<skill-name>/` and the updated `skills-lock.json`.
 - If you customise an installed skill, remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite your changes (e.g. `task-management`).
-- `create-plan` was copied by hand from `openai/skills` at commit `a5119697` (`skills/.experimental/create-plan`), because upstream has since removed it. It is not in `skills-lock.json`. `gh-fix-ci` relies on it.
+- `create-plan` was copied by hand from `openai/skills` at commit `a5119697` (`skills/.experimental/create-plan`), because upstream has since removed it, and has since been adapted for this repo. It is not in `skills-lock.json`. `gh-fix-ci` relies on it.
 
 # Task Tracking
 
 Track work as one markdown file per task under `tasks/<status>/<slug>.md`, where the folder (`active`, `waiting-on`, `someday`, `done`) is the status. See `tasks/README.md` and the `task-management` skill.
+
+# Plans and Decisions
+
+The task slug is the shared id: a task, its plan, and its branch all use the same `<slug>`.
+
+- **Plans** live at `docs/plans/<slug>.md`, written by the `create-plan` skill. Frontmatter is `title`, `depth` (`simple` or `detailed`) and `created`, plus `decisions` once a plan has ADRs. A task links to its plan with `plan: docs/plans/<slug>.md`. Small tasks need no plan. Keep a plan up to date if the work diverges from it.
+- **Decisions** are ADRs at `docs/decisions/ADR-NNN-<kebab-title>.md` (e.g. `ADR-001-use-tanstack-start.md`), written by the `documentation-and-adrs` skill, numbered in sequence and never deleted. Write one for any choice that is expensive to reverse: a library or framework, a data model, auth, hosting, or a public API contract.
+- Plans and ADRs link both ways. An ADR that came from a plan ends with a `## Related` section linking `docs/plans/<slug>.md`, and the plan lists the ADR under `decisions:` and in its `## Decisions` section.
+- Write `vp` commands (e.g. `vp check`, `vp test`, `vp run <script>`) rather than `npm`/`pnpm` ones in docs, READMEs, and plans.
