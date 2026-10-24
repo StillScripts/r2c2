@@ -1,6 +1,7 @@
 ---
 title: Add a PR body template to create-pr
 created: 2026-10-24
+completed: 2026-10-24
 ---
 
 Give `create-pr` a fixed body template so every PR reads the same way: a "What does it do?"
