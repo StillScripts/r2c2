@@ -42,3 +42,8 @@ npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
 - `--copy` writes real files into `.claude/skills/` instead of symlinks.
 - Do not pass `-g`; skills belong to this project, not the user's global config.
 - Commit both `.claude/skills/<skill-name>/` and the updated `skills-lock.json`.
+- If you customise an installed skill, remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite your changes (e.g. `task-management`).
+
+# Task Tracking
+
+Track work as one markdown file per task under `tasks/<status>/<slug>.md`, where the folder (`active`, `waiting-on`, `someday`, `done`) is the status. See `tasks/README.md` and the `task-management` skill.
