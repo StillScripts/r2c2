@@ -25,6 +25,5 @@ export default defineConfig({
   },
   test: {
     projects: ["apps/*", "packages/*"],
-    passWithNoTests: true,
   },
 })
