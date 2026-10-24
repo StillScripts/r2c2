@@ -6,7 +6,7 @@ argument-hint: "[optional description of the work]"
 
 # Create Branch
 
-> **Source:** adapted from [`getsentry/skills` › `skills/create-branch`](https://github.com/getsentry/skills/tree/main/skills/create-branch), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** uses the Active task's slug when there is one; adds `revert`; asks GitHub for the default branch before guessing `main`.
+> **Source:** adapted from [`getsentry/skills` › `skills/create-branch`](https://github.com/getsentry/skills/tree/main/skills/create-branch), copied 2026-10-24 (Apache-2.0, see `LICENSE.txt`). **Changes:** uses the Active task's slug when there is one; adds `revert`; keeps an existing branch for the same work; asks GitHub for the default branch before guessing `main`.
 
 Create a git branch following Sentry naming conventions.
 Keep this workflow non-interactive unless the user explicitly asks to choose the name manually.
@@ -60,6 +60,7 @@ When unsure: use `feat` for new things, `ref` for restructuring, `chore` for mai
    - If that prints nothing (the clone never recorded the remote's default), ask GitHub:
      `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`
    - If that fails too, use whichever of `main` or `master` exists locally, else the current branch
+   - If the current branch is already `<type>/<slug>` for this work, keep it: report it and stop
    - If on a detached HEAD, branch from the current commit
    - If already on a non-default branch, branch from the current branch
    - Only switch to the default branch when the user explicitly asks

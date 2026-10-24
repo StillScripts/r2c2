@@ -34,7 +34,7 @@ release. Add a tool name to select part of the graph. For example, run
 
 Use these project skills (in `.claude/skills/`) for each step:
 
-- `handle-task`: run a task end to end, chaining the skills below: task, branch, work, commit, `/simplify`, task to done, draft PR.
+- `handle-task`: run one task end to end, from task to draft PR, chaining the skills below.
 - `create-task`: create a task in `tasks/<status>/<slug>.md`.
 - `task-management`: track and move tasks in `tasks/`.
 - `create-plan`: plan a task in `docs/plans/<slug>.md`.
