@@ -1,6 +1,7 @@
 ---
 title: T02 Add CI and repo basics
 created: 2026-10-24
+completed: 2026-10-25
 ---
 
 Run `vp check` and `vp test` on every PR and add the files a public repo needs.
