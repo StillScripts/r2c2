@@ -12,6 +12,7 @@
   "devDependencies": {
     "@cloudflare/vitest-plugin": "catalog:",
     "@cloudflare/workers-types": "catalog:",
-    "wrangler": "catalog:"
+    "wrangler": "catalog:",
+    "vite-plus": "catalog:"
   }
 }
