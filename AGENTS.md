@@ -29,3 +29,16 @@ release. Add a tool name to select part of the graph. For example, run
 - [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+# Installing Agent Skills
+
+Install skills from [skills.sh](https://skills.sh) at project level for Claude Code only, copying the files into `.claude/skills/`:
+
+```sh
+npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
+```
+
+- `-a claude-code` installs only for Claude Code, so no `.agents/` directory or other agent folders are created.
+- `--copy` writes real files into `.claude/skills/` instead of symlinks.
+- Do not pass `-g`; skills belong to this project, not the user's global config.
+- Commit both `.claude/skills/<skill-name>/` and the updated `skills-lock.json`.
