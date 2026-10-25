@@ -116,7 +116,8 @@ function assemble(
 
 /**
  * Turn a draft into the finished page publish writes to R2, or the house-rule errors
- * that stop it. Has no side effects, so the same draft and options give the same hash.
+ * that stop it. Elements without an ID get a random one, so the same draft only gives
+ * the same hash once `draftWithIds` has been saved back.
  */
 export async function buildRelease(
   draft: string,

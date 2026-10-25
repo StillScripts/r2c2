@@ -178,6 +178,14 @@ describe("checkPage", () => {
     expect(errors).toContainEqual(expect.objectContaining({ rule, message }))
   })
 
+  it("requires a head", async () => {
+    const draft = `<html lang="en"><body><title>T</title><meta name="description" content="d"><h1>Title</h1></body></html>`
+    const { errors } = await checkPage(draft, theme)
+    expect(errors).toContainEqual(
+      expect.objectContaining({ rule: "page-head" })
+    )
+  })
+
   it("limits the page size", async () => {
     const { errors } = await check(
       `<h1>Title</h1><p>${"a".repeat(MAX_PAGE_BYTES)}</p>`

@@ -13,13 +13,17 @@ const RESET = `@theme {
   --shadow-*: initial;
 }`
 
+const isTailwind = (id: string) =>
+  id === "tailwindcss" || id.startsWith("tailwindcss/")
+
 async function loadStylesheet(id: string, base: string) {
-  const file =
-    id === "tailwindcss"
-      ? // Convex installs external packages outside the module tree, where only
-        // the ESM resolver can find them
-        fileURLToPath(import.meta.resolve("tailwindcss/index.css"))
-      : require.resolve(id, { paths: [base] })
+  const file = isTailwind(id)
+    ? // Convex installs external packages outside the module tree, where only
+      // the ESM resolver can find them
+      fileURLToPath(
+        import.meta.resolve(id === "tailwindcss" ? "tailwindcss/index.css" : id)
+      )
+    : require.resolve(id, { paths: [base] })
   return {
     path: file,
     base: path.dirname(file),
@@ -57,6 +61,8 @@ export function loadTheme(themeCss: string): Promise<Theme> {
   if (!theme) {
     theme = buildTheme(themeCss)
     themes.set(themeCss, theme)
+    // A failed build isn't cached, so the next call tries again
+    theme.catch(() => themes.delete(themeCss))
   }
   return theme
 }

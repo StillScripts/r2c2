@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test"
+import { describe, expect, test, vi } from "vite-plus/test"
 import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { draftHistory } from "./history"
@@ -23,6 +23,7 @@ async function site() {
       draftHtml: string
       draftWithIds: string
       hash: string
+      actor: string
       forms: ReturnType<typeof contact>[]
     }> = {}
   ) => ({
@@ -190,12 +191,20 @@ describe("publishing.markLive", () => {
     })
   })
 
-  test("reuses the version when the same release is published again", async () => {
+  test("reuses the version when the same release is published again, as the latest publish", async () => {
+    vi.useFakeTimers()
     const { t, release } = await site()
     const first = await t.mutation(internal.publishing.markLive, release())
-    expect(await t.mutation(internal.publishing.markLive, release())).toBe(
-      first
-    )
+    vi.advanceTimersByTime(60_000)
+    expect(
+      await t.mutation(internal.publishing.markLive, release({ actor: "ann" }))
+    ).toBe(first)
+    const version = await t.run((ctx) => ctx.db.get("pageVersions", first))
+    expect(version).toMatchObject({
+      publishedBy: "ann",
+      publishedAt: Date.now(),
+    })
+    vi.useRealTimers()
   })
 
   test("removes forms no longer on a live page", async () => {

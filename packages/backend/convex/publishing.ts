@@ -165,19 +165,22 @@ export const markLive = internalMutation({
       await ctx.db.patch("pages", pageId, { draftHtml: draftWithIds })
     }
 
+    const published = { publishedBy: actor, publishedAt: Date.now() }
     const existing = await ctx.db
       .query("pageVersions")
-      .withIndex("by_page", (q) => q.eq("pageId", pageId))
-      .filter((q) => q.eq(q.field("hash"), release.hash))
-      .first()
+      .withIndex("by_page_hash", (q) =>
+        q.eq("pageId", pageId).eq("hash", release.hash)
+      )
+      .unique()
+    // Republishing an identical page reuses its version, as the latest publish
+    if (existing) await ctx.db.patch("pageVersions", existing._id, published)
     const versionId =
       existing?._id ??
       (await ctx.db.insert("pageVersions", {
         siteId,
         pageId,
         ...release,
-        publishedBy: actor,
-        publishedAt: Date.now(),
+        ...published,
       }))
     await ctx.db.patch("pages", pageId, { liveVersionId: versionId })
     await syncForms(ctx, siteId)
