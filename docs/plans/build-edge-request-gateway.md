@@ -43,10 +43,10 @@ Only the normalised host is used for the KV key. The gateway stays a plain funct
 
 ## Action items
 
-- [ ] Add `comingSoonHeaders` to `packages/core/src/headers.ts`, with a test
-- [ ] Gateway in `apps/edge/src/index.ts`: KV lookup and the four outcomes
-- [ ] Update the edge tests to seed KV, plus the cases below
-- [ ] Run `vp check`, `vp test`, `vp run build`
+- [x] Add `comingSoonHeaders` to `packages/core/src/headers.ts`, with a test
+- [x] Gateway in `apps/edge/src/index.ts`: KV lookup and the four outcomes
+- [x] Update the edge tests to seed KV, plus the cases below
+- [x] Run `vp check`, `vp test`, `vp run build`
 
 ## Testing
 

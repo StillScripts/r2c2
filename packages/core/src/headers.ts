@@ -36,6 +36,11 @@ export const pageHeaders = (page: {
 export const notFoundHeaders = (siteId: string) =>
   htmlHeaders("public, max-age=0, s-maxage=60", [siteTag(siteId)])
 
+export const comingSoonHeaders = (siteId: string) => ({
+  ...notFoundHeaders(siteId),
+  "x-robots-tag": "noindex",
+})
+
 export const ASSET_HEADERS = {
   "cache-control": "public, max-age=31536000, immutable",
 }

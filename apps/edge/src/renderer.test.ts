@@ -8,6 +8,7 @@ import {
   notFoundHeaders,
   notFoundKey,
   pageHeaders,
+  routeKey,
 } from "@workspace/core"
 import { describe, expect, it } from "vite-plus/test"
 
@@ -16,8 +17,15 @@ const page = "<!doctype html><title>Home</title>"
 const metadata: LivePageMetadata = { pageId: "p_home", hash: "v1" }
 
 let sites = 0
-/** A fresh site per test, so neither R2 nor Workers Cache leaks between tests. */
-const site = () => `site-${++sites}.test`
+/** A fresh live site per test, so neither R2 nor Workers Cache leaks between tests. */
+async function site() {
+  const siteId = `site-${++sites}.test`
+  await env.ROUTES.put(
+    routeKey(siteId),
+    JSON.stringify({ site: siteId, status: "live" })
+  )
+  return siteId
+}
 
 const putPage = (siteId: string, path = "/") =>
   env.SITES.put(liveKey(siteId, path), page, { customMetadata: metadata })
@@ -30,7 +38,7 @@ const headersOf = (response: Response) =>
 
 describe("renderer pages", () => {
   it("serves a live page with the page headers", async () => {
-    const siteId = site()
+    const siteId = await site()
     await putPage(siteId, "/about")
     const response = await request(siteId, "/about/")
 
@@ -42,7 +50,7 @@ describe("renderer pages", () => {
   })
 
   it("tags by site and uses R2's etag when the metadata is missing", async () => {
-    const siteId = site()
+    const siteId = await site()
     const object = await env.SITES.put(liveKey(siteId, "/"), page)
     const response = await request(siteId, "/")
 
@@ -51,7 +59,7 @@ describe("renderer pages", () => {
   })
 
   it("answers a matching if-none-match with 304", async () => {
-    const siteId = site()
+    const siteId = await site()
     await putPage(siteId)
     const response = await request(siteId, "/", {
       headers: { "if-none-match": '"v1"' },
@@ -62,7 +70,7 @@ describe("renderer pages", () => {
   })
 
   it("serves HEAD without a body and refuses other methods", async () => {
-    const siteId = site()
+    const siteId = await site()
     await putPage(siteId)
 
     const head = await request(siteId, "/", { method: "HEAD" })
@@ -78,7 +86,7 @@ describe("renderer pages", () => {
 
 describe("renderer not found", () => {
   it("serves the site's 404 page", async () => {
-    const siteId = site()
+    const siteId = await site()
     await env.SITES.put(notFoundKey(siteId), "<h1>Lost?</h1>")
     const response = await request(siteId, "/missing")
 
@@ -88,7 +96,7 @@ describe("renderer not found", () => {
   })
 
   it("falls back to a built-in 404 page", async () => {
-    const siteId = site()
+    const siteId = await site()
     const response = await request(siteId, "/missing")
 
     expect(response.status).toBe(404)
@@ -102,7 +110,7 @@ describe("renderer assets", () => {
     ["css", "text/css; charset=utf-8"],
     ["webp", "image/webp"],
   ])("serves a %s asset as immutable", async (ext, contentType) => {
-    const siteId = site()
+    const siteId = await site()
     await env.SITES.put(assetKey(siteId, HASH, ext), "asset")
     const response = await request(siteId, `/assets/${HASH}.${ext}`)
 
@@ -112,9 +120,9 @@ describe("renderer assets", () => {
   })
 
   it("doesn't serve another site's asset", async () => {
-    const owner = site()
+    const owner = await site()
     await env.SITES.put(assetKey(owner, HASH, "css"), "asset")
-    const response = await request(site(), `/assets/${HASH}.css`)
+    const response = await request(await site(), `/assets/${HASH}.css`)
     expect(response.status).toBe(404)
   })
 
@@ -123,7 +131,7 @@ describe("renderer assets", () => {
     ["an unknown extension", `/assets/${HASH}.svg`],
     ["a non-JS elements file", `/_elements/${HASH}.css`],
   ])("returns a plain 404 for %s", async (_, path) => {
-    const siteId = site()
+    const siteId = await site()
     await env.SITES.put(assetKey(siteId, HASH, "svg"), "<svg/>")
     await env.SITES.put(notFoundKey(siteId), "<h1>Lost?</h1>")
     const response = await request(siteId, path)
@@ -133,7 +141,7 @@ describe("renderer assets", () => {
 
   it("serves the shared elements script", async () => {
     await env.SITES.put(elementsKey(HASH), "customElements.define()")
-    const response = await request(site(), `/_elements/${HASH}.js`)
+    const response = await request(await site(), `/_elements/${HASH}.js`)
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("customElements.define()")
