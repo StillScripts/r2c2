@@ -13,8 +13,10 @@
     "r2:check": "convex run storage:check"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "catalog:",
     "@convex-dev/r2": "catalog:",
     "@convex-dev/rate-limiter": "catalog:",
+    "better-auth": "catalog:",
     "convex": "catalog:",
     "convex-helpers": "catalog:"
   },

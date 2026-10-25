@@ -1,6 +1,8 @@
 ---
 title: T10 Add staff sign-in
 created: 2026-10-24
+completed: 2026-10-25
+plan: docs/plans/add-staff-sign-in.md
 ---
 
 Let staff sign in and limit them to their own sites.

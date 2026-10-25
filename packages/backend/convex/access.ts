@@ -70,14 +70,14 @@ export async function ownDoc<T extends SiteOwnedTable>(
   return doc
 }
 
+type AuditEntry = Omit<Doc<"auditLog">, "_id" | "_creationTime" | "at">
+
+/** Record an action on a site by any actor, e.g. "system" for internal callers. */
+export const writeAudit = (ctx: MutationCtx, entry: AuditEntry) =>
+  ctx.db.insert("auditLog", { ...entry, at: Date.now() })
+
 /** Record an action by the signed-in member on their current site. */
 export const audit = (
   ctx: MutationCtx & SiteCtx,
-  entry: { action: string; target: string }
-) =>
-  ctx.db.insert("auditLog", {
-    siteId: ctx.site._id,
-    actor: ctx.userId,
-    ...entry,
-    at: Date.now(),
-  })
+  entry: Pick<AuditEntry, "action" | "target">
+) => writeAudit(ctx, { siteId: ctx.site._id, actor: ctx.userId, ...entry })

@@ -1,6 +1,9 @@
 import { internalMutation } from "./_generated/server"
 import { scheduleRouteSync } from "./routes"
 
+/** The slug of the site the seed creates, and the default for `staff:create`. */
+export const SEED_SLUG = "r2c2"
+
 const THEME = `@theme {
   --color-brand: oklch(0.45 0.12 250);
   --color-ink: oklch(0.2 0 0);
@@ -15,7 +18,7 @@ export default internalMutation({
   handler: async (ctx) => {
     const existing = await ctx.db
       .query("sites")
-      .withIndex("by_slug", (q) => q.eq("slug", "r2c2"))
+      .withIndex("by_slug", (q) => q.eq("slug", SEED_SLUG))
       .unique()
     if (existing) {
       await scheduleRouteSync(ctx, existing)
@@ -24,7 +27,7 @@ export default internalMutation({
 
     const siteId = await ctx.db.insert("sites", {
       name: "R2C2",
-      slug: "r2c2",
+      slug: SEED_SLUG,
       status: "coming-soon",
       theme: THEME,
     })
