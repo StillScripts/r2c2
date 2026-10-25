@@ -13,7 +13,7 @@ Build `packages/elements` with the `<site-form>` custom element. It progressivel
 - **Contracts.** SPEC §4 ("Taking an enquiry") and §5 (enquiry API) define the contract:
   - Posts go to `POST /_api/forms/:form`, as JSON or form-encoded, up to 32 KB.
   - The body is the declared fields plus `cf-turnstile-response` and `_source` (`{ page, referrer, utm }`).
-  - Responses: `201 { ok: true }`, `400 { ok: false, errors }`, `429`, `403`. HTML form posts get a `303` to `?sent=1`.
+  - Responses: `201 { ok: true }`, `400 { ok: false, errors }`, `429`, `403`. HTML form posts get a `303` to `?sent=<form>`. This was `?sent=1` before T18; it's now per form, so two forms on one page don't both confirm.
 - **What exists today.** `packages/core` has `enquirySchema`, `EnquiryResponse` and `MAX_ENQUIRY_BYTES`. `packages/html` (T11) allows `<site-form name>` wrapping `form`, `label`, `input`, `textarea`, `select` and `button`, and `extractForms` reads its fields. `packages/elements` is an empty stub.
 - **CSP.** The CSP (SPEC §5) allows `script-src 'self' https://challenges.cloudflare.com` and `frame-src https://challenges.cloudflare.com`, so the element script must be same-origin and Turnstile loads from Cloudflare. There are no inline scripts or styles.
 - **Who serves it.** Uploading the built script to `shared/elements/<hash>.js` is T12/T13's R2 work. Adding the `<script type="module">` tag to pages that use an element is T13. The gateway route that accepts posts is T21.
@@ -38,7 +38,7 @@ Without JavaScript this is an ordinary form post. Nothing in the markup depends 
 
 `customElements.define("site-form", SiteForm)`. On connect, it finds its child `<form>` and does nothing more if there isn't one.
 
-- **Turnstile.** It loads `https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit` once per page, through a shared promise. It renders a widget into a container it inserts before the submit button, or at the end of the form if there's no button. Turnstile puts its token in a hidden `cf-turnstile-response` input inside the form.
+- **Turnstile.** It loads `https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit` once per page, through a shared promise. On the form's first `focusin`, so visitors who never touch the form don't download it, it renders a widget into a container it inserts before the submit button, or at the end of the form if there's no button. Turnstile puts its token in a hidden `cf-turnstile-response` input inside the form.
   - **Sitekey:** from the `sitekey` attribute that T13 adds when it assembles the published document, after the check and the sanitiser, next to the canonical URL and the script tag. The authored HTML never carries it, so T11's allow-list stays as it is.
   - **The one third-party request:** this is the only third-party request a page makes, and only pages with a form make it. SPEC §5's CSP allows exactly this origin.
 - **Submit.** It calls `preventDefault`, then builds the body:
@@ -57,7 +57,7 @@ Without JavaScript this is an ordinary form post. Nothing in the markup depends 
     - Keys with no matching field (`cf-turnstile-response`, `_source.*`) give the general error.
     - Old field messages clear on the next submit.
   - `403`, `429`, a network failure or anything else gives a general error message, and the Turnstile widget resets.
-- **No-JS success.** When the page loads with `?sent=1` (the `303` target), the element shows the success state, so a no-JS post that comes back with JavaScript available still confirms.
+- **No-JS success.** When the page loads with `?sent=<its name>` (the `303` target), the element shows the success state, so a no-JS post that comes back with JavaScript available still confirms.
 - **Showing messages.** The element shows and hides its own status and field-error nodes with the `hidden` property. They need no CSS, because a page's Tailwind only contains classes the page uses. `data-state` is just an optional hook for theme styling.
 - **Messages.** Default English messages for now. Customisable copy comes later, since T11's allow-list has no attributes for it yet.
 
@@ -72,8 +72,8 @@ One ESM entry (`src/index.ts`), `platform: "browser"` and minified. Only the ele
 
 A Node-mode test drives Playwright directly. Vitest's browser mode can't turn JavaScript off, because its runner runs in the page.
 
-- **Server.** In `beforeAll` the test packs the element into a temporary directory with `build()` from `vite-plus/pack`, so it doesn't depend on `vp run build` having run first (CI runs `vp test` before the build). A `node:http` server on a random port serves a test page, that script and a stub `/_api/forms/contact`. The stub records what it received and answers like SPEC §5: a `303` to `?sent=1` for form-encoded posts, `201` or `400` for JSON. `page.route` replaces Cloudflare's Turnstile script with a tiny stub that renders a container and fills `cf-turnstile-response`, so the test is offline and deterministic.
-- **JS off** (`javaScriptEnabled: false`): fill in the form and submit. The server receives a form-encoded body with the fields, and the page lands on `?sent=1`.
+- **Server.** In `beforeAll` the test packs the element into a temporary directory with `build()` from `vite-plus/pack`, so it doesn't depend on `vp run build` having run first (CI runs `vp test` before the build). `page.route` on a fake origin (`https://site.test`) serves a test page, that script and a stub `/_api/forms/contact`. The stub records what it received. It answers JSON posts with `201`, `400` or `500`, and form-encoded posts with a plain "Sent" page, since the `303` is T21's job. `page.route` replaces Cloudflare's Turnstile script with a tiny stub that renders a container and fills `cf-turnstile-response`, so the test is offline and deterministic.
+- **JS off** (`javaScriptEnabled: false`): fill in the form and submit. The stub receives a form-encoded body with the fields, including the empty honeypot.
 - **JS on:** fill in the form and submit. The server receives JSON with the fields, `cf-turnstile-response` and `_source` (page, referrer, and utm from a `?utm_source=` URL). The page doesn't navigate, `data-state` becomes `sent` and the status shows the success text. A second case gets a `400` and checks `aria-invalid` and the field message. A third case gets a `500` and checks the general error.
 
 ### Dependencies and CI
@@ -103,13 +103,13 @@ A Node-mode test drives Playwright directly. Vitest's browser mode can't turn Ja
 
 - [x] Add `playwright` (1.63.0) to the catalog and `packages/elements`; add the CI install step
 - [x] Configure `vp pack` in `packages/elements/vite.config.ts` (browser ESM, minified, `dist/site-elements.js`) and a `build` script
-- [x] Implement the `site-form` element: Turnstile loader and widget, JSON submit, `_source`, states, field errors, `?sent=1`
+- [x] Implement the `site-form` element: Turnstile loader and widget, JSON submit, `_source`, states, field errors, `?sent=<form>`
 - [x] Write the Playwright test: server, Turnstile stub, JS-off post, JS-on success, 400 field errors, 500 general error
 - [x] Run `vp check`, `vp test` and `vp run build`; check the minified size
 
 ## Testing
 
-The Playwright suite above runs in `vp test` locally and in CI. Edge cases it covers: a form with no fields beyond Turnstile, the `utm_*` capture, the field-level `400` mapping, a disabled button while sending, and a page loaded with `?sent=1`.
+The Playwright suite above runs in `vp test` locally and in CI. Edge cases it covers: a form with no fields beyond Turnstile, the `utm_*` capture, the field-level `400` mapping, a disabled button while sending, a page loaded with `?sent=<its name>` versus another form's name, and Turnstile staying unloaded until the form gets focus.
 
 ## Risks
 

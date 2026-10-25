@@ -4,6 +4,7 @@ const TURNSTILE_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
 
 const MESSAGES = {
+  idle: "",
   sending: "Sending…",
   sent: "Thanks, your message has been sent.",
   invalid: "Please fix the highlighted fields.",
@@ -67,12 +68,13 @@ export class SiteForm extends HTMLElement {
     form.append(this.#status)
     form.addEventListener("submit", (event) => {
       event.preventDefault()
-      void this.#submit(form)
+      void this.#submit()
     })
-    void this.#renderTurnstile(form)
-    this.#setState(
-      new URLSearchParams(location.search).has("sent") ? "sent" : "idle"
-    )
+    form.addEventListener("focusin", () => void this.#renderTurnstile(), {
+      once: true,
+    })
+    const sent = new URLSearchParams(location.search).get("sent")
+    this.#setState(sent === this.getAttribute("name") ? "sent" : "idle")
   }
 
   get #submitButton() {
@@ -81,33 +83,38 @@ export class SiteForm extends HTMLElement {
     )
   }
 
-  async #renderTurnstile(form: HTMLFormElement) {
+  async #renderTurnstile() {
     const sitekey = this.getAttribute("sitekey")
     if (!sitekey) return
     const container = document.createElement("div")
     const button = this.#submitButton
     if (button) button.before(container)
-    else form.append(container)
+    else this.#form?.append(container)
     try {
       await loadTurnstile()
       this.#widgetId = window.turnstile?.render(container, { sitekey })
-    } catch {
-      // The server rejects the missing token, which shows the general error.
-    }
+    } catch {}
   }
 
-  #setState(state: State, message = state === "idle" ? "" : MESSAGES[state]) {
+  #setState(state: State, message = MESSAGES[state]) {
     this.dataset.state = state
     this.#status.textContent = message
     this.#status.hidden = !message
     this.#submitButton?.toggleAttribute("disabled", state === "sending")
+    if (state === "error") window.turnstile?.reset(this.#widgetId)
   }
 
-  #showFieldErrors(form: HTMLFormElement, errors: Record<string, string[]>) {
-    const entries = Object.entries(errors)
-    for (const [name, [text = MESSAGES.invalid] = []] of entries) {
-      const field = form.elements.namedItem(name)
-      if (!isField(field)) return false
+  #showFieldErrors(errors: Record<string, string[]>) {
+    const invalid = Object.entries(errors).map(([name, messages]) => ({
+      name,
+      text: messages[0] ?? MESSAGES.invalid,
+      field: this.#form?.elements.namedItem(name),
+    }))
+    const fields = invalid.filter(
+      (entry): entry is typeof entry & { field: Field } => isField(entry.field)
+    )
+    if (!invalid.length || fields.length !== invalid.length) return false
+    for (const { name, text, field } of fields) {
       const message = document.createElement("p")
       message.id = `${this.getAttribute("name")}-${name}-error`
       message.textContent = text
@@ -117,7 +124,7 @@ export class SiteForm extends HTMLElement {
       this.#fieldErrors.push({ field, message })
     }
     this.#fieldErrors[0]?.field.focus()
-    return entries.length > 0
+    return true
   }
 
   #clearFieldErrors() {
@@ -129,12 +136,14 @@ export class SiteForm extends HTMLElement {
     this.#fieldErrors = []
   }
 
-  async #submit(form: HTMLFormElement) {
+  async #submit() {
+    const form = this.#form!
     this.#clearFieldErrors()
     this.#setState("sending")
     const fields = Object.fromEntries(
       [...new FormData(form)].filter(([, value]) => typeof value === "string")
     )
+    let message = MESSAGES.error
     try {
       const response = await fetch(form.action, {
         method: "POST",
@@ -151,17 +160,11 @@ export class SiteForm extends HTMLElement {
       }
       if (response.status === 400) {
         const result = (await response.json()) as EnquiryResponse
-        if (!result.ok && this.#showFieldErrors(form, result.errors)) {
-          this.#setState("error", MESSAGES.invalid)
-          window.turnstile?.reset(this.#widgetId)
-          return
+        if (!result.ok && this.#showFieldErrors(result.errors)) {
+          message = MESSAGES.invalid
         }
-        this.#clearFieldErrors()
       }
-    } catch {
-      // Network failures fall through to the general error.
-    }
-    this.#setState("error")
-    window.turnstile?.reset(this.#widgetId)
+    } catch {}
+    this.#setState("error", message)
   }
 }

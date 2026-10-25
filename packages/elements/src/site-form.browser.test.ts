@@ -1,11 +1,15 @@
 import { mkdtemp, readFile } from "node:fs/promises"
-import { createServer, type Server } from "node:http"
-import type { AddressInfo } from "node:net"
 import { tmpdir } from "node:os"
 import path from "node:path"
-import { type Browser, chromium, type Page } from "playwright"
+import {
+  type Browser,
+  type BrowserContext,
+  chromium,
+  type Page,
+} from "playwright"
 import {
   afterAll,
+  afterEach,
   beforeAll,
   beforeEach,
   describe,
@@ -14,6 +18,8 @@ import {
 } from "vite-plus/test"
 import { build } from "vite-plus/pack"
 import { PACK } from "../vite.config"
+
+const ORIGIN = "https://site.test"
 
 const PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>Contact</title>
@@ -38,13 +44,11 @@ const TURNSTILE_STUB = `window.turnstile = {
   reset() {},
 }`
 
-type Reply = { status: number; body?: unknown }
-let reply: Reply = { status: 201, body: { ok: true } }
-let received: { type?: string; body: string }[] = []
+let reply: { status: number; body?: unknown }
+let received: { type?: string; body: string }[]
 let script = ""
-let server: Server
 let browser: Browser
-let origin = ""
+let context: BrowserContext | undefined
 
 beforeAll(async () => {
   const outDir = await mkdtemp(path.join(tmpdir(), "site-elements-"))
@@ -56,52 +60,41 @@ beforeAll(async () => {
     logLevel: "silent",
   })
   script = await readFile(path.join(outDir, "site-elements.js"), "utf8")
-
-  server = createServer(async (request, response) => {
-    const url = new URL(request.url!, origin)
-    if (request.method === "POST" && url.pathname === "/_api/forms/contact") {
-      let body = ""
-      for await (const chunk of request) body += chunk
-      const type = request.headers["content-type"]
-      received.push({ type, body })
-      if (type === "application/x-www-form-urlencoded") {
-        const back = new URL(request.headers.referer ?? "/contact", origin)
-        response.writeHead(303, { location: `${back.pathname}?sent=1` }).end()
-        return
-      }
-      response
-        .writeHead(reply.status, { "content-type": "application/json" })
-        .end(JSON.stringify(reply.body ?? {}))
-      return
-    }
-    if (url.pathname === "/site-elements.js") {
-      response.writeHead(200, { "content-type": "text/javascript" }).end(script)
-      return
-    }
-    response.writeHead(200, { "content-type": "text/html" }).end(PAGE)
-  })
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve))
-  origin = `http://127.0.0.1:${(server.address() as AddressInfo).port}`
   browser = await chromium.launch()
 })
 
-afterAll(async () => {
-  await browser?.close()
-  server?.close()
-})
+afterAll(() => browser?.close())
 
 beforeEach(() => {
   received = []
   reply = { status: 201, body: { ok: true } }
 })
 
+afterEach(() => context?.close())
+
 async function openPage(javaScriptEnabled: boolean, query = "") {
-  const context = await browser.newContext({ javaScriptEnabled })
+  context = await browser.newContext({ javaScriptEnabled })
   const page = await context.newPage()
   await page.route("https://challenges.cloudflare.com/**", (route) =>
     route.fulfill({ contentType: "text/javascript", body: TURNSTILE_STUB })
   )
-  await page.goto(`${origin}/contact${query}`)
+  await page.route(`${ORIGIN}/**`, (route) => {
+    const request = route.request()
+    const { pathname } = new URL(request.url())
+    if (pathname === "/site-elements.js") {
+      return route.fulfill({ contentType: "text/javascript", body: script })
+    }
+    if (request.method() !== "POST") {
+      return route.fulfill({ contentType: "text/html", body: PAGE })
+    }
+    const type = request.headers()["content-type"]
+    received.push({ type, body: request.postData() ?? "" })
+    if (type === "application/x-www-form-urlencoded") {
+      return route.fulfill({ contentType: "text/html", body: "<p>Sent</p>" })
+    }
+    return route.fulfill({ status: reply.status, json: reply.body ?? {} })
+  })
+  await page.goto(`${ORIGIN}/contact${query}`)
   return page
 }
 
@@ -115,7 +108,7 @@ describe("<site-form>", () => {
   it("posts the form natively with JavaScript off", async () => {
     const page = await openPage(false)
     await fillAndSend(page)
-    await page.waitForURL(/\?sent=1$/)
+    await page.waitForSelector("text=Sent")
     expect(received).toEqual([
       {
         type: "application/x-www-form-urlencoded",
@@ -126,6 +119,7 @@ describe("<site-form>", () => {
 
   it("submits JSON with the Turnstile token and source", async () => {
     const page = await openPage(true, "?utm_source=news&utm_medium=email&ref=x")
+    await page.fill("#name", "Ada")
     await page.waitForSelector("input[name=cf-turnstile-response]", {
       state: "attached",
     })
@@ -133,7 +127,7 @@ describe("<site-form>", () => {
     await page.waitForSelector("site-form[data-state=sent]")
 
     expect(page.url()).toBe(
-      `${origin}/contact?utm_source=news&utm_medium=email&ref=x`
+      `${ORIGIN}/contact?utm_source=news&utm_medium=email&ref=x`
     )
     expect(await page.textContent("[role=status]")).toBe(
       "Thanks, your message has been sent."
@@ -152,6 +146,11 @@ describe("<site-form>", () => {
         utm: { utm_source: "news", utm_medium: "email" },
       },
     })
+  })
+
+  it("doesn't load Turnstile until the form is used", async () => {
+    const page = await openPage(true)
+    expect(await page.evaluate(() => "turnstile" in window)).toBe(false)
   })
 
   it("marks the fields a 400 names", async () => {
@@ -187,11 +186,11 @@ describe("<site-form>", () => {
     expect(await page.isEnabled("button[type=submit]")).toBe(true)
   })
 
-  it("confirms a no-JS post that comes back with ?sent=1", async () => {
-    const page = await openPage(true, "?sent=1")
-    await page.waitForSelector("site-form[data-state=sent]")
-    expect(await page.textContent("[role=status]")).toBe(
-      "Thanks, your message has been sent."
-    )
+  it.each([
+    ["confirms its own form", "?sent=contact", "sent"],
+    ["ignores another form's confirmation", "?sent=newsletter", "idle"],
+  ])("%s after a no-JS post", async (_, query, state) => {
+    const page = await openPage(true, query)
+    await page.waitForSelector(`site-form[data-state=${state}]`)
   })
 })
