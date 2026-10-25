@@ -3,7 +3,6 @@ import {
   type EnquiryResponse,
   type FieldErrors,
   enquiryIntakeSchema,
-  INBOX_LIMIT,
   MAX_ENQUIRY_BYTES,
   sha256Hex,
   verifyRequest,
@@ -11,9 +10,14 @@ import {
 import type { FormField } from "@workspace/html"
 import { v } from "convex/values"
 import { components, internal } from "./_generated/api"
-import { httpAction, internalMutation } from "./_generated/server"
+import type { Id } from "./_generated/dataModel"
+import {
+  httpAction,
+  internalMutation,
+  type QueryCtx,
+} from "./_generated/server"
 import { audit, ownDoc, siteMutation, siteQuery } from "./access"
-import { enquiryIntake, enquiryStatus } from "./validators"
+import { type EnquiryStatus, enquiryIntake, enquiryStatus } from "./validators"
 
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -110,7 +114,7 @@ const reply = (status: number, body?: EnquiryResponse) =>
   body ? Response.json(body, { status }) : new Response(null, { status })
 
 /** Hash of the form and its fields, ignoring field order, for the dedupe window. */
-const enquiryHash = (form: string, data: Record<string, string>) =>
+export const enquiryHash = (form: string, data: Record<string, string>) =>
   sha256Hex(
     JSON.stringify([
       form,
@@ -160,29 +164,39 @@ export const intake = httpAction(async (ctx, request) => {
   return reply(receipt.reason === "unknown_site" ? 404 : 429)
 })
 
+/** The most enquiries the inbox shows per tab, and where the new count stops. */
+const INBOX_LIMIT = 100
+
+/** Up to `INBOX_LIMIT` enquiries with a status, newest first, and whether there are more. */
+async function inboxPage(
+  ctx: QueryCtx,
+  siteId: Id<"sites">,
+  status: EnquiryStatus
+) {
+  const page = await ctx.db
+    .query("enquiries")
+    .withIndex("by_site_status_created", (q) =>
+      q.eq("siteId", siteId).eq("status", status)
+    )
+    .order("desc")
+    .take(INBOX_LIMIT + 1)
+  return {
+    enquiries: page.slice(0, INBOX_LIMIT),
+    capped: page.length > INBOX_LIMIT,
+  }
+}
+
 export const list = siteQuery({
   args: { status: enquiryStatus },
-  handler: (ctx, { status }) =>
-    ctx.db
-      .query("enquiries")
-      .withIndex("by_site_status_created", (q) =>
-        q.eq("siteId", ctx.site._id).eq("status", status)
-      )
-      .order("desc")
-      .take(INBOX_LIMIT),
+  handler: (ctx, { status }) => inboxPage(ctx, ctx.site._id, status),
 })
 
 export const newCount = siteQuery({
   args: {},
-  handler: async (ctx) =>
-    (
-      await ctx.db
-        .query("enquiries")
-        .withIndex("by_site_status_created", (q) =>
-          q.eq("siteId", ctx.site._id).eq("status", "new")
-        )
-        .take(INBOX_LIMIT + 1)
-    ).length,
+  handler: async (ctx) => {
+    const { enquiries, capped } = await inboxPage(ctx, ctx.site._id, "new")
+    return { count: enquiries.length, capped }
+  },
 })
 
 export const get = siteQuery({

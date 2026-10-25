@@ -25,9 +25,6 @@ export const enquirySchema = z
 export type EnquirySource = z.infer<typeof enquirySourceSchema>
 export type Enquiry = z.infer<typeof enquirySchema>
 
-/** The most enquiries the Loft inbox shows per tab. */
-export const INBOX_LIMIT = 100
-
 export type FieldErrors = Record<string, string[]>
 
 export type EnquiryResponse = { ok: true } | { ok: false; errors: FieldErrors }
@@ -43,3 +40,17 @@ export const enquiryIntakeSchema = z.object({
 })
 
 export type EnquiryIntake = z.infer<typeof enquiryIntakeSchema>
+
+/** The first few filled-in values, for a one-line preview of an enquiry. */
+export const enquirySummary = (data: Record<string, string>, count = 2) =>
+  Object.values(data)
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .slice(0, count)
+    .join(" · ")
+
+/** The `utm_*` values without their prefix, like "source: newsletter, campaign: launch". */
+export const enquiryCampaign = (utm: Record<string, string>) =>
+  Object.entries(utm)
+    .map(([key, value]) => `${key.replace(/^utm_/, "")}: ${value}`)
+    .join(", ")

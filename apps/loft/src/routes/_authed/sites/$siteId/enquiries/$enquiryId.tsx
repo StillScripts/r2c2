@@ -2,12 +2,12 @@ import { useConvexMutation } from "@convex-dev/react-query"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
+import { enquiryCampaign } from "@workspace/core"
 import { Button } from "@workspace/ui/components/button"
-import { campaign } from "@/lib/enquiry"
 import { errorMessage } from "@/lib/errors"
 import { when } from "@/lib/format"
 import { parseEnquiryParams } from "@/lib/params"
-import { enquiryQuery } from "@/lib/queries"
+import { type EnquiryStatus, enquiryQuery } from "@/lib/queries"
 
 export const Route = createFileRoute(
   "/_authed/sites/$siteId/enquiries/$enquiryId"
@@ -23,18 +23,17 @@ function EnquiryDetail() {
   const { data: enquiry } = useSuspenseQuery(enquiryQuery(siteId, enquiryId))
   const setStatus = useConvexMutation(api.enquiries.setStatus)
   const update = useMutation({
-    mutationFn: (status: "new" | "handled") =>
+    mutationFn: (status: EnquiryStatus) =>
       setStatus({ siteId, enquiryId, status }),
   })
   const handled = enquiry.status === "handled"
-  const utm = enquiry.source && campaign(enquiry.source.utm)
 
-  const details: [string, string | undefined][] = [
+  const details: [string, string?][] = [
     ["Form", enquiry.form],
     ["Received", when(enquiry.createdAt)],
     ["Page", enquiry.source?.page],
     ["Referrer", enquiry.source?.referrer],
-    ["Campaign", utm || undefined],
+    ["Campaign", enquiry.source && enquiryCampaign(enquiry.source.utm)],
   ]
 
   return (

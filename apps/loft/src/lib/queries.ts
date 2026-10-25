@@ -1,6 +1,6 @@
 import { convexQuery } from "@convex-dev/react-query"
 import { api } from "@workspace/backend/api"
-import type { Id } from "@workspace/backend/dataModel"
+import type { Doc, Id } from "@workspace/backend/dataModel"
 
 export const meQuery = convexQuery(api.staff.me, {})
 
@@ -25,10 +25,10 @@ export const snapshotQuery = (
   ts: number
 ) => convexQuery(api.pages.snapshot, { siteId, pageId, ts })
 
-export const enquiriesQuery = (
-  siteId: Id<"sites">,
-  status: "new" | "handled"
-) => convexQuery(api.enquiries.list, { siteId, status })
+export type EnquiryStatus = Doc<"enquiries">["status"]
+
+export const enquiriesQuery = (siteId: Id<"sites">, status: EnquiryStatus) =>
+  convexQuery(api.enquiries.list, { siteId, status })
 
 export const newEnquiriesQuery = (siteId: Id<"sites">) =>
   convexQuery(api.enquiries.newCount, { siteId })

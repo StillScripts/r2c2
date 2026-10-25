@@ -13,6 +13,7 @@ import {
 } from "vite-plus/test"
 import type { FormField } from "@workspace/html"
 import type { Id } from "../convex/_generated/dataModel"
+import type { EnquiryStatus } from "./validators"
 import { api } from "./_generated/api"
 import { addSite, errorCode, setup } from "../test/setup"
 
@@ -238,10 +239,10 @@ describe("enquiries inbox", () => {
     const t = setup()
     const siteId = await addSite(t, "inbox", { userId: "ed", role: "editor" })
     const ed = t.withIdentity({ subject: "ed" })
-    const add = (status: "new" | "handled", createdAt: number) =>
+    const add = (status: EnquiryStatus, createdAt: number, site = siteId) =>
       t.run((ctx) =>
         ctx.db.insert("enquiries", {
-          siteId,
+          siteId: site,
           form: "contact",
           data: { name: `at ${createdAt}` },
           status,
@@ -259,13 +260,30 @@ describe("enquiries inbox", () => {
     await add("handled", 2)
 
     const fresh = await ed.query(api.enquiries.list, { siteId, status: "new" })
-    expect(fresh.map((e) => e.createdAt)).toEqual([3, 1])
+    expect(fresh.enquiries.map((e) => e.createdAt)).toEqual([3, 1])
+    expect(fresh.capped).toBe(false)
     const handled = await ed.query(api.enquiries.list, {
       siteId,
       status: "handled",
     })
-    expect(handled.map((e) => e.createdAt)).toEqual([2])
-    expect(await ed.query(api.enquiries.newCount, { siteId })).toBe(2)
+    expect(handled.enquiries.map((e) => e.createdAt)).toEqual([2])
+    expect(await ed.query(api.enquiries.newCount, { siteId })).toEqual({
+      count: 2,
+      capped: false,
+    })
+  })
+
+  test("says when a tab holds more than it shows", async () => {
+    const { siteId, ed, add } = await inbox()
+    for (let n = 0; n < 101; n++) await add("new", n)
+
+    const fresh = await ed.query(api.enquiries.list, { siteId, status: "new" })
+    expect(fresh.enquiries).toHaveLength(100)
+    expect(fresh.capped).toBe(true)
+    expect(await ed.query(api.enquiries.newCount, { siteId })).toEqual({
+      count: 100,
+      capped: true,
+    })
   })
 
   test("an editor marks an enquiry handled and reopens it, audited", async () => {
@@ -299,18 +317,8 @@ describe("enquiries inbox", () => {
   })
 
   test("hides another site's enquiries and refuses non-members", async () => {
-    const { t, siteId, ed } = await inbox()
-    const other = await addSite(t, "other")
-    const foreign = await t.run((ctx) =>
-      ctx.db.insert("enquiries", {
-        siteId: other,
-        form: "contact",
-        data: {},
-        status: "new",
-        createdAt: 1,
-        bodyHash: "x",
-      })
-    )
+    const { t, siteId, ed, add } = await inbox()
+    const foreign = await add("new", 1, await addSite(t, "other"))
 
     await expect(
       ed.query(api.enquiries.get, { siteId, enquiryId: foreign })

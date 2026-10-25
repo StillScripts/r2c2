@@ -11,16 +11,16 @@ Let site members read enquiries in the Loft and mark them handled, with an audit
 ## Approach
 
 - **Backend (`packages/backend/convex/enquiries.ts`):**
-  - `list` (member): `{ siteId, status }`, newest first through a new `by_site_status_created` index (replacing the unused `by_site_created`), at most `INBOX_LIMIT` (100, in core so the Loft can say when the list is capped).
-  - `newCount` (member): the number of new enquiries, for a badge on the site page. It counts up to 100 and shows "100+" past that.
+  - `list` (member): `{ siteId, status }` → `{ enquiries, capped }`, newest first through a new `by_site_status_created` index (replacing the unused `by_site_created`; SPEC §6 updated), at most 100, with `capped` when there are more.
+  - `newCount` (member): `{ count, capped }` for a badge on the site page ("100+ new" when capped).
   - `get` (member): one enquiry through `ownDoc`.
   - `setStatus` (member, so editors can handle enquiries too): `new` ↔ `handled`. It does nothing if the status is unchanged; otherwise it writes the audit entry `enquiry.handled` or `enquiry.reopened` with the enquiry ID as target.
-- **Seed:** add one sample enquiry to the seed site if it has none, including on already-seeded deployments, so the inbox has something to show.
+- **Seed:** add one sample enquiry (with a real dedupe hash) to the seed site if it has none, including on already-seeded deployments, so the inbox has something to show.
 - **Loft:**
   - `/sites/$siteId/enquiries`: New and Handled tabs (a `status` search param). Each row shows the form, the first field values, the source page and the received time.
   - `/sites/$siteId/enquiries/$enquiryId`: every field, the source page, the referrer, the campaign (`utm_*` values), the received time, and a "Mark handled" or "Reopen" button.
   - The site page links to the inbox with the new count.
-  - A small `lib/enquiry.ts` holds the display helpers (summary line, campaign), with unit tests.
+  - The display helpers (`enquirySummary`, `enquiryCampaign`) live in core, with unit tests, so email (T20) can reuse them.
 
 ## Scope
 
@@ -31,7 +31,7 @@ Let site members read enquiries in the Loft and mark them handled, with an audit
 
 - [x] Schema index and `enquiries.list` / `newCount` / `get` / `setStatus`, with convex-test coverage (access, filtering, audit, no-op)
 - [x] Seed a sample enquiry
-- [x] Loft list and detail routes, site-page link, display helpers with tests
+- [x] Loft list and detail routes, site-page link; display helpers in core with tests
 - [x] Run `vp check`, `vp test`, `vp run build`
 
 ## Decisions

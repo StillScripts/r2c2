@@ -1,21 +1,18 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
-import { INBOX_LIMIT } from "@workspace/core"
-import { summary } from "@/lib/enquiry"
+import { enquirySummary } from "@workspace/core"
 import { when } from "@/lib/format"
 import { parseSiteParams } from "@/lib/params"
-import { enquiriesQuery, siteQuery } from "@/lib/queries"
+import { type EnquiryStatus, enquiriesQuery, siteQuery } from "@/lib/queries"
 
-type Status = "new" | "handled"
-
-const TABS: [Status, string][] = [
+const TABS: [EnquiryStatus, string][] = [
   ["new", "New"],
   ["handled", "Handled"],
 ]
 
 export const Route = createFileRoute("/_authed/sites/$siteId/enquiries/")({
   params: { parse: parseSiteParams },
-  validateSearch: (search): { status: Status } => ({
+  validateSearch: (search): { status: EnquiryStatus } => ({
     status: search.status === "handled" ? "handled" : "new",
   }),
   loaderDeps: ({ search: { status } }) => ({ status }),
@@ -31,7 +28,9 @@ function Inbox() {
   const { siteId } = Route.useParams()
   const { status } = Route.useSearch()
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
-  const { data: enquiries } = useSuspenseQuery(enquiriesQuery(siteId, status))
+  const {
+    data: { enquiries, capped },
+  } = useSuspenseQuery(enquiriesQuery(siteId, status))
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
@@ -73,7 +72,9 @@ function Inbox() {
                 className="flex flex-col gap-1 px-4 py-3 hover:bg-muted"
               >
                 <span className="flex justify-between gap-4">
-                  <span className="truncate">{summary(enquiry.data)}</span>
+                  <span className="truncate">
+                    {enquirySummary(enquiry.data)}
+                  </span>
                   <span className="shrink-0 text-sm text-muted-foreground">
                     {when(enquiry.createdAt)}
                   </span>
@@ -87,9 +88,9 @@ function Inbox() {
           ))}
         </ul>
       )}
-      {enquiries.length === INBOX_LIMIT && (
+      {capped && (
         <p className="text-sm text-muted-foreground">
-          Showing the latest {INBOX_LIMIT}.
+          Showing the latest {enquiries.length}.
         </p>
       )}
     </main>

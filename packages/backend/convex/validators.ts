@@ -10,6 +10,7 @@ export const enquiryStatus = literals("new", "handled")
 export const role = literals("owner", "editor")
 
 export type Role = Infer<typeof role>
+export type EnquiryStatus = Infer<typeof enquiryStatus>
 
 export const formField = v.object({
   name: v.string(),

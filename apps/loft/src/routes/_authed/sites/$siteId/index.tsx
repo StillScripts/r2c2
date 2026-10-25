@@ -11,7 +11,6 @@ import type { FormEvent } from "react"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
 import { newEnquiriesQuery, pagesQuery, siteQuery } from "@/lib/queries"
-import { INBOX_LIMIT } from "@workspace/core"
 
 export const Route = createFileRoute("/_authed/sites/$siteId/")({
   params: { parse: parseSiteParams },
@@ -28,7 +27,9 @@ function SitePages() {
   const { siteId } = Route.useParams()
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const { data: pages } = useSuspenseQuery(pagesQuery(siteId))
-  const { data: newCount } = useSuspenseQuery(newEnquiriesQuery(siteId))
+  const {
+    data: { count, capped },
+  } = useSuspenseQuery(newEnquiriesQuery(siteId))
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
@@ -45,8 +46,7 @@ function SitePages() {
             className="text-sm hover:underline"
           >
             Enquiries
-            {newCount > 0 &&
-              ` (${newCount > INBOX_LIMIT ? `${INBOX_LIMIT}+` : newCount} new)`}
+            {count > 0 && ` (${count}${capped ? "+" : ""} new)`}
           </Link>
         </div>
       </div>
