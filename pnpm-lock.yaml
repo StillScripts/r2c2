@@ -173,6 +173,9 @@ catalogs:
     '@cloudflare/workers-types':
       specifier: 5.20261019.1
       version: 5.20261019.1
+    '@edge-runtime/vm':
+      specifier: 5.0.0
+      version: 5.0.0
     '@fontsource-variable/inter':
       specifier: 5.3.0
       version: 5.3.0
@@ -209,6 +212,12 @@ catalogs:
     convex:
       specifier: 1.48.0
       version: 1.48.0
+    convex-helpers:
+      specifier: 0.1.129
+      version: 0.1.129
+    convex-test:
+      specifier: 0.0.65
+      version: 0.0.65
     dom-serializer:
       specifier: 3.1.1
       version: 3.1.1
@@ -276,7 +285,7 @@ importers:
         version: 7.0.2
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   apps/edge:
     dependencies:
@@ -292,7 +301,7 @@ importers:
         version: 5.20261019.1
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
       wrangler:
         specifier: 'catalog:'
         version: 4.152.0(@cloudflare/workers-types@5.20261019.1)(@types/node@24.19.2)
@@ -338,13 +347,32 @@ importers:
         version: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)'
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   packages/backend:
     dependencies:
       convex:
         specifier: 'catalog:'
         version: 1.48.0(react@19.3.1)
+      convex-helpers:
+        specifier: 'catalog:'
+        version: 0.1.129(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
+    devDependencies:
+      '@edge-runtime/vm':
+        specifier: 'catalog:'
+        version: 5.0.0
+      '@workspace/core':
+        specifier: workspace:*
+        version: link:../core
+      '@workspace/html':
+        specifier: workspace:*
+        version: link:../html
+      convex-test:
+        specifier: 'catalog:'
+        version: 0.0.65(convex@1.48.0(react@19.3.1))
+      vite-plus:
+        specifier: 'catalog:'
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   packages/core:
     dependencies:
@@ -354,7 +382,7 @@ importers:
     devDependencies:
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   packages/elements:
     devDependencies:
@@ -369,7 +397,7 @@ importers:
         version: 1.63.0
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   packages/html:
     dependencies:
@@ -406,7 +434,7 @@ importers:
         version: 2.16.2
       vite-plus:
         specifier: 'catalog:'
-        version: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+        version: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   packages/ui:
     dependencies:
@@ -677,6 +705,14 @@ packages:
 
   '@dotenvx/primitives@0.8.0':
     resolution: {integrity: sha512-VYJy0uhFm9zTJ1TxBaW/pA8bjbOM/OttaNMwZ1RHG4JKyRG7DhSdiqD1ipQoAyoD22olUtxbP78W9xY3Wd11bg==}
+
+  '@edge-runtime/primitives@6.0.0':
+    resolution: {integrity: sha512-FqoxaBT+prPBHBwE1WXS1ocnu/VLTQyZ6NMUBAdbP7N2hsFTTxMC/jMu2D/8GAlMQfxeuppcPuCUk/HO3fpIvA==}
+    engines: {node: '>=18'}
+
+  '@edge-runtime/vm@5.0.0':
+    resolution: {integrity: sha512-NKBGBSIKUG584qrS1tyxVpX/AKJKQw5HgjYEnPLC0QsTw79JrGn+qUr8CXFb955Iy7GUdiiUv1rJ6JBGvaKb6w==}
+    engines: {node: '>=18'}
 
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
@@ -2650,6 +2686,33 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
+  convex-helpers@0.1.129:
+    resolution: {integrity: sha512-8QJLbym0fKsf3tYcF2ZTX37NeYt/BkOFBjBwB2LR1fXUAajeYaTLV11gi/0IVOU/jCdH2j/VseHhHid1qQcqFw==}
+    hasBin: true
+    peerDependencies:
+      '@standard-schema/spec': ^1.0.0
+      convex: ^1.46.0
+      hono: ^4.0.5
+      react: ^17.0.2 || ^18.0.0 || ^19.0.0
+      typescript: ^5.5 || ^6.0.0 || ^7.0.0
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      '@standard-schema/spec':
+        optional: true
+      hono:
+        optional: true
+      react:
+        optional: true
+      typescript:
+        optional: true
+      zod:
+        optional: true
+
+  convex-test@0.0.65:
+    resolution: {integrity: sha512-2FgHlLGraM2O3tEVpOfvoHSleK0x92J8xjQ/qClWzNJX3NcmgvuNeWBrmma7sLJ8lB3ENPxx6ykJTfvZmWg3BQ==}
+    peerDependencies:
+      convex: ^1.43.0
+
   convex@1.48.0:
     resolution: {integrity: sha512-M9jEgTvCN8ziP/VgQQUH+j0ijM7g+NmQd8tFlvETK8/HMC/aaqHZwcu4hBO30X5DV2VIyYK4mOoLQGIb1766ew==}
     engines: {node: '>=20.0.0', npm: '>=7.0.0'}
@@ -4508,7 +4571,7 @@ snapshots:
       cjs-module-lexer: 1.2.3
       esbuild: 0.28.2
       miniflare: 5.20261019.2-beta(@types/node@24.19.2)
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
       wrangler: 4.152.0(@cloudflare/workers-types@5.20261019.1)(@types/node@24.19.2)
       zod: 4.6.5
     transitivePeerDependencies:
@@ -4558,6 +4621,12 @@ snapshots:
       yocto-spinner: 1.2.2
 
   '@dotenvx/primitives@0.8.0': {}
+
+  '@edge-runtime/primitives@6.0.0': {}
+
+  '@edge-runtime/vm@5.0.0':
+    dependencies:
+      '@edge-runtime/primitives': 6.0.0
 
   '@emnapi/runtime@1.11.3':
     dependencies:
@@ -5645,7 +5714,7 @@ snapshots:
       '@testing-library/dom': 10.4.2
       '@testing-library/user-event': 14.6.8(@testing-library/dom@10.4.2)
       '@vitest/browser': 5.0.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)(vitest@5.0.5)
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
       - '@types/node'
@@ -5682,7 +5751,7 @@ snapshots:
       pngjs: 7.0.0
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
       ws: 8.22.0
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
@@ -5761,7 +5830,7 @@ snapshots:
       pathe: 2.0.3
       sirv: 3.0.2
       tinyrainbow: 3.2.0
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
 
   '@vitest/utils@5.0.5':
     dependencies:
@@ -6025,6 +6094,19 @@ snapshots:
   content-type@2.1.0: {}
 
   convert-source-map@2.0.0: {}
+
+  convex-helpers@0.1.129(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7):
+    dependencies:
+      convex: 1.48.0(react@19.3.1)
+    optionalDependencies:
+      hono: 4.13.13
+      react: 19.3.1
+      typescript: 7.0.2
+      zod: 4.6.7
+
+  convex-test@0.0.65(convex@1.48.0(react@19.3.1)):
+    dependencies:
+      convex: 1.48.0(react@19.3.1)
 
   convex@1.48.0(react@19.3.1):
     dependencies:
@@ -6472,7 +6554,7 @@ snapshots:
       prompts: 2.4.2
       semver: 7.8.5
     optionalDependencies:
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
 
   htmlparser2@12.0.0:
     dependencies:
@@ -6847,7 +6929,7 @@ snapshots:
       string-width: 7.2.0
       strip-ansi: 7.2.0
 
-  oxfmt@0.74.0(vite-plus@1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)):
+  oxfmt@0.74.0(vite-plus@1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)):
     dependencies:
       tinypool: 2.2.0
     optionalDependencies:
@@ -6870,7 +6952,7 @@ snapshots:
       '@oxfmt/binding-win32-arm64-msvc': 0.74.0
       '@oxfmt/binding-win32-ia32-msvc': 0.74.0
       '@oxfmt/binding-win32-x64-msvc': 0.74.0
-      vite-plus: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+      vite-plus: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   oxlint-tsgolint@7.0.2004:
     optionalDependencies:
@@ -6881,7 +6963,7 @@ snapshots:
       '@oxlint-tsgolint/win32-arm64': 7.0.2004
       '@oxlint-tsgolint/win32-x64': 7.0.2004
 
-  oxlint@1.89.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)):
+  oxlint@1.89.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)):
     optionalDependencies:
       '@oxlint/binding-android-arm-eabi': 1.89.0
       '@oxlint/binding-android-arm64': 1.89.0
@@ -6903,7 +6985,7 @@ snapshots:
       '@oxlint/binding-win32-ia32-msvc': 1.89.0
       '@oxlint/binding-win32-x64-msvc': 1.89.0
       oxlint-tsgolint: 7.0.2004
-      vite-plus: 1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
+      vite-plus: 1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2)
 
   p-limit@2.3.0:
     dependencies:
@@ -7435,7 +7517,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vite-plus@1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2):
+  vite-plus@1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2):
     dependencies:
       '@oxc-project/runtime': 0.155.0
       '@oxc-project/types': 0.155.0
@@ -7447,11 +7529,11 @@ snapshots:
       '@vitest/snapshot': 5.0.5
       '@vitest/spy': 5.0.5
       '@vitest/utils': 5.0.5
-      oxfmt: 0.74.0(vite-plus@1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2))
-      oxlint: 1.89.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.4.0(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2))
+      oxfmt: 0.74.0(vite-plus@1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2))
+      oxlint: 1.89.0(oxlint-tsgolint@7.0.2004)(vite-plus@1.4.0(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/ui@5.0.5)(esbuild@0.28.2)(jiti@2.7.0)(playwright@1.63.0)(tsx@4.21.0)(typescript@7.0.2))
       oxlint-tsgolint: 7.0.2004
       vite: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)'
-      vitest: 5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
+      vitest: 5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
     optionalDependencies:
       '@voidzero-dev/vite-plus-darwin-arm64': 1.4.0
       '@voidzero-dev/vite-plus-darwin-x64': 1.4.0
@@ -7501,7 +7583,7 @@ snapshots:
     optionalDependencies:
       vite: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)'
 
-  vitest@5.0.5(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2):
+  vitest@5.0.5(@edge-runtime/vm@5.0.0)(@types/node@24.19.2)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/mocker': 5.0.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)
@@ -7518,6 +7600,7 @@ snapshots:
       vite: '@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)'
       why-is-node-running: 3.2.1
     optionalDependencies:
+      '@edge-runtime/vm': 5.0.0
       '@types/node': 24.19.2
       '@vitest/browser-preview': 5.0.5(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2)(vitest@5.0.5)
       '@vitest/ui': 5.0.5(vitest@5.0.5)
