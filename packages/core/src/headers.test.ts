@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 import {
   API_HEADERS,
   ASSET_HEADERS,
+  assetHeaders,
   CSP,
   notFoundHeaders,
   pageHeaders,
@@ -23,12 +24,6 @@ describe("response headers", () => {
     })
   })
 
-  it("tags a page without an ID with its site only", () => {
-    expect(pageHeaders({ siteId: "s_r2c2", hash: "abc" })["cache-tag"]).toBe(
-      "site-s_r2c2"
-    )
-  })
-
   it("builds the page CSP from SPEC §5", () => {
     expect(CSP).toBe(
       "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
@@ -48,5 +43,13 @@ describe("response headers", () => {
       "cache-control": "public, max-age=31536000, immutable",
     })
     expect(API_HEADERS).toEqual({ "cache-control": "no-store" })
+  })
+
+  it("adds the content type and nosniff to asset headers", () => {
+    expect(assetHeaders("image/webp")).toEqual({
+      ...ASSET_HEADERS,
+      "content-type": "image/webp",
+      "x-content-type-options": "nosniff",
+    })
   })
 })

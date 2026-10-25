@@ -1,6 +1,6 @@
 import { env, exports } from "cloudflare:workers"
 import {
-  ASSET_HEADERS,
+  assetHeaders,
   assetKey,
   elementsKey,
   liveKey,
@@ -19,6 +19,9 @@ let sites = 0
 /** A fresh site per test, so neither R2 nor Workers Cache leaks between tests. */
 const site = () => `site-${++sites}.test`
 
+const putPage = (siteId: string, path = "/") =>
+  env.SITES.put(liveKey(siteId, path), page, { customMetadata: metadata })
+
 const request = (siteId: string, path: string, init?: RequestInit) =>
   exports.default.fetch(`https://${siteId}${path}`, init)
 
@@ -28,9 +31,7 @@ const headersOf = (response: Response) =>
 describe("renderer pages", () => {
   it("serves a live page with the page headers", async () => {
     const siteId = site()
-    await env.SITES.put(liveKey(siteId, "/about"), page, {
-      customMetadata: metadata,
-    })
+    await putPage(siteId, "/about")
     const response = await request(siteId, "/about/")
 
     expect(response.status).toBe(200)
@@ -51,9 +52,7 @@ describe("renderer pages", () => {
 
   it("answers a matching if-none-match with 304", async () => {
     const siteId = site()
-    await env.SITES.put(liveKey(siteId, "/"), page, {
-      customMetadata: metadata,
-    })
+    await putPage(siteId)
     const response = await request(siteId, "/", {
       headers: { "if-none-match": '"v1"' },
     })
@@ -64,9 +63,7 @@ describe("renderer pages", () => {
 
   it("serves HEAD without a body and refuses other methods", async () => {
     const siteId = site()
-    await env.SITES.put(liveKey(siteId, "/"), page, {
-      customMetadata: metadata,
-    })
+    await putPage(siteId)
 
     const head = await request(siteId, "/", { method: "HEAD" })
     expect(head.status).toBe(200)
@@ -111,11 +108,7 @@ describe("renderer assets", () => {
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("asset")
-    expect(headersOf(response)).toMatchObject({
-      ...ASSET_HEADERS,
-      "content-type": contentType,
-      "x-content-type-options": "nosniff",
-    })
+    expect(headersOf(response)).toMatchObject(assetHeaders(contentType))
   })
 
   it("doesn't serve another site's asset", async () => {
@@ -129,10 +122,13 @@ describe("renderer assets", () => {
     ["a malformed name", "/assets/not-a-hash.css"],
     ["an unknown extension", `/assets/${HASH}.svg`],
     ["a non-JS elements file", `/_elements/${HASH}.css`],
-  ])("returns 404 for %s", async (_, path) => {
+  ])("returns a plain 404 for %s", async (_, path) => {
     const siteId = site()
     await env.SITES.put(assetKey(siteId, HASH, "svg"), "<svg/>")
-    expect((await request(siteId, path)).status).toBe(404)
+    await env.SITES.put(notFoundKey(siteId), "<h1>Lost?</h1>")
+    const response = await request(siteId, path)
+    expect(response.status).toBe(404)
+    expect(await response.text()).toBe("Not found")
   })
 
   it("serves the shared elements script", async () => {
@@ -141,9 +137,8 @@ describe("renderer assets", () => {
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe("customElements.define()")
-    expect(headersOf(response)).toMatchObject({
-      ...ASSET_HEADERS,
-      "content-type": "text/javascript; charset=utf-8",
-    })
+    expect(headersOf(response)).toMatchObject(
+      assetHeaders("text/javascript; charset=utf-8")
+    )
   })
 })

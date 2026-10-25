@@ -23,14 +23,12 @@ const htmlHeaders = (cacheControl: string, tags: string[]) => ({
 
 export const pageHeaders = (page: {
   siteId: string
-  pageId?: string
+  pageId: string
   hash: string
 }) => ({
   ...htmlHeaders(
     "public, max-age=0, s-maxage=60, stale-while-revalidate=86400",
-    page.pageId
-      ? [siteTag(page.siteId), pageTag(page.pageId)]
-      : [siteTag(page.siteId)]
+    [siteTag(page.siteId), pageTag(page.pageId)]
   ),
   etag: `"${page.hash}"`,
 })
@@ -41,5 +39,11 @@ export const notFoundHeaders = (siteId: string) =>
 export const ASSET_HEADERS = {
   "cache-control": "public, max-age=31536000, immutable",
 }
+
+export const assetHeaders = (contentType: string) => ({
+  ...ASSET_HEADERS,
+  "content-type": contentType,
+  "x-content-type-options": "nosniff",
+})
 
 export const API_HEADERS = { "cache-control": "no-store" }
