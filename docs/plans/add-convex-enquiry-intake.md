@@ -110,19 +110,19 @@ There's no data to migrate, because enquiries can't arrive yet.
 
 ## Action items
 
-- [ ] Add `@convex-dev/rate-limiter` (0.4.2) to the catalog and backend; register it in `convex.config.ts`
-- [ ] Add `ENQUIRY_INTAKE_PATH` and `enquiryIntakeSchema` to `packages/core`, with tests
-- [ ] Update the schema: `bodyHash`, `by_site_hash`, optional `source`
-- [ ] Write `enquiries.receive`: site, form, fields, rate limit, dedupe, insert
-- [ ] Write `convex/http.ts` and the intake action: size, signature, parse, status mapping
-- [ ] Update `_generated/api.d.ts` by hand for the new modules and `components.rateLimiter`
-- [ ] Write the tests below; run `vp check`, `vp test` and `vp run build`
+- [x] Add `@convex-dev/rate-limiter` (0.4.2) to the catalog and backend; register it in `convex.config.ts`
+- [x] Add `ENQUIRY_INTAKE_PATH` and `enquiryIntakeSchema` to `packages/core`, with tests
+- [x] Update the schema: `bodyHash`, `by_site_hash`, optional `source`
+- [x] Write `enquiries.receive`: site, form, fields, rate limit, dedupe, insert
+- [x] Write `convex/http.ts` and the intake action: size, signature, parse, status mapping
+- [x] Update `_generated/api.d.ts` by hand for the new modules and `components.rateLimiter`
+- [x] Write the tests below; run `vp check`, `vp test` and `vp run build`
 
 ## Testing
 
 convex-test with `t.fetch` against the HTTP route:
 
-- requests are signed with core's `sign()`, passing the same `now` the fake timers use;
+- requests are signed with core's `signedHeaders()`. convex-test runs mutations on the real clock, so the 10-minute window is tested by backdating the stored row rather than with fake timers;
 - the test secret is set through `vi.stubEnv`;
 - the rate limiter component is registered with its test helper in `test/setup.ts`.
 
@@ -142,7 +142,7 @@ convex-test with `t.fetch` against the HTTP route:
 - **Dedupe:**
   - the same post twice within 10 minutes stores one row and returns `201` both times;
   - field order doesn't matter;
-  - after 10 minutes (fake timers) it stores again.
+  - once the stored row is older than 10 minutes, it stores again.
 - **Rate limit:**
   - going over the per-site budget gets `429`, and another site is unaffected;
   - duplicates don't use up the budget.

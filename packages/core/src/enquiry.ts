@@ -21,3 +21,15 @@ export type Enquiry = z.infer<typeof enquirySchema>
 export type EnquiryResponse =
   | { ok: true }
   | { ok: false; errors: Record<string, string[]> }
+
+/** The path the edge signs and posts enquiries to on the Convex site URL. */
+export const ENQUIRY_INTAKE_PATH = "/api/enquiries"
+
+/** What the edge forwards to Convex, with bot-check fields already stripped. */
+export const enquiryIntakeSchema = z.object({
+  form: z.string().min(1),
+  data: z.record(z.string(), z.string()),
+  source: enquirySourceSchema.optional(),
+})
+
+export type EnquiryIntake = z.infer<typeof enquiryIntakeSchema>
