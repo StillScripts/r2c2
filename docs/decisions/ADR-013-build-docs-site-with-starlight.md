@@ -1,4 +1,4 @@
-# ADR-012: Build the docs site with Astro Starlight
+# ADR-013: Build the docs site with Astro Starlight
 
 ## Status
 

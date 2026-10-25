@@ -21,6 +21,10 @@ jobs:
         with:
           cache: true
       - run: vp check
+      - name: Check the committed elements bundle is current
+        run: |
+          vp run --filter @workspace/backend elements
+          git diff --exit-code packages/backend/elements.gen.ts
       - run: vp exec --filter @workspace/elements playwright install --with-deps chromium
       - run: vp test
       - run: vp run build

@@ -17,6 +17,8 @@ import type * as history from "../history.js";
 import type * as http from "../http.js";
 import type * as pages from "../pages.js";
 import type * as preview from "../preview.js";
+import type * as publish from "../publish.js";
+import type * as publishing from "../publishing.js";
 import type * as routes from "../routes.js";
 import type * as seed from "../seed.js";
 import type * as sites from "../sites.js";
@@ -40,6 +42,8 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   pages: typeof pages;
   preview: typeof preview;
+  publish: typeof publish;
+  publishing: typeof publishing;
   routes: typeof routes;
   seed: typeof seed;
   sites: typeof sites;

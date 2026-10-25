@@ -11,9 +11,11 @@
   "scripts": {
     "dev": "convex dev",
     "seed": "convex run seed:default",
-    "r2:check": "convex run storage:check"
+    "r2:check": "convex run storage:check",
+    "elements": "vp run --filter @workspace/elements build && vpx scripts/elements.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
     "@convex-dev/better-auth": "catalog:",
     "@convex-dev/r2": "catalog:",
     "@convex-dev/rate-limiter": "catalog:",
@@ -24,6 +26,7 @@
     "tailwindcss": "catalog:"
   },
   "devDependencies": {
+    "@types/node": "catalog:",
     "@edge-runtime/vm": "catalog:",
     "@workspace/core": "workspace:*",
     "@workspace/html": "workspace:*",

@@ -10,4 +10,4 @@ Make the docs site's `/roadmap/` board drive the work when the repo runs locally
 - Keep the one-active-task rule: refuse a drop when `active/` already holds a task
 - Later, maybe: the same flow on the deployed site, which needs auth and a way to reach a session
 
-Related: [ADR-012](../../docs/decisions/ADR-012-build-docs-site-with-starlight.md), #28
+Related: [ADR-013](../../docs/decisions/ADR-013-build-docs-site-with-starlight.md), #28

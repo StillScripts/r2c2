@@ -10,4 +10,4 @@ and decisions render as Markdown in their own sidebar groups, and tasks render a
 roadmap page and a completed page styled after the task-management dashboard. Not
 deployed yet; publishing is `publish-docs-site-on-r2c2`.
 
-Related: [ADR-012](../../docs/decisions/ADR-012-build-docs-site-with-starlight.md), `publish-docs-site-on-r2c2`, `launch-open-source-repo`
+Related: [ADR-013](../../docs/decisions/ADR-013-build-docs-site-with-starlight.md), `publish-docs-site-on-r2c2`, `launch-open-source-repo`
