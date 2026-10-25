@@ -1,6 +1,7 @@
 ---
 title: T09 Add the Convex backend and schema
 created: 2026-10-24
+plan: docs/plans/add-convex-backend-schema.md
 ---
 
 Create `packages/backend` with the data model and access checks.

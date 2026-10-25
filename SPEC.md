@@ -129,7 +129,8 @@ Rollback is the same steps 3 to 5 with an older version.
 
 ```jsonc
 // key: host:r2c2.dev
-{ "site": "s_r2c2", "status": "live" }          // status: live | coming-soon
+// site: the Convex `sites` document ID (ADR-008)
+{ "site": "k17f3ana2bs2vfzvjxh5a1tsss8gzwng", "status": "live" }  // status: live | coming-soon
 // key: host:www.r2c2.dev
 { "redirect": "https://r2c2.dev" }
 ```
@@ -172,18 +173,18 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 
 ## 6. Data model (Convex, milestone 1)
 
-| Table          | Key fields                                                                            | Indexes              |
-| -------------- | ------------------------------------------------------------------------------------- | -------------------- |
-| `sites`        | name, slug, status, theme (Tailwind `@theme` tokens and `@utility` component classes) | by_slug              |
-| `domains`      | siteId, hostname, kind (`primary` \| `redirect`), status                              | by_hostname, by_site |
-| `pages`        | siteId, path, title, draftHtml, liveVersionId                                         | by_site_path         |
-| `pageVersions` | siteId, pageId, hash, cssHash, forms, publishedBy, publishedAt                        | by_page              |
-| `forms`        | siteId, name, fields (name, type, required, maxLength)                                | by_site_name         |
-| `enquiries`    | siteId, form, data, source, status (`new` \| `handled`), createdAt                    | by_site_created      |
-| `memberships`  | userId, siteId, role (`owner` \| `editor`)                                            | by_user, by_site     |
-| `auditLog`     | siteId, actor, action, target, at                                                     | by_site_at           |
+| Table          | Key fields                                                                            | Indexes               |
+| -------------- | ------------------------------------------------------------------------------------- | --------------------- |
+| `sites`        | name, slug, status, theme (Tailwind `@theme` tokens and `@utility` component classes) | by_slug               |
+| `domains`      | siteId, hostname, kind (`primary` \| `redirect`), status (`pending` \| `active`)      | by_hostname, by_site  |
+| `pages`        | siteId, path, title, draftHtml, liveVersionId                                         | by_site_path          |
+| `pageVersions` | siteId, pageId, hash, cssHash, forms, publishedBy, publishedAt                        | by_page               |
+| `forms`        | siteId, name, fields (name, type, required, maxLength)                                | by_site_name          |
+| `enquiries`    | siteId, form, data, source, status (`new` \| `handled`), createdAt                    | by_site_created       |
+| `memberships`  | userId (`identity.subject`), siteId, role (`owner` \| `editor`)                       | by_user_site, by_site |
+| `auditLog`     | siteId, actor, action, target, at                                                     | by_site_at            |
 
-Indexes on site-owned tables start with `siteId`. Every function that touches site data goes through a `siteQuery` / `siteMutation` helper (convex-helpers custom functions) that loads the site and checks membership.
+Indexes on site-owned tables start with `siteId`. Every function that touches site data goes through a `siteQuery` / `siteMutation` helper (convex-helpers custom functions) that loads the site and checks membership; a site the caller isn't a member of is `not_found`, the same as a missing one. Any other document ID a function takes is loaded through `ownDoc()`, which refuses documents from another site.
 
 **Draft history.** The official `@convex-dev/table-history` component is attached to `pages` as `pageHistory`. It's in beta, so call it only through one helper, `recordDraft()`, which keeps it easy to swap.
 

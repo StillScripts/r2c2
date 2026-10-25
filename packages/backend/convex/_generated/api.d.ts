@@ -8,13 +8,25 @@
  * @module
  */
 
+import type * as access from "../access.js";
+import type * as pages from "../pages.js";
+import type * as seed from "../seed.js";
+import type * as sites from "../sites.js";
+import type * as validators from "../validators.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  access: typeof access;
+  pages: typeof pages;
+  seed: typeof seed;
+  sites: typeof sites;
+  validators: typeof validators;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.

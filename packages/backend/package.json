@@ -4,12 +4,20 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.ts"
+    "./api": "./convex/_generated/api.js",
+    "./dataModel": "./convex/_generated/dataModel.d.ts"
   },
   "scripts": {
-    "dev": "convex dev"
+    "dev": "convex dev",
+    "seed": "convex run seed:default"
   },
   "dependencies": {
-    "convex": "catalog:"
+    "convex": "catalog:",
+    "convex-helpers": "catalog:"
+  },
+  "devDependencies": {
+    "@edge-runtime/vm": "catalog:",
+    "convex-test": "catalog:",
+    "vite-plus": "catalog:"
   }
 }

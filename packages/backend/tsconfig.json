@@ -1,4 +1,8 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src"]
+  "include": ["convex", "test", "*.ts"],
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM"],
+    "types": ["vite-plus/client"]
+  }
 }
