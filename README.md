@@ -9,6 +9,7 @@ Needs Node 24 and [Vite+](https://viteplus.dev/guide/) (`vp`), which manages pnp
 ```bash
 vp install   # install every workspace package
 vp run dev   # start the Loft
+vp run --filter docs dev # start the docs site
 vp check     # format, lint and type check the whole repo
 vp test      # run every package's tests
 vp run build # build every app
