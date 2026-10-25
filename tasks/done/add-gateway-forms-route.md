@@ -1,6 +1,7 @@
 ---
 title: T21 Add the gateway forms route
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/add-gateway-forms-route.md
 ---
 
