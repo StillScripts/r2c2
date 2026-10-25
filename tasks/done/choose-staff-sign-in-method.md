@@ -1,11 +1,12 @@
 ---
 title: Choose staff sign-in
 created: 2026-10-24
+completed: 2026-10-25
 ---
 
 Pick how staff sign in to the Loft through Better Auth. GitHub sign-in suits an open-source project.
 
-- Waiting on: a decision from the project owner, since 2026-10-24
+Decided: email and password through Better Auth, no verification emails for the MVP ([ADR-009](../../docs/decisions/ADR-009-email-password-sign-in-for-mvp.md)).
 
 Needed for `add-staff-sign-in` (T10). Record the choice with `document-decisions`.
 
