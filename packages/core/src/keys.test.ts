@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
 import {
   assetKey,
+  assetUrl,
   elementsKey,
+  elementsUrl,
   liveKey,
   notFoundKey,
   routeKey,
@@ -26,5 +28,10 @@ describe("R2 and KV keys", () => {
   it("builds the not-found and routing keys", () => {
     expect(notFoundKey("s_r2c2")).toBe("sites/s_r2c2/404.html")
     expect(routeKey("r2c2.dev")).toBe("host:r2c2.dev")
+  })
+
+  it("builds the public asset and elements URLs", () => {
+    expect(assetUrl("abc", "css")).toBe("/assets/abc.css")
+    expect(elementsUrl("abc")).toBe("/_elements/abc.js")
   })
 })

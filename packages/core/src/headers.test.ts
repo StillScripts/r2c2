@@ -23,6 +23,12 @@ describe("response headers", () => {
     })
   })
 
+  it("tags a page without an ID with its site only", () => {
+    expect(pageHeaders({ siteId: "s_r2c2", hash: "abc" })["cache-tag"]).toBe(
+      "site-s_r2c2"
+    )
+  })
+
   it("builds the page CSP from SPEC §5", () => {
     expect(CSP).toBe(
       "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; img-src 'self' data:; style-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'"

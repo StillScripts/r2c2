@@ -23,12 +23,14 @@ const htmlHeaders = (cacheControl: string, tags: string[]) => ({
 
 export const pageHeaders = (page: {
   siteId: string
-  pageId: string
+  pageId?: string
   hash: string
 }) => ({
   ...htmlHeaders(
     "public, max-age=0, s-maxage=60, stale-while-revalidate=86400",
-    [siteTag(page.siteId), pageTag(page.pageId)]
+    page.pageId
+      ? [siteTag(page.siteId), pageTag(page.pageId)]
+      : [siteTag(page.siteId)]
   ),
   etag: `"${page.hash}"`,
 })
