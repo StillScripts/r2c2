@@ -21,7 +21,11 @@ export default defineConfig({
       stylesheet: "packages/ui/src/styles/globals.css",
       functions: ["cn", "cva"],
     },
-    ignorePatterns: ["pnpm-lock.yaml", "**/*.gen.ts"],
+    ignorePatterns: [
+      "pnpm-lock.yaml",
+      "**/*.gen.ts",
+      "**/convex/_generated/**",
+    ],
   },
   test: {
     projects: ["apps/*", "packages/*"],
