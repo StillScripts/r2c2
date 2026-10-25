@@ -70,6 +70,12 @@ Skills here are usually adapted from others and renamed to short verb-first name
 - Credit the original right under the skill's heading with one line: ``> **Source:** adapted from [`owner/repo` › `path`](link), copied <date> (<licence>, see `LICENSE.txt`). **Changes:** <what changed>.``
 - Copy the source repository's licence into the skill folder as `LICENSE.txt`.
 
+## Convex skills
+
+Convex's agent files are vendor-managed, like `convex/_generated` ([ADR-014](docs/decisions/ADR-014-let-convex-manage-its-agent-files.md)). `npx convex ai-files install` in `packages/backend` writes its guidelines (`convex/_generated/ai/guidelines.md`), its skills (in both `.agents/skills/` and `.claude/skills/`), a `skills-lock.json`, and the Convex sections of `AGENTS.md` and `CLAUDE.md`. Never edit these by hand; refresh them with `npx convex ai-files update` and commit the result. Read `guidelines.md` before changing Convex code.
+
+The `convex@claude-plugins-official` plugin is enabled in `.claude/settings.json`.
+
 # Task Tracking
 
 Track work as one markdown file per task under `tasks/<status>/<slug>.md`, where the folder (`active`, `waiting-on`, `someday`, `done`) is the status. See `tasks/README.md` and the `task-management` skill.

@@ -27,5 +27,8 @@
       "Skill(task-management)",
       "Skill(task-management *)"
     ]
+  },
+  "enabledPlugins": {
+    "convex@claude-plugins-official": true
   }
 }
