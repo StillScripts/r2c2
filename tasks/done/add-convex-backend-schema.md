@@ -1,10 +1,11 @@
 ---
 title: T09 Add the Convex backend and schema
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/add-convex-backend-schema.md
 ---
 
-Create `packages/backend` with the data model and access checks.
+Added the SPEC §6 schema, `siteQuery`/`siteMutation`, `ownDoc`, the audit helper and the r2c2 seed in `packages/backend`, with convex-test coverage. The public site ID is the Convex document ID (ADR-008).
 
 - Tables and indexes in SPEC §6
 - `siteQuery` and `siteMutation` helpers that load the site and check membership; audit log helper
