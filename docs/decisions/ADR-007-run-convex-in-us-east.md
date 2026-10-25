@@ -26,12 +26,11 @@ Run the Convex dev deployment (`tangible-bear-808`, project `r2c2`) in US East. 
 
 - Pros: lower latency for Australian staff editing in the Loft and for enquiry writes
 - Cons: about 30% higher cost before there is any usage to justify it
-- Rejected for now: page views never reach Convex, so the gain is limited to staff and form submissions
+- Rejected for now: the gain is limited to staff and form submissions
 
 ## Consequences
 
 - Loft edits and enquiry writes from Australia make a round trip to Virginia, roughly 200 ms each.
-- The production deployment doesn't exist yet, so its region is still open.
 - Moving the dev deployment later only costs dev data.
 
 ## Related
