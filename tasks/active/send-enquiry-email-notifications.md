@@ -1,6 +1,7 @@
 ---
 title: T20 Send email notifications
 created: 2026-10-24
+plan: docs/plans/send-enquiry-email-notifications.md
 ---
 
 Tell the site owner about each new enquiry.
