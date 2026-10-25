@@ -1,6 +1,7 @@
 ---
 title: T14 Connect the Loft to Convex and sign-in
 created: 2026-10-24
+plan: docs/plans/scaffold-loft-app.md
 ---
 
 Connect `apps/loft` to the backend and to the staff sign-in from T10.
