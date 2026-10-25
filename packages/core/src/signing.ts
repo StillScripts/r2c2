@@ -89,3 +89,21 @@ export async function verify(
   const [key, message] = await prepare(secret, request, timestamp)
   return crypto.subtle.verify("HMAC", key, fromHex(match[2]), message)
 }
+
+/** Verify a signed request from its headers, returning the site it was signed for. */
+export async function verifyRequest(
+  secret: string,
+  request: Request,
+  body: Uint8Array<ArrayBuffer>,
+  now = Date.now()
+): Promise<string | null> {
+  const siteId = request.headers.get(SITE_HEADER) ?? ""
+  const { pathname: path } = new URL(request.url)
+  const signed = await verify(
+    secret,
+    { siteId, method: request.method, path, body },
+    request.headers.get(SIGNATURE_HEADER),
+    now
+  )
+  return signed ? siteId : null
+}

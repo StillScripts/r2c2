@@ -10,7 +10,9 @@
 
 import type * as access from "../access.js";
 import type * as domains from "../domains.js";
+import type * as enquiries from "../enquiries.js";
 import type * as errors from "../errors.js";
+import type * as http from "../http.js";
 import type * as pages from "../pages.js";
 import type * as routes from "../routes.js";
 import type * as seed from "../seed.js";
@@ -27,7 +29,9 @@ import type {
 declare const fullApi: ApiFromModules<{
   access: typeof access;
   domains: typeof domains;
+  enquiries: typeof enquiries;
   errors: typeof errors;
+  http: typeof http;
   pages: typeof pages;
   routes: typeof routes;
   seed: typeof seed;
@@ -64,4 +68,5 @@ export declare const internal: FilterApi<
 
 export declare const components: {
   r2: import("@convex-dev/r2/_generated/component.js").ComponentApi<"r2">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };

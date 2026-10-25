@@ -5,6 +5,7 @@ packages:
 catalog:
   "@cloudflare/vitest-plugin": 1.4.7
   "@convex-dev/r2": 0.10.4
+  "@convex-dev/rate-limiter": 0.4.2
   "@edge-runtime/vm": 5.0.0
   "@cloudflare/workers-types": 5.20261019.1
   "@base-ui/react": 1.9.0
