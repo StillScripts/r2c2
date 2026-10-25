@@ -1,4 +1,5 @@
 import { convexTest } from "convex-test"
+import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
 import schema from "../convex/schema"
 import type { Role } from "../convex/validators"
@@ -24,3 +25,15 @@ export async function addSite(
     return siteId
   })
 }
+
+/** Matches a ConvexError thrown with `fail(code)`. */
+export const errorCode = (code: string) =>
+  expect.objectContaining({ data: { code } })
+
+/** Queued scheduled functions, oldest first. */
+export const scheduledJobs = (t: ReturnType<typeof setup>) =>
+  t.run((ctx) => ctx.db.system.query("_scheduled_functions").collect())
+
+/** Scheduled function calls, as `[name, args]`. */
+export const scheduled = async (t: ReturnType<typeof setup>) =>
+  (await scheduledJobs(t)).map((job) => [job.name, job.args[0]] as const)

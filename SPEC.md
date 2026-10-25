@@ -217,7 +217,7 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
 | Loft   | `VITE_CONVEX_URL`, `CONVEX_SITE_URL`                                                                                           | backend                       |
 
-Commit `.env.example` files only. Environments: local (Convex dev deployment, `wrangler dev`), preview per PR later, production.
+Each Convex deployment has its own R2 bucket and KV namespace (dev: bucket `r2c2-dev`, namespace `R2C2_ROUTES_DEV`), because site IDs differ between deployments. Commit `.env.example` files only. Environments: local (Convex dev deployment, `wrangler dev`), preview per PR later, production.
 
 ## 9. Working rules
 

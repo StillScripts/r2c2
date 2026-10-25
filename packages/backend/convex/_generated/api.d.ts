@@ -9,9 +9,13 @@
  */
 
 import type * as access from "../access.js";
+import type * as domains from "../domains.js";
+import type * as errors from "../errors.js";
 import type * as pages from "../pages.js";
+import type * as routes from "../routes.js";
 import type * as seed from "../seed.js";
 import type * as sites from "../sites.js";
+import type * as storage from "../storage.js";
 import type * as validators from "../validators.js";
 
 import type {
@@ -22,9 +26,13 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  domains: typeof domains;
+  errors: typeof errors;
   pages: typeof pages;
+  routes: typeof routes;
   seed: typeof seed;
   sites: typeof sites;
+  storage: typeof storage;
   validators: typeof validators;
 }>;
 
@@ -54,4 +62,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  r2: import("@convex-dev/r2/_generated/component.js").ComponentApi<"r2">;
+};

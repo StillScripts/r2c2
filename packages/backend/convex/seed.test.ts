@@ -1,6 +1,6 @@
 import { expect, test } from "vite-plus/test"
 import { internal } from "./_generated/api"
-import { setup } from "../test/setup"
+import { scheduled, setup } from "../test/setup"
 
 test("the seed creates the r2c2 site once", async () => {
   const t = setup()
@@ -13,6 +13,10 @@ test("the seed creates the r2c2 site once", async () => {
     domains: (await ctx.db.query("domains").collect()).map((d) => d.kind),
     pages: (await ctx.db.query("pages").collect()).map((p) => p.path),
   }))
+  expect((await scheduled(t)).map(([name]) => name)).toEqual([
+    "routes:sync",
+    "routes:sync",
+  ])
   expect(counts).toEqual({
     sites: 1,
     domains: ["primary", "redirect"],

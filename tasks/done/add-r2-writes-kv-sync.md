@@ -1,6 +1,8 @@
 ---
 title: T12 Add R2 writes and KV sync
 created: 2026-10-24
+completed: 2026-10-25
+plan: docs/plans/add-r2-writes-kv-sync.md
 ---
 
 Connect Convex to the edge's storage.
