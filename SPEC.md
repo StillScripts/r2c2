@@ -168,7 +168,7 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 
 - `POST /_api/forms/:form`, JSON or form-encoded, max 32 KB.
 - Body: declared fields plus `cf-turnstile-response` and `_source` (`{ page, referrer, utm }`, filled by the element).
-- Responses: `201 { ok: true }`, `400 { ok: false, errors }`, `429`, `403` for failed bot check. HTML form posts get a 303 to `?sent=1` on the same page.
+- Responses: `201 { ok: true }`, `400 { ok: false, errors }`, `429`, `403` for failed bot check. HTML form posts get a 303 to `?sent=<form>` on the same page, so only the form that was sent confirms.
 
 ## 6. Data model (Convex, milestone 1)
 

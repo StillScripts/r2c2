@@ -5,5 +5,14 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vp pack"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@workspace/core": "workspace:*",
+    "playwright": "catalog:",
+    "vite-plus": "catalog:"
   }
 }
