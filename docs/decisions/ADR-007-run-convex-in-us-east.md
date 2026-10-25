@@ -35,5 +35,5 @@ Run the Convex dev deployment (`tangible-bear-808`, project `r2c2`) in US East. 
 
 ## Related
 
-- Task: tasks/active/choose-convex-deployment-region.md
+- Task: tasks/done/choose-convex-deployment-region.md
 - Before production: tasks/someday/deploy-to-production.md

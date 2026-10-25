@@ -1,9 +1,10 @@
 ---
 title: Choose the Convex region
 created: 2026-10-24
+completed: 2026-10-25
 ---
 
-Pick where the Convex deployment runs, and connect this repo to the dev deployment. Sydney adds 30% but sits next to Australian users and the team.
+Chose US East (N. Virginia), recorded in ADR-007, and connected `packages/backend` to the dev deployment `tangible-bear-808`. Revisit the region for production.
 
 - Record the choice with `document-decisions`
 - Add `convex` to `packages/backend` and point it at the dev deployment
