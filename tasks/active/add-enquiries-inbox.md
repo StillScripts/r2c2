@@ -1,6 +1,7 @@
 ---
 title: T17 Add the enquiries inbox
 created: 2026-10-24
+plan: docs/plans/add-enquiries-inbox.md
 ---
 
 Let staff read and handle enquiries in the Loft.
