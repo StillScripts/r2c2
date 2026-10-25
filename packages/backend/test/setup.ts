@@ -4,14 +4,20 @@ import { convexTest } from "convex-test"
 import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
 import schema from "../convex/schema"
+import historySchema from "../node_modules/@convex-dev/table-history/dist/esm/component/schema.js"
 import type { Role } from "../convex/validators"
 
 const modules = import.meta.glob("../convex/**/*.*s")
+// table-history has no /test export, so register its component files directly
+const historyModules = import.meta.glob(
+  "../node_modules/@convex-dev/table-history/dist/esm/component/**/*.js"
+)
 
 export const setup = () => {
   const t = convexTest(schema, modules)
   betterAuth.register(t)
   rateLimiter.register(t)
+  t.registerComponent("pageHistory", historySchema, historyModules)
   return t
 }
 

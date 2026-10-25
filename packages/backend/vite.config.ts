@@ -3,6 +3,6 @@ import { defineConfig } from "vite-plus"
 export default defineConfig({
   test: {
     environment: "edge-runtime",
-    server: { deps: { inline: ["convex-test"] } },
+    server: { deps: { inline: ["convex-test", "@convex-dev/table-history"] } },
   },
 })

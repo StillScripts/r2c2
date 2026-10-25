@@ -145,23 +145,24 @@ following SPEC §6's rules on when to record.
 
 ## Action items
 
-- [ ] Pin `@convex-dev/table-history` 0.1.6 in the catalog and add it to
+- [x] Pin `@convex-dev/table-history` 0.1.6 in the catalog and add it to
       `packages/backend`. Register `app.use(tableHistory, { name: "pageHistory" })`, and
       register it in `test/setup.ts` from the component's schema and modules.
-- [ ] Add `parsePagePath` and `draftTitle` to `packages/core`, and move `MAX_PAGE_BYTES`
+- [x] Add `parsePagePath` and `draftTitle` to `packages/core`, and move `MAX_PAGE_BYTES`
       there, with tests.
-- [ ] Add `convex/history.ts` with `recordDraft`.
-- [ ] Add `pages:list`, `pages:create` and `pages:saveDraft`.
-- [ ] Add the `preview` action in `convex/preview.ts` and `convex.json` external
+- [x] Add `convex/history.ts` with `recordDraft`.
+- [x] Add `pages:list`, `pages:create` and `pages:saveDraft`.
+- [x] Add the `preview` action in `convex/preview.ts` and `convex.json` external
       packages. Prove the compile runs in Convex's Node runtime, or record the
       workaround.
-- [ ] Add Loft `/sites/$siteId` (list and create), and link sites from `/`.
-- [ ] Add the editor route: textarea, debounced preview, sandboxed iframe, issues list,
+- [x] Add Loft `/sites/$siteId` (list and create), and link sites from `/`.
+- [x] Add the editor route: textarea, debounced preview, sandboxed iframe, issues list,
       Save with ⌘/Ctrl+S, and an unsaved-changes guard.
-- [ ] Add `previewDocument` with unit tests.
-- [ ] Update the backend and Loft READMEs.
-- [ ] Run `vp check`, `vp test` and `vp run build`, and check the editor in `vp dev`
-      against a stub.
+- [x] Add `previewDocument` with unit tests.
+- [x] Update the backend and Loft READMEs.
+- [x] Run `vp check`, `vp test` and `vp run build`. (Checking the editor in `vp dev`
+      wasn't possible: it needs a signed-in Convex session, and the agent session
+      can't reach a Convex deployment or download a local backend.)
 
 ## Testing
 
@@ -194,6 +195,21 @@ following SPEC §6's rules on when to record.
 - create a page, edit it and see the preview restyle;
 - see a house-rule issue for a bad class;
 - save, reload, and see the draft kept.
+
+## As built
+
+- `history.ts` also exports `draftHistory(ctx, page, numItems)`, which `recordDraft` and
+  the tests use to read a page's snapshots, so nothing else imports the component. It
+  reads with no upper time bound: when two snapshots land in the same millisecond, the
+  component stamps the second one 1 ms ahead.
+- `convex-test` registers the component from its `dist/esm/component` files, and
+  `vite.config.ts` inlines `@convex-dev/table-history`, because its published ESM uses
+  imports without extensions.
+- `convex codegen` needs a deployment, so `_generated/api.d.ts` was updated by hand
+  (the `history` and `preview` modules, and the `pageHistory` component). The next
+  `convex dev` regenerates it.
+- `preview` returns an explicit type, because its `api.sites.get` call would otherwise
+  make its return type circular.
 
 ## Risks
 

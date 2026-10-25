@@ -185,6 +185,9 @@ catalogs:
     '@convex-dev/react-query':
       specifier: 0.1.0
       version: 0.1.0
+    '@convex-dev/table-history':
+      specifier: 0.1.6
+      version: 0.1.6
     '@edge-runtime/vm':
       specifier: 5.0.0
       version: 5.0.0
@@ -402,6 +405,9 @@ importers:
       '@convex-dev/rate-limiter':
         specifier: 'catalog:'
         version: 0.4.2(@standard-schema/spec@1.1.0)(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
+      '@convex-dev/table-history':
+        specifier: 'catalog:'
+        version: 0.1.6(@standard-schema/spec@1.1.0)(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
       better-auth:
         specifier: 'catalog:'
         version: 1.6.33(@tanstack/react-start@1.169.4(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(rolldown@1.2.12)(supports-color@10.2.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5)
@@ -411,6 +417,9 @@ importers:
       convex-helpers:
         specifier: 'catalog:'
         version: 0.1.129(@standard-schema/spec@1.1.0)(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.3.3
     devDependencies:
       '@edge-runtime/vm':
         specifier: 'catalog:'
@@ -965,6 +974,11 @@ packages:
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       convex: ^1.29.3
+
+  '@convex-dev/table-history@0.1.6':
+    resolution: {integrity: sha512-KrBXAMO9efuP+7xdJYelzGOwnQS/fiPh+7a/Bmu8UhE3v8BJoSQ6pHgaRDhD3wp2szaPk8QE10qc0DjdYva1aw==}
+    peerDependencies:
+      convex: ^1.46.0
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -5373,6 +5387,17 @@ snapshots:
     dependencies:
       '@tanstack/react-query': 5.104.5(@types/react@19.3.0)(react@19.3.1)
       convex: 1.48.0(react@19.3.1)
+
+  '@convex-dev/table-history@0.1.6(@standard-schema/spec@1.1.0)(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)':
+    dependencies:
+      convex: 1.48.0(react@19.3.1)
+      convex-helpers: 0.1.129(@standard-schema/spec@1.1.0)(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)(zod@4.6.7)
+    transitivePeerDependencies:
+      - '@standard-schema/spec'
+      - hono
+      - react
+      - typescript
+      - zod
 
   '@cspotcode/source-map-support@0.8.1':
     dependencies:

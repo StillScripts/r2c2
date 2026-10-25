@@ -1,3 +1,4 @@
+import { MAX_PAGE_BYTES, pageBytes } from "@workspace/core"
 import type { Element } from "domhandler"
 import { textContent } from "domutils"
 import { ALLOWED_TAGS, attributeProblem } from "./allowlist"
@@ -7,7 +8,6 @@ import { classTokens, elements, locator, parse } from "./parse"
 import type { Theme } from "./theme"
 import { validateStructure } from "./validator"
 
-export const MAX_PAGE_BYTES = 500 * 1024
 export const UTILITY_WARNING_THRESHOLD = 8
 
 const GENERIC_LINK_TEXT = new Set(["click here", "here", "read more", "link"])
@@ -23,7 +23,7 @@ const hasOneNonEmpty = (values: (string | undefined)[]) =>
   values.length === 1 && !!values[0]?.trim()
 
 export async function checkPage(html: string, theme: Theme) {
-  if (Buffer.byteLength(html) > MAX_PAGE_BYTES) {
+  if (pageBytes(html) > MAX_PAGE_BYTES) {
     const message = `The page is over ${MAX_PAGE_BYTES / 1024} KB.`
     return {
       errors: [pageIssue("page-size", message)],

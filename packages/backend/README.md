@@ -33,6 +33,20 @@ vp exec convex run staff:create '{"email": "you@example.com", "name": "You", "pa
 Every public function that touches site data is defined with `siteQuery` or
 `siteMutation` from `convex/access.ts`, and loads any other document through `ownDoc`.
 
+## Pages and draft history
+
+`convex/pages.ts` lists, creates and saves pages; saving only ever writes `draftHtml`
+(and `title`, from the draft's `<title>`). Draft snapshots live in the
+`@convex-dev/table-history` component, installed as `pageHistory`. It's in beta, so only
+`recordDraft()` and `draftHistory()` in `convex/history.ts` call it. A save records a
+snapshot when the last one is more than five minutes old; publish, restore and AI edits
+always record (SPEC §6).
+
+`preview:preview` is a Node action that compiles a draft's Tailwind with the site's theme
+and runs the house rules, exactly as publish will. `convex.json` keeps `tailwindcss`
+external (installed from this package's dependencies) so it can read its own stylesheet
+at runtime.
+
 ## Storage and routing secrets
 
 Each deployment writes to its own R2 bucket and `ROUTES` KV namespace, because site IDs
