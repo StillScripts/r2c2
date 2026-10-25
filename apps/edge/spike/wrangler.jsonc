@@ -1,0 +1,8 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "r2c2-cache-spike",
+  "main": "worker.ts",
+  "compatibility_date": "2026-10-19",
+  "cache": { "enabled": true },
+  "workers_dev": true,
+}
