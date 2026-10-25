@@ -2,6 +2,9 @@
 title: T11 Build the HTML pipeline package
 depth: detailed
 created: 2026-10-24
+decisions:
+  - docs/decisions/ADR-004-html-pipeline-libraries.md
+  - docs/decisions/ADR-005-persist-random-element-ids.md
 ---
 
 # T11 Build the HTML pipeline package
@@ -29,13 +32,13 @@ Build `packages/html`, the pure functions the Loft and the publish action run on
 
 ### Input
 
-`draftHtml` is a body fragment. The page's `title` and `description` and the site's `theme` CSS are passed alongside it. Building the full document (head, canonical URL, CSS link, elements script) and choosing what gets hashed are T13's job. This package exports a `hashContent` helper for that.
+`draftHtml` is the whole page, including its metadata: a `<head>` with `<title>` and `<meta name="description">`, and a `<body>`. The site's `theme` CSS is passed alongside it. Adding the canonical URL, the CSS link and the elements script, and choosing what gets hashed, are T13's job. This package exports a `hashContent` helper for that.
 
 ### One allow-list, two uses
 
 `allowlist.ts` is the single source for:
 
-- the allowed tags: structural, text, list, table, media (`img`, `picture`, `source`) and form elements (`form`, `label`, `input`, `textarea`, `select`, `option`, `button`);
+- the allowed tags: document and metadata (`html`, `head`, `body`, `title`, and `meta` limited to `charset`, `viewport` and `description`), structural, text, list, table, media (`img`, `picture`, `source`) and form elements (`form`, `label`, `input`, `textarea`, `select`, `option`, `button`);
 - the platform custom tags, an exact list that is just `site-form` for now;
 - the attributes allowed globally (`class`, `data-r2c2-id`, `aria-*`, `role`, `lang`, `dir`, `title`) and per tag;
 - the allowed URL schemes.
@@ -62,7 +65,7 @@ For each `<site-form name="…">` it returns `{ forms, errors }`, where each for
 - **Fields** are `textarea`, `select` and every `input` except types `submit`, `reset`, `button`, `image` and `hidden`. The element fills its own hidden inputs.
 - **Errors**, in the check's shape: a missing or duplicate form name within the page, a field without `name`, and duplicate field names within one form.
 
-### House rules: `checkPage({ html, title, description }, theme)`
+### House rules: `checkPage(html, theme)`
 
 It returns `{ errors, warnings }`, each item being `{ line, column, rule, message }`. Each message is written to be fixed directly, e.g. `Line 12: bg-[#1f5b8a] isn't allowed. Use a theme colour: bg-brand, bg-ink, bg-paper.` Errors block a publish; warnings don't. `checkPage` includes `extractForms`'s errors, so one call gives the full list.
 
@@ -74,19 +77,19 @@ It returns `{ errors, warnings }`, each item being `{ line, column, rule, messag
 - **Media and requests.** `img`/`source` URLs must be site media paths (`/assets/<hash>.<ext>`, served by the renderer in T06). No absolute URL may appear in an attribute that makes a request (`src`, `srcset`, `poster`). Outbound `<a href>` is allowed. Every `img` has non-empty `alt`.
 - **Structure and accessibility.** These run through `html-validate` with a pinned rule config: one `h1`, heading levels in order, labelled form fields, and no empty links.
   - Its element metadata is extended to cover `site-form`.
-  - A small custom rule rejects generic link text ("click here", "read more", "here", "link").
+  - Two rules sit in our own check rather than html-validate: generic link text ("click here", "read more", "here", "link") and non-empty `alt` on every `img`.
   - html-validate's own positions become our `{ line, column }`.
-- **Metadata and size.** It requires non-empty `title` and `description`, and HTML at most 500 KB.
+- **Metadata and size.** It requires exactly one non-empty `<title>` and one non-empty `<meta name="description">` in the head, and HTML at most 500 KB.
 
 ### CSS: `compileCss(html, theme)`
 
-One module, `tailwind.ts`, owns Tailwind.
+One module, `theme.ts`, owns Tailwind. `loadTheme(themeCss)` compiles the theme once and returns a `Theme` that `checkPage` and `compileCss` both take, so a publish compiles it only once.
 
 - It builds the input CSS as `@import "tailwindcss"`, then a reset `@theme` that sets `--color-*`, `--font-*`, `--radius-*` and `--shadow-*` to `initial`, then the site theme. The pipeline injects the reset, so the default palette never leaks in, whatever the stored theme says.
 - A `loadStylesheet` callback resolves the `tailwindcss` import from the installed package.
 - Candidates are the `class` tokens from our parse, not Tailwind's file scanner.
 - `compile(...).build(candidates)` produces the CSS.
-- The theme rule's "does this class compile?" question goes through `__unstable__loadDesignSystem(...).candidatesToCss()`, which returns `null` for invalid classes. It's isolated behind one function, `invalidClasses`, so the pinned `tailwindcss` version is the only place that knows about the unstable API.
+- The theme rule's "does this class compile?" question goes through `__unstable__loadDesignSystem(...).candidatesToCss()`, which returns `null` for invalid classes. It's isolated behind `Theme.invalidClasses`, so the pinned `tailwindcss` version is the only place that knows about the unstable API.
 
 ### Sanitise: `sanitise(html)`
 
@@ -132,16 +135,16 @@ flowchart LR
 
 ## Action items
 
-- [ ] Add `htmlparser2`, `domhandler`, `dom-serializer`, `sanitize-html` (+ types), `html-validate` and `tailwindcss` to the catalog and `packages/html`; check versions with `vp outdated`
-- [ ] Export `sha256Hex` from `packages/core`, use it in `signing.ts`, and add `hashContent`
-- [ ] Write `allowlist.ts` and `parse.ts` (positions → line/column)
-- [ ] Implement `assignElementIds` and `extractForms`
-- [ ] Implement `tailwind.ts`: build the input CSS with the reset, `loadStylesheet`, `compileCss` and `invalidClasses`
-- [ ] Implement `checkPage`: allow-list, theme, media, metadata/size and form rules
-- [ ] Wire html-validate: pinned rule config, `site-form` metadata, generic-link-text rule, position mapping
-- [ ] Implement `sanitise` and the structure comparison
-- [ ] Add a test theme fixture (tokens, `btn`/`card`/`section`/`prose`) and tests for every rule
-- [ ] Record the ADRs below; run `vp check`, `vp test`, `vp run build`
+- [x] Add `htmlparser2`, `domhandler`, `domutils`, `dom-serializer`, `sanitize-html` (+ types), `html-validate` and `tailwindcss` to the catalog and `packages/html`; check versions with `vp outdated`
+- [x] Export `sha256Hex` from `packages/core`, use it in `signing.ts`, and add `hashContent`
+- [x] Write `allowlist.ts` and `parse.ts` (positions → line/column)
+- [x] Implement `assignElementIds` and `extractForms`
+- [x] Implement `theme.ts` (`loadTheme`: input CSS with the reset, `loadStylesheet`, `invalidClasses`, `build`) and `compileCss`
+- [x] Implement `checkPage`: allow-list, theme, media, metadata/size and form rules
+- [x] Wire html-validate: pinned rule config, `site-form` metadata, position mapping
+- [x] Implement `sanitise` and the structure comparison
+- [x] Add a test theme fixture (tokens, `btn`/`card`/`section`/`prose`) and tests for every rule
+- [x] Record the ADRs below; run `vp check`, `vp test`, `vp run build`
 
 ## Testing
 
@@ -163,12 +166,12 @@ flowchart LR
 
 ## Decisions
 
-- Needs ADR: HTML pipeline libraries (htmlparser2 parse, sanitize-html backstop, html-validate for structure, Tailwind as the source of truth for classes, including the unstable `candidatesToCss`)
-- Needs ADR: element IDs are random, assigned once on draft save and persisted, never derived from content
+- [ADR-004](../decisions/ADR-004-html-pipeline-libraries.md): HTML pipeline libraries
+- [ADR-005](../decisions/ADR-005-persist-random-element-ids.md): persist random element IDs in the draft
 
-## Open questions
+## Resolved questions
 
-- Is `draftHtml` a body fragment with `title`/`description` stored as page fields? (Assumed yes. SPEC §6 lists `title` but no `description`, so T09 would add a `description` field.)
-- Should arbitrary values stay banned for spacing and sizing too (`mt-[13px]`), or only for colour, font, radius and shadow as SPEC §12 words it? (The plan bans them all, for simplicity. Loosening it later is a one-rule change.)
-- Should `data:` images ever be allowed? (The plan says no: all images come from R2 media.)
+- The page's metadata is part of its HTML: `<title>` and `<meta name="description">` live in the draft's `<head>`.
+- All arbitrary values are banned for now, spacing and sizing included. They can be loosened later.
+- Images come only from the site's R2 media; there are no `data:` images.
 - The utility-class threshold for the component-class warning starts at 8. It's easy to tune.

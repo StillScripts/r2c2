@@ -1,4 +1,5 @@
 export * from "./enquiry"
+export * from "./hash"
 export * from "./headers"
 export * from "./keys"
 export * from "./paths"

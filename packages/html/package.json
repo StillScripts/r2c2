@@ -5,5 +5,20 @@
   "private": true,
   "exports": {
     ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@workspace/core": "workspace:*",
+    "dom-serializer": "catalog:",
+    "domhandler": "catalog:",
+    "domutils": "catalog:",
+    "html-validate": "catalog:",
+    "htmlparser2": "catalog:",
+    "sanitize-html": "catalog:",
+    "tailwindcss": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/sanitize-html": "catalog:",
+    "vite-plus": "catalog:"
   }
 }
