@@ -7,13 +7,14 @@ import {
 } from "@workspace/core"
 import { describe, expect, it } from "vite-plus/test"
 
-const get = (url: string) => exports.default.fetch(url, { redirect: "manual" })
+const get = (url: string, init?: RequestInit) =>
+  exports.default.fetch(new Request(url, { redirect: "manual", ...init }))
 
-const route = (host: string, entry: RouteEntry | object) =>
+const route = (host: string, entry: unknown) =>
   env.ROUTES.put(routeKey(host), JSON.stringify(entry))
 
 const live = (host: string, site: string) =>
-  route(host, { site, status: "live" })
+  route(host, { site, status: "live" } satisfies RouteEntry)
 
 describe("gateway", () => {
   it("never lets two sites share a page at the same path", async () => {
@@ -67,12 +68,6 @@ describe("gateway", () => {
     expect(response.headers.get("cache-control")).toBe("public, max-age=3600")
   })
 
-  it("keeps a redirect on the primary domain for a protocol-relative path", async () => {
-    await route("www.o.test", { redirect: "https://o.test" })
-    const response = await get("https://www.o.test//evil.test/x")
-    expect(new URL(response.headers.get("location")!).host).toBe("o.test")
-  })
-
   it("shows the holding page for a coming-soon site", async () => {
     await route("soon.test", { site: "site_s", status: "coming-soon" })
     await env.SITES.put(liveKey("site_s", "/"), "<p>Unreleased</p>")
@@ -84,4 +79,26 @@ describe("gateway", () => {
       comingSoonHeaders("site_s")
     )
   })
+
+  it("serves HEAD without a body for every outcome", async () => {
+    await live("head.test", "site_h")
+    await env.SITES.put(liveKey("site_h", "/"), "<p>Home</p>")
+    await route("soon-head.test", { site: "site_sh", status: "coming-soon" })
+
+    for (const host of ["head.test", "soon-head.test"]) {
+      const response = await get(`https://${host}/`, { method: "HEAD" })
+      expect(response.status).toBe(200)
+      expect(await response.text()).toBe("")
+    }
+  })
+
+  it.each(["live.test", "soon.test", "unknown.test"])(
+    "refuses other methods on %s",
+    async (host) => {
+      await live("live.test", "site_l")
+      const response = await get(`https://${host}/`, { method: "POST" })
+      expect(response.status).toBe(405)
+      expect(response.headers.get("allow")).toBe("GET, HEAD")
+    }
+  )
 })

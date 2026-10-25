@@ -2,22 +2,15 @@ import {
   comingSoonHeaders,
   normaliseHost,
   normalisePath,
+  redirectLocation,
   type RouteEntry,
   routeEntrySchema,
   routeKey,
   stripTrackingParams,
 } from "@workspace/core"
+import { builtInPage, notFound, withoutBody } from "./responses"
 
 export { Renderer } from "./renderer"
-
-const COMING_SOON_PAGE =
-  '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Coming soon</title></head><body><h1>Coming soon</h1></body></html>'
-
-const notFound = () =>
-  new Response("Not found", {
-    status: 404,
-    headers: { "cache-control": "no-store" },
-  })
 
 async function lookup(
   routes: KVNamespace,
@@ -26,42 +19,55 @@ async function lookup(
   const value = await routes.get(routeKey(host), "json")
   if (value === null) return null
   const parsed = routeEntrySchema.safeParse(value)
-  if (!parsed.success) console.error(`Malformed route entry for ${host}`)
-  return parsed.success ? parsed.data : null
+  if (parsed.success) return parsed.data
+  console.error(`Malformed route entry for ${host}`)
+  return null
 }
 
-function redirect(target: string, from: URL) {
-  const location = new URL(target)
-  location.pathname = from.pathname
-  location.search = from.search
-  return new Response(null, {
-    status: 301,
-    headers: {
-      location: location.href,
-      "cache-control": "public, max-age=3600",
-    },
-  })
+async function route(
+  request: Request,
+  env: Cloudflare.Env,
+  ctx: ExecutionContext
+) {
+  const original = new URL(request.url)
+  const url = stripTrackingParams(original)
+  const path = normalisePath(url.pathname)
+  if (!path) return notFound()
+
+  const entry = await lookup(env.ROUTES, normaliseHost(url))
+  if (!entry) return notFound()
+  if ("redirect" in entry) {
+    return new Response(null, {
+      status: 301,
+      headers: {
+        location: redirectLocation(entry.redirect, original),
+        "cache-control": "public, max-age=3600",
+      },
+    })
+  }
+  if (entry.status === "coming-soon") {
+    return new Response(builtInPage("Coming soon"), {
+      headers: comingSoonHeaders(entry.site),
+    })
+  }
+
+  url.pathname = path
+  return ctx.exports
+    .Renderer({ props: { siteId: entry.site } })
+    .fetch(new Request(url, request))
 }
 
 export default {
   async fetch(request, env, ctx) {
-    const original = new URL(request.url)
-    const url = stripTrackingParams(original)
-    const path = normalisePath(url.pathname)
-    if (!path) return notFound()
-
-    const entry = await lookup(env.ROUTES, normaliseHost(url))
-    if (!entry) return notFound()
-    if ("redirect" in entry) return redirect(entry.redirect, original)
-    if (entry.status === "coming-soon") {
-      return new Response(COMING_SOON_PAGE, {
-        headers: comingSoonHeaders(entry.site),
+    if (request.method !== "GET" && request.method !== "HEAD") {
+      return new Response(null, {
+        status: 405,
+        headers: { allow: "GET, HEAD" },
       })
     }
-
-    url.pathname = path
-    return ctx.exports
-      .Renderer({ props: { siteId: entry.site } })
-      .fetch(new Request(url, request))
+    const response = await route(request, env, ctx)
+    return request.method === "HEAD"
+      ? withoutBody(response, response)
+      : response
   },
 } satisfies ExportedHandler<Cloudflare.Env>

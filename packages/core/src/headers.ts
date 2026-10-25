@@ -37,7 +37,7 @@ export const notFoundHeaders = (siteId: string) =>
   htmlHeaders("public, max-age=0, s-maxage=60", [siteTag(siteId)])
 
 export const comingSoonHeaders = (siteId: string) => ({
-  ...notFoundHeaders(siteId),
+  ...htmlHeaders("public, max-age=0, s-maxage=60", [siteTag(siteId)]),
   "x-robots-tag": "noindex",
 })
 

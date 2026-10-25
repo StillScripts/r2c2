@@ -5,7 +5,14 @@ export const routeEntrySchema = z.union([
     site: z.string().min(1),
     status: z.enum(["live", "coming-soon"]),
   }),
-  z.object({ redirect: z.url() }),
+  z.object({
+    redirect: z
+      .url()
+      .refine(
+        (url) => URL.canParse(url) && new URL(url).origin === url,
+        "Expected a bare origin"
+      ),
+  }),
 ])
 
 export type RouteEntry = z.infer<typeof routeEntrySchema>
@@ -35,4 +42,12 @@ export function routeEntries(
       primary ? { redirect: `https://${primary.hostname}` } : null,
     ]
   })
+}
+
+/** Where a redirect entry sends a request: its origin, keeping the path and query. */
+export function redirectLocation(origin: string, from: URL) {
+  const location = new URL(origin)
+  location.pathname = from.pathname
+  location.search = from.search
+  return location.href
 }

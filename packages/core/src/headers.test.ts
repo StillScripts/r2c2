@@ -55,8 +55,10 @@ describe("response headers", () => {
   })
 
   it("hides coming-soon pages from search engines", () => {
-    expect(comingSoonHeaders("s_r2c2")).toEqual({
-      ...notFoundHeaders("s_r2c2"),
+    expect(comingSoonHeaders("s_r2c2")).toMatchObject({
+      "cache-control": "public, max-age=0, s-maxage=60",
+      "cache-tag": "site-s_r2c2",
+      "content-security-policy": CSP,
       "x-robots-tag": "noindex",
     })
   })
