@@ -37,12 +37,22 @@ type PublishResult =
 
 const elementsHash = hashContent(ELEMENTS_JS)
 
-/** Upload the shared elements script, once per version of it. */
-async function uploadElements() {
+async function ensureElements() {
   const key = elementsKey(await elementsHash)
   if (!(await objectExists(key))) {
     await putObject(key, ELEMENTS_JS, ASSET_CONTENT_TYPES.js!)
   }
+}
+
+let elementsUploaded: Promise<void> | undefined
+
+/** Upload the shared elements script if R2 lacks it, checking once per process. */
+function uploadElements() {
+  elementsUploaded ??= ensureElements().catch((error: unknown) => {
+    elementsUploaded = undefined
+    throw error
+  })
+  return elementsUploaded
 }
 
 const writeLive = (

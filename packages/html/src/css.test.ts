@@ -46,3 +46,19 @@ describe("compileCss", () => {
     expect((await compileCss(html, theme)).hash).toBe(first.hash)
   })
 })
+
+describe("loadTheme imports and failures", () => {
+  it("resolves tailwindcss subpath imports", async () => {
+    const theme = await loadTheme(`@import "tailwindcss/theme.css";\n${THEME}`)
+    expect(theme.build(["text-ink"])).toContain(".text-ink")
+  })
+
+  it("doesn't cache a theme that failed to build", async () => {
+    const css = `@import "missing-stylesheet.css";`
+    const first = loadTheme(css)
+    await expect(first).rejects.toThrow()
+    const second = loadTheme(css)
+    expect(second).not.toBe(first)
+    await expect(second).rejects.toThrow()
+  })
+})

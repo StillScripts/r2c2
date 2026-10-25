@@ -47,7 +47,7 @@ export default defineSchema({
     forms: v.array(formDefinition),
     publishedBy: v.string(),
     publishedAt: v.number(),
-  }).index("by_page", ["pageId"]),
+  }).index("by_page_hash", ["pageId", "hash"]),
 
   // The registry enquiry intake checks against, updated at publish
   forms: defineTable({

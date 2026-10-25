@@ -4,7 +4,7 @@ import { textContent } from "domutils"
 import { ALLOWED_TAGS, attributeProblem } from "./allowlist"
 import { formsIn } from "./forms"
 import { type Issue, issueAt } from "./issues"
-import { classTokens, elements, locator, parse } from "./parse"
+import { byTag, classTokens, elements, locator, parse } from "./parse"
 import type { Theme } from "./theme"
 import { validateStructure } from "./validator"
 
@@ -104,6 +104,15 @@ export async function checkPage(html: string, theme: Theme) {
       at(element, "theme-only", `${token} isn't a theme class.`)
   }
 
+  // Publish adds the canonical URL, CSS and script to the head, so it must exist
+  if (byTag("head", doc).length === 0) {
+    errors.push(
+      pageIssue(
+        "page-head",
+        "The page needs a <head> for its <title> and description."
+      )
+    )
+  }
   if (!hasOneNonEmpty(titles)) {
     errors.push(
       pageIssue("page-title", "The page needs one non-empty <title>.")
