@@ -15,6 +15,7 @@ import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedSitesSiteIdIndexRouteImport } from './routes/_authed/sites/$siteId/index'
 import { Route as AuthedSitesSiteIdPagesPageIdRouteImport } from './routes/_authed/sites/$siteId/pages/$pageId'
+import { Route as AuthedSitesSiteIdPagesPageIdHistoryRouteImport } from './routes/_authed/sites/$siteId/pages/$pageId_.history'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -46,6 +47,12 @@ const AuthedSitesSiteIdPagesPageIdRoute =
     path: '/sites/$siteId/pages/$pageId',
     getParentRoute: () => AuthedRoute,
   } as any)
+const AuthedSitesSiteIdPagesPageIdHistoryRoute =
+  AuthedSitesSiteIdPagesPageIdHistoryRouteImport.update({
+    id: '/sites/$siteId/pages/$pageId_/history',
+    path: '/sites/$siteId/pages/$pageId/history',
+    getParentRoute: () => AuthedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
@@ -53,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/sites/$siteId/': typeof AuthedSitesSiteIdIndexRoute
   '/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
+  '/sites/$siteId/pages/$pageId/history': typeof AuthedSitesSiteIdPagesPageIdHistoryRoute
 }
 export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
@@ -60,6 +68,7 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/sites/$siteId': typeof AuthedSitesSiteIdIndexRoute
   '/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
+  '/sites/$siteId/pages/$pageId/history': typeof AuthedSitesSiteIdPagesPageIdHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,6 +78,7 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_authed/sites/$siteId/': typeof AuthedSitesSiteIdIndexRoute
   '/_authed/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
+  '/_authed/sites/$siteId/pages/$pageId_/history': typeof AuthedSitesSiteIdPagesPageIdHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/sites/$siteId/'
     | '/sites/$siteId/pages/$pageId'
+    | '/sites/$siteId/pages/$pageId/history'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/sign-in'
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/sites/$siteId'
     | '/sites/$siteId/pages/$pageId'
+    | '/sites/$siteId/pages/$pageId/history'
   id:
     | '__root__'
     | '/_authed'
@@ -93,6 +105,7 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/_authed/sites/$siteId/'
     | '/_authed/sites/$siteId/pages/$pageId'
+    | '/_authed/sites/$siteId/pages/$pageId_/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSitesSiteIdPagesPageIdRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/sites/$siteId/pages/$pageId_/history': {
+      id: '/_authed/sites/$siteId/pages/$pageId_/history'
+      path: '/sites/$siteId/pages/$pageId/history'
+      fullPath: '/sites/$siteId/pages/$pageId/history'
+      preLoaderRoute: typeof AuthedSitesSiteIdPagesPageIdHistoryRouteImport
+      parentRoute: typeof AuthedRoute
+    }
   }
 }
 
@@ -152,12 +172,15 @@ interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
   AuthedSitesSiteIdIndexRoute: typeof AuthedSitesSiteIdIndexRoute
   AuthedSitesSiteIdPagesPageIdRoute: typeof AuthedSitesSiteIdPagesPageIdRoute
+  AuthedSitesSiteIdPagesPageIdHistoryRoute: typeof AuthedSitesSiteIdPagesPageIdHistoryRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
   AuthedSitesSiteIdIndexRoute: AuthedSitesSiteIdIndexRoute,
   AuthedSitesSiteIdPagesPageIdRoute: AuthedSitesSiteIdPagesPageIdRoute,
+  AuthedSitesSiteIdPagesPageIdHistoryRoute:
+    AuthedSitesSiteIdPagesPageIdHistoryRoute,
 }
 
 const AuthedRouteWithChildren =

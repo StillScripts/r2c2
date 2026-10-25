@@ -18,7 +18,7 @@ async function editorSite() {
 }
 
 const snapshots = (t: ReturnType<typeof setup>, pageId: Id<"pages">) =>
-  t.run(async (ctx) => (await draftHistory(ctx, pageId)).page)
+  t.run((ctx) => draftHistory(ctx, pageId))
 
 afterEach(() => {
   vi.useRealTimers()
@@ -139,14 +139,15 @@ describe("draft history", () => {
     await save("<p>two</p>")
     expect(await snapshots(t, pageId)).toEqual([
       expect.objectContaining({
-        doc: expect.objectContaining({ draftHtml: "<p>one</p>" }),
-        attribution: { reason: "save", actor: "ed" },
+        draftHtml: "<p>one</p>",
+        reason: "save",
+        actor: "ed",
       }),
     ])
 
     vi.advanceTimersByTime(2000)
     await save("<p>three</p>")
-    expect((await snapshots(t, pageId)).map((s) => s.doc.draftHtml)).toEqual([
+    expect((await snapshots(t, pageId)).map((s) => s.draftHtml)).toEqual([
       "<p>three</p>",
       "<p>one</p>",
     ])

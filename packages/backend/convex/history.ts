@@ -13,16 +13,50 @@ const pageHistory = new TableHistory<DataModel, "pages">(components.pageHistory)
 // A snapshot can be stamped just after now when two land in the same millisecond
 const LATEST = Number.MAX_SAFE_INTEGER
 
+export type Snapshot = {
+  ts: number
+  reason: DraftReason
+  actor: string
+  draftHtml: string
+}
+
+type Attribution = Pick<Snapshot, "reason" | "actor">
+
+async function snapshots(
+  ctx: QueryCtx,
+  pageId: Id<"pages">,
+  maxTs: number,
+  numItems: number
+): Promise<Snapshot[]> {
+  const { page } = await pageHistory.listDocumentHistory(ctx, pageId, maxTs, {
+    numItems,
+    cursor: null,
+  })
+  return page.flatMap(({ ts, doc, attribution }) =>
+    doc
+      ? [
+          {
+            ts,
+            ...(attribution as Attribution),
+            draftHtml: (doc as Doc<"pages">).draftHtml,
+          },
+        ]
+      : []
+  )
+}
+
 /** A page's snapshots, newest first. */
 export const draftHistory = (
   ctx: QueryCtx,
   pageId: Id<"pages">,
   numItems = 100
-) =>
-  pageHistory.listDocumentHistory(ctx, pageId, LATEST, {
-    numItems,
-    cursor: null,
-  })
+) => snapshots(ctx, pageId, LATEST, numItems)
+
+/** The page's snapshot taken at `ts`, or null. */
+export async function draftAt(ctx: QueryCtx, pageId: Id<"pages">, ts: number) {
+  const [snapshot] = await snapshots(ctx, pageId, ts, 1)
+  return snapshot?.ts === ts ? snapshot : null
+}
 
 /**
  * Snapshot a page's draft. A save only records if the last snapshot is more than five
@@ -31,12 +65,10 @@ export const draftHistory = (
 export async function recordDraft(
   ctx: MutationCtx,
   page: Doc<"pages">,
-  attribution: { reason: DraftReason; actor: string }
+  attribution: Attribution
 ) {
   if (attribution.reason === "save") {
-    const {
-      page: [last],
-    } = await draftHistory(ctx, page._id, 1)
+    const [last] = await draftHistory(ctx, page._id, 1)
     if (last && Date.now() - last.ts < SNAPSHOT_INTERVAL_MS) return
   }
   await pageHistory.update(ctx, page._id, page, attribution)

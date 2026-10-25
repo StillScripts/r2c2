@@ -1,6 +1,8 @@
 ---
 title: T16 Add publish, versions, rollback and draft history UI
 created: 2026-10-24
+completed: 2026-10-25
+plan: docs/plans/add-versions-and-history-ui.md
 ---
 
 Put publishing and history in the Loft.

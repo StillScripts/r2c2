@@ -38,3 +38,11 @@ is the HTML editor: the draft on the left, and a sandboxed `srcdoc` iframe on th
 with no scripts. The CSS comes from the `preview:preview` action, called 400 ms after
 typing stops, which also returns the house-rule errors and warnings. Save (or ⌘/Ctrl+S)
 writes the draft; nothing is published.
+
+## Publishing and history
+
+The editor's **Publish** button saves any unsaved changes, asks for confirmation, then
+runs `publish:publish`; house-rule errors show under the editor, and a published page is
+live within a minute. **History** (`/sites/$siteId/pages/$pageId/history`) lists the
+page's published versions, with rollback, and its draft snapshots, with a preview and
+restore. Restoring keeps the replaced draft in history, so it can be undone.

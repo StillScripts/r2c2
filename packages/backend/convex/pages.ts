@@ -6,8 +6,11 @@ import {
 } from "@workspace/core"
 import { v } from "convex/values"
 import { audit, ownDoc, siteMutation, siteQuery } from "./access"
+import type { Doc } from "./_generated/dataModel"
+import type { MutationCtx, QueryCtx } from "./_generated/server"
+import { authComponent } from "./auth"
 import { fail } from "./errors"
-import { recordDraft } from "./history"
+import { draftAt, draftHistory, recordDraft } from "./history"
 
 const escapeText = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -71,18 +74,110 @@ export const create = siteMutation({
   },
 })
 
+/** Check a new draft and patch it in, keeping `title` in step with its `<title>`. */
+async function writeDraft(
+  ctx: MutationCtx,
+  page: Doc<"pages">,
+  draftHtml: string
+) {
+  if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
+  const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
+  await ctx.db.patch("pages", page._id, patch)
+  return { ...page, ...patch }
+}
+
 export const saveDraft = siteMutation({
   args: { pageId: v.id("pages"), draftHtml: v.string() },
   handler: async (ctx, { pageId, draftHtml }) => {
     const page = await ownDoc(ctx, "pages", pageId)
-    if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
+    const saved = await writeDraft(ctx, page, draftHtml)
+    await recordDraft(ctx, saved, { reason: "save", actor: ctx.userId })
+  },
+})
 
-    const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
-    await ctx.db.patch("pages", pageId, patch)
-    await recordDraft(
-      ctx,
-      { ...page, ...patch },
-      { reason: "save", actor: ctx.userId }
+/** A lookup from actor IDs, as stored in versions, snapshots and `auditLog`, to display names. */
+async function actorNames(ctx: QueryCtx, actors: string[]) {
+  const names = new Map(
+    await Promise.all(
+      [...new Set(actors)].map(
+        async (actor) =>
+          [
+            actor,
+            actor === "system"
+              ? "System"
+              : ((await authComponent.getAnyUserById(ctx, actor))?.name ??
+                "Former member"),
+          ] as const
+      )
     )
+  )
+  return (actor: string) => names.get(actor) ?? "Former member"
+}
+
+/** The page's published versions, newest first. */
+export const versions = siteQuery({
+  args: { pageId: v.id("pages") },
+  handler: async (ctx, { pageId }) => {
+    await ownDoc(ctx, "pages", pageId)
+    const versions = await ctx.db
+      .query("pageVersions")
+      .withIndex("by_page_published", (q) => q.eq("pageId", pageId))
+      .order("desc")
+      .take(100)
+    const nameOf = await actorNames(
+      ctx,
+      versions.map((v) => v.publishedBy)
+    )
+    return versions.map(({ _id, publishedAt, publishedBy }) => ({
+      _id,
+      publishedAt,
+      publishedBy: nameOf(publishedBy),
+    }))
+  },
+})
+
+/** The page's draft snapshots, newest first, without their drafts. */
+export const history = siteQuery({
+  args: { pageId: v.id("pages") },
+  handler: async (ctx, { pageId }) => {
+    await ownDoc(ctx, "pages", pageId)
+    const snapshots = await draftHistory(ctx, pageId)
+    const nameOf = await actorNames(
+      ctx,
+      snapshots.map((s) => s.actor)
+    )
+    return snapshots.map(({ ts, reason, actor }) => ({
+      ts,
+      reason,
+      author: nameOf(actor),
+    }))
+  },
+})
+
+/** One snapshot's draft, for previewing. */
+export const snapshot = siteQuery({
+  args: { pageId: v.id("pages"), ts: v.number() },
+  handler: async (ctx, { pageId, ts }) => {
+    await ownDoc(ctx, "pages", pageId)
+    const snapshot = await draftAt(ctx, pageId, ts)
+    if (!snapshot) throw fail("not_found")
+    return snapshot.draftHtml
+  },
+})
+
+/**
+ * Put an earlier snapshot back as the draft. The current draft is recorded first, so
+ * the restore can itself be undone (SPEC §6).
+ */
+export const restoreDraft = siteMutation({
+  args: { pageId: v.id("pages"), ts: v.number() },
+  handler: async (ctx, { pageId, ts }) => {
+    const page = await ownDoc(ctx, "pages", pageId)
+    const snapshot = await draftAt(ctx, pageId, ts)
+    if (!snapshot) throw fail("not_found")
+
+    await recordDraft(ctx, page, { reason: "restore", actor: ctx.userId })
+    await writeDraft(ctx, page, snapshot.draftHtml)
+    await audit(ctx, { action: "page.restore", target: page.path })
   },
 })

@@ -12,3 +12,15 @@ export const pagesQuery = (siteId: Id<"sites">) =>
 
 export const pageQuery = (siteId: Id<"sites">, pageId: Id<"pages">) =>
   convexQuery(api.pages.get, { siteId, pageId })
+
+export const versionsQuery = (siteId: Id<"sites">, pageId: Id<"pages">) =>
+  convexQuery(api.pages.versions, { siteId, pageId })
+
+export const historyQuery = (siteId: Id<"sites">, pageId: Id<"pages">) =>
+  convexQuery(api.pages.history, { siteId, pageId })
+
+export const snapshotQuery = (
+  siteId: Id<"sites">,
+  pageId: Id<"pages">,
+  ts: number
+) => convexQuery(api.pages.snapshot, { siteId, pageId, ts })
