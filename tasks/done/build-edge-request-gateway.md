@@ -1,6 +1,7 @@
 ---
 title: T07 Build the gateway
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/build-edge-request-gateway.md
 ---
 
