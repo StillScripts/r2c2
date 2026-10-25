@@ -1,6 +1,7 @@
 ---
 title: T13 Add publish and rollback
 created: 2026-10-24
+plan: docs/plans/add-publish-and-rollback.md
 ---
 
 Turn a draft into a live page, and undo it.
