@@ -60,10 +60,10 @@ describe("publishing.context", () => {
     await expect(
       t
         .withIdentity({ subject: "eve" })
-        .query(internal.publishing.context, { siteId, pageId })
+        .query(internal.publishing.publishContext, { siteId, pageId })
     ).rejects.toEqual(errorCode("not_found"))
     await expect(
-      t.query(internal.publishing.context, { siteId, pageId })
+      t.query(internal.publishing.publishContext, { siteId, pageId })
     ).rejects.toEqual(errorCode("unauthenticated"))
   })
 
@@ -71,7 +71,7 @@ describe("publishing.context", () => {
     const { t, siteId, ed, addPage } = await site()
     const pageId = await addPage("/about")
     const context = () =>
-      ed.query(internal.publishing.context, { siteId, pageId })
+      ed.query(internal.publishing.publishContext, { siteId, pageId })
     expect((await context()).canonicalUrl).toBeUndefined()
 
     await t.run((ctx) =>
@@ -100,7 +100,7 @@ describe("publishing.context", () => {
       release({ forms: [{ ...contact("phone"), name: "call-back" }] })
     )
 
-    const context = await ed.query(internal.publishing.context, {
+    const context = await ed.query(internal.publishing.publishContext, {
       siteId,
       pageId,
     })
@@ -115,7 +115,11 @@ describe("publishing.context", () => {
       release({ pageId: other })
     )
     await expect(
-      ed.query(internal.publishing.context, { siteId, pageId, versionId })
+      ed.query(internal.publishing.rollbackContext, {
+        siteId,
+        pageId,
+        versionId,
+      })
     ).rejects.toEqual(errorCode("not_found"))
   })
 })

@@ -11,12 +11,17 @@ import {
   liveKey,
   versionKey,
 } from "@workspace/core"
-import { buildRelease, type Issue, loadTheme } from "@workspace/html"
+import {
+  buildRelease,
+  type Issue,
+  loadTheme,
+  type Release,
+} from "@workspace/html"
 import { v } from "convex/values"
 import { ELEMENTS_JS } from "../elements.gen"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
-import { action, type ActionCtx } from "./_generated/server"
+import { action } from "./_generated/server"
 import { fail } from "./errors"
 import { formClash } from "./publishing"
 import { getObjectText, objectExists, putObject } from "./storage"
@@ -24,26 +29,25 @@ import { getObjectText, objectExists, putObject } from "./storage"
 const HTML = "text/html; charset=utf-8"
 
 type PublishResult =
-  | { ok: false; errors: Issue[]; warnings: Issue[] }
+  | Extract<Release, { ok: false }>
   | { ok: true; versionId: Id<"pageVersions">; warnings: Issue[] }
 
 const elementsHash = hashContent(ELEMENTS_JS)
 
 /** Upload the shared elements script, once per version of it. */
-async function uploadElements(ctx: ActionCtx, hash: string) {
-  const key = elementsKey(hash)
+async function uploadElements() {
+  const key = elementsKey(await elementsHash)
   if (!(await objectExists(key))) {
-    await putObject(ctx, key, ELEMENTS_JS, ASSET_CONTENT_TYPES.js!)
+    await putObject(key, ELEMENTS_JS, ASSET_CONTENT_TYPES.js!)
   }
 }
 
 const writeLive = (
-  ctx: ActionCtx,
   siteId: Id<"sites">,
   path: string,
   html: string,
   metadata: LivePageMetadata
-) => putObject(ctx, liveKey(siteId, path), html, HTML, metadata)
+) => putObject(liveKey(siteId, path), html, HTML, metadata)
 
 /**
  * Publish a page's draft: build the release, write its CSS, version and live copy to
@@ -52,18 +56,16 @@ const writeLive = (
 export const publish = action({
   args: { siteId: v.id("sites"), pageId: v.id("pages") },
   handler: async (ctx, { siteId, pageId }): Promise<PublishResult> => {
-    const context = await ctx.runQuery(internal.publishing.context, {
+    const context = await ctx.runQuery(internal.publishing.publishContext, {
       siteId,
       pageId,
     })
     const draftHtml = context.page.draftHtml
-    const scriptHash = await elementsHash
-    const scriptUrl = `${ELEMENTS_PREFIX}${scriptHash}.js`
     const release = await buildRelease(draftHtml, {
       theme: await loadTheme(context.theme),
       canonicalUrl: context.canonicalUrl,
       sitekey: process.env.TURNSTILE_SITE_KEY,
-      elementsUrl: scriptUrl,
+      elementsUrl: `${ELEMENTS_PREFIX}${await elementsHash}.js`,
       cssUrl: (hash) => `${ASSETS_PREFIX}${hash}.css`,
     })
     if (!release.ok) return release
@@ -72,18 +74,17 @@ export const publish = action({
     if (clash) throw fail("form_conflict", { form: clash })
 
     const { html, hash, css, cssHash } = release
-    if (html.includes(scriptUrl)) await uploadElements(ctx, scriptHash)
-    await putObject(
-      ctx,
-      assetKey(siteId, cssHash, "css"),
-      css,
-      ASSET_CONTENT_TYPES.css!
-    )
-    await putObject(ctx, versionKey(siteId, hash), html, HTML)
-    await writeLive(ctx, siteId, context.page.path, html, {
-      page: pageId,
-      hash,
-    })
+    await Promise.all([
+      release.usesElements && uploadElements(),
+      putObject(
+        assetKey(siteId, cssHash, "css"),
+        css,
+        ASSET_CONTENT_TYPES.css!
+      ),
+      putObject(versionKey(siteId, hash), html, HTML),
+    ])
+    // Last, so the edge never serves a page whose CSS or script isn't in R2 yet
+    await writeLive(siteId, context.page.path, html, { page: pageId, hash })
 
     const versionId = await ctx.runMutation(internal.publishing.markLive, {
       siteId,
@@ -107,17 +108,15 @@ export const rollback = action({
     versionId: v.id("pageVersions"),
   },
   handler: async (ctx, { siteId, pageId, versionId }): Promise<void> => {
-    const context = await ctx.runQuery(internal.publishing.context, {
-      siteId,
-      pageId,
-      versionId,
-    })
-    const version = context.version!
-    const clash = formClash(version.forms, context.otherForms)
+    const { userId, page, version, otherForms } = await ctx.runQuery(
+      internal.publishing.rollbackContext,
+      { siteId, pageId, versionId }
+    )
+    const clash = formClash(version.forms, otherForms)
     if (clash) throw fail("form_conflict", { form: clash })
 
     const html = await getObjectText(versionKey(siteId, version.hash))
-    await writeLive(ctx, siteId, context.page.path, html, {
+    await writeLive(siteId, page.path, html, {
       page: pageId,
       hash: version.hash,
     })
@@ -125,7 +124,7 @@ export const rollback = action({
       siteId,
       pageId,
       versionId,
-      actor: context.userId,
+      actor: userId,
     })
   },
 })

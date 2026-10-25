@@ -1,6 +1,6 @@
 import type { FormDefinition } from "@workspace/html"
 import { v } from "convex/values"
-import type { Doc, Id } from "./_generated/dataModel"
+import type { Id } from "./_generated/dataModel"
 import {
   internalMutation,
   internalQuery,
@@ -10,6 +10,7 @@ import {
 import { loadSite, writeAudit } from "./access"
 import { fail } from "./errors"
 import { recordDraft } from "./history"
+import { domainsOf } from "./routes"
 import { formDefinition } from "./validators"
 
 const sameFields = (a: FormDefinition, b: FormDefinition) => {
@@ -32,17 +33,14 @@ async function livePages(ctx: QueryCtx, siteId: Id<"sites">) {
     .query("pages")
     .withIndex("by_site_path", (q) => q.eq("siteId", siteId))
     .collect()
-  return Promise.all(
-    pages.flatMap(({ _id, liveVersionId }) =>
-      liveVersionId
-        ? [
-            ctx.db
-              .get("pageVersions", liveVersionId)
-              .then((version) => ({ pageId: _id, version: version! })),
-          ]
-        : []
-    )
+  const live = await Promise.all(
+    pages.map(async ({ _id, liveVersionId }) => {
+      const version =
+        liveVersionId && (await ctx.db.get("pageVersions", liveVersionId))
+      return version ? { pageId: _id, version } : null
+    })
   )
+  return live.filter((entry) => entry !== null)
 }
 
 /**
@@ -89,45 +87,57 @@ async function ownPage(
   return page
 }
 
-/** Everything publish and rollback need, loaded as the signed-in member. */
-export const context = internalQuery({
-  args: {
-    siteId: v.id("sites"),
-    pageId: v.id("pages"),
-    versionId: v.optional(v.id("pageVersions")),
-  },
-  handler: async (ctx, { siteId, pageId, versionId }) => {
-    const { site, userId } = await loadSite(ctx, siteId)
-    const page = await ownPage(ctx, siteId, pageId)
-    let version: Doc<"pageVersions"> | null = null
-    if (versionId) {
-      version = await ctx.db.get("pageVersions", versionId)
-      if (!version || version.pageId !== pageId) throw fail("not_found")
-    }
-    const primary = await ctx.db
-      .query("domains")
-      .withIndex("by_site", (q) => q.eq("siteId", siteId))
-      .filter((q) =>
-        q.and(
-          q.eq(q.field("kind"), "primary"),
-          q.eq(q.field("status"), "active")
-        )
-      )
-      .first()
-    const otherForms = (await livePages(ctx, siteId))
-      .filter((live) => live.pageId !== pageId)
-      .flatMap((live) => live.version.forms)
+async function ownVersion(
+  ctx: QueryCtx,
+  pageId: Id<"pages">,
+  versionId: Id<"pageVersions">
+) {
+  const version = await ctx.db.get("pageVersions", versionId)
+  if (!version || version.pageId !== pageId) throw fail("not_found")
+  return version
+}
 
+/** The page and the forms on the site's other live pages, loaded as the signed-in member. */
+async function pageContext(
+  ctx: QueryCtx,
+  siteId: Id<"sites">,
+  pageId: Id<"pages">
+) {
+  const { site, userId } = await loadSite(ctx, siteId)
+  const page = await ownPage(ctx, siteId, pageId)
+  const otherForms = (await livePages(ctx, siteId))
+    .filter((live) => live.pageId !== pageId)
+    .flatMap((live) => live.version.forms)
+  return { site, userId, page, otherForms }
+}
+
+export const publishContext = internalQuery({
+  args: { siteId: v.id("sites"), pageId: v.id("pages") },
+  handler: async (ctx, { siteId, pageId }) => {
+    const { site, page, ...rest } = await pageContext(ctx, siteId, pageId)
+    const primary = (await domainsOf(ctx, siteId)).find(
+      (domain) => domain.kind === "primary" && domain.status === "active"
+    )
     return {
-      userId,
-      theme: site.theme,
+      ...rest,
       page,
-      version,
+      theme: site.theme,
       canonicalUrl: primary
         ? `https://${primary.hostname}${page.path}`
         : undefined,
-      otherForms,
     }
+  },
+})
+
+export const rollbackContext = internalQuery({
+  args: {
+    siteId: v.id("sites"),
+    pageId: v.id("pages"),
+    versionId: v.id("pageVersions"),
+  },
+  handler: async (ctx, { siteId, pageId, versionId }) => {
+    const { site: _, ...context } = await pageContext(ctx, siteId, pageId)
+    return { ...context, version: await ownVersion(ctx, pageId, versionId) }
   },
 })
 
@@ -191,8 +201,7 @@ export const markRolledBack = internalMutation({
   },
   handler: async (ctx, { siteId, pageId, versionId, actor }) => {
     const page = await ownPage(ctx, siteId, pageId)
-    const version = await ctx.db.get("pageVersions", versionId)
-    if (!version || version.pageId !== pageId) throw fail("not_found")
+    await ownVersion(ctx, pageId, versionId)
     await ctx.db.patch("pages", pageId, { liveVersionId: versionId })
     await syncForms(ctx, siteId)
     await writeAudit(ctx, {

@@ -4,10 +4,10 @@ import { appendChild, prependChild, removeElement } from "domutils"
 import { PLATFORM_TAGS } from "./allowlist"
 import { checkPage } from "./check"
 import { compileCss } from "./css"
-import { extractForms, type FormDefinition } from "./forms"
+import type { FormDefinition } from "./forms"
 import { assignElementIds } from "./ids"
 import { type Issue, issueAt } from "./issues"
-import { byTag, locator, parse, serialise } from "./parse"
+import { byTag, elements, locator, parse, serialise } from "./parse"
 import { sanitise } from "./sanitise"
 import type { Theme } from "./theme"
 
@@ -36,11 +36,10 @@ export type Release =
       css: string
       cssHash: string
       forms: FormDefinition[]
+      /** Whether the page loads the shared elements script */
+      usesElements: boolean
       warnings: Issue[]
     }
-
-const element = (name: string, attribs: Record<string, string>) =>
-  new Element(name, attribs)
 
 function formIssues(html: string, sitekey: string | undefined) {
   const locate = locator(html)
@@ -56,10 +55,7 @@ function formIssues(html: string, sitekey: string | undefined) {
         )
       )
     }
-    for (const field of byTag("input", form).concat(
-      byTag("textarea", form),
-      byTag("select", form)
-    )) {
+    for (const field of elements(form)) {
       if (field.attribs.name === HONEYPOT_FIELD) {
         issues.push(
           issueAt(
@@ -75,38 +71,13 @@ function formIssues(html: string, sitekey: string | undefined) {
   return issues
 }
 
-/** Add the doctype, canonical URL, CSS link, elements script, sitekeys and honeypots. */
-function assemble(doc: Document, options: ReleaseOptions, cssHash: string) {
-  doc.children
-    .filter((node) => node instanceof ProcessingInstruction)
-    .forEach(removeElement)
-  const head = byTag("head", doc)[0]!
-  if (options.canonicalUrl) {
-    appendChild(
-      head,
-      element("link", { rel: "canonical", href: options.canonicalUrl })
-    )
-  }
-  appendChild(
-    head,
-    element("link", { rel: "stylesheet", href: options.cssUrl(cssHash) })
-  )
-  if (PLATFORM_TAGS.some((tag) => byTag(tag, doc).length > 0)) {
-    appendChild(
-      head,
-      element("script", { type: "module", src: options.elementsUrl })
-    )
-  }
-  return `<!doctype html>\n${serialise(doc).trimStart()}`
-}
-
 function addFormExtras(doc: Document, sitekey: string) {
   for (const siteForm of byTag("site-form", doc)) {
     siteForm.attribs.sitekey = sitekey
     for (const form of byTag("form", siteForm)) {
       prependChild(
         form,
-        element("input", {
+        new Element("input", {
           name: HONEYPOT_FIELD,
           class: "sr-only",
           tabindex: "-1",
@@ -116,6 +87,31 @@ function addFormExtras(doc: Document, sitekey: string) {
       )
     }
   }
+}
+
+/** Add the doctype, canonical URL, CSS link and, when needed, the elements script. */
+function assemble(
+  doc: Document,
+  options: ReleaseOptions,
+  cssHash: string,
+  usesElements: boolean
+) {
+  doc.children
+    .filter((node) => node instanceof ProcessingInstruction)
+    .forEach(removeElement)
+  const head = byTag("head", doc)[0]!
+  const link = (attribs: Record<string, string>) =>
+    appendChild(head, new Element("link", attribs))
+  if (options.canonicalUrl)
+    link({ rel: "canonical", href: options.canonicalUrl })
+  link({ rel: "stylesheet", href: options.cssUrl(cssHash) })
+  if (usesElements) {
+    appendChild(
+      head,
+      new Element("script", { type: "module", src: options.elementsUrl })
+    )
+  }
+  return `<!doctype html>\n${serialise(doc).trimStart()}`
 }
 
 /**
@@ -131,13 +127,12 @@ export async function buildRelease(
   const errors = [...check.errors, ...formIssues(draftWithIds, options.sitekey)]
   if (errors.length > 0) return { ok: false, errors, warnings: check.warnings }
 
-  const clean = sanitise(draftWithIds)
-  const { forms } = extractForms(clean)
-  const doc = parse(clean)
+  // The sanitiser refuses to change the structure, so the checked forms still hold
+  const doc = parse(sanitise(draftWithIds))
+  const usesElements = PLATFORM_TAGS.some((tag) => byTag(tag, doc).length > 0)
   if (options.sitekey) addFormExtras(doc, options.sitekey)
-  const body = serialise(doc)
-  const { css, hash: cssHash } = await compileCss(body, options.theme)
-  const html = assemble(parse(body), options, cssHash)
+  const { css, hash: cssHash } = await compileCss(serialise(doc), options.theme)
+  const html = assemble(doc, options, cssHash, usesElements)
 
   return {
     ok: true,
@@ -146,7 +141,8 @@ export async function buildRelease(
     hash: await hashContent(html),
     css,
     cssHash,
-    forms,
+    forms: check.forms,
+    usesElements,
     warnings: check.warnings,
   }
 }

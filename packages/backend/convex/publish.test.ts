@@ -15,7 +15,6 @@ const stored = vi.hoisted(() => new Map<string, string>())
 
 vi.mock("./storage", () => ({
   putObject: async (
-    _ctx: unknown,
     key: string,
     body: string,
     _type: string,

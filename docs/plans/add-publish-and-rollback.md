@@ -124,7 +124,7 @@ purge: the edge picks the change up within the 60 s `s-maxage` (ADR-011).
   5. `ctx.runMutation(internal.publishing.markLive, …)` (below), then return
      `{ ok: true, versionId, warnings }`.
 - **`convex/publishing.ts`** (default runtime):
-  - **`context`** (internal query) as above.
+  - **`publishContext`** and **`rollbackContext`** (internal queries), as above.
   - **`markLive`** (internal mutation), taking
     `{ pageId, draftHtml, draftWithIds, hash, cssHash, forms, actor }`:
     - calls `recordDraft` with `{ ...page, draftHtml }` (the draft publish actually
@@ -272,6 +272,15 @@ reach Convex or R2):
 - Publish uploads the elements script only when the finished page actually references
   it.
 - `markLive` reuses an existing version row when the same hash is published again.
+- `putObject` always writes straight to S3, with or without metadata. The component's
+  `store` refuses to rewrite a key it already tracks, which republishing an unchanged
+  CSS file does, so publish never goes through it.
+- Publish writes the elements script, CSS and version in parallel, then the live copy
+  last, so the edge never serves a page whose files aren't in R2 yet.
+- `buildRelease` parses the sanitised page once, reuses `checkPage`'s forms, and
+  returns `usesElements`, which decides whether the script is uploaded.
+- The context query is split into `publishContext` and `rollbackContext`. The second
+  always returns its version, and both skip a live version that has gone missing.
 - `loadSite` from `access.ts` is exported for the internal `publishing.context` query,
   which runs as the caller because Convex forwards the identity through
   `ctx.runQuery`.
