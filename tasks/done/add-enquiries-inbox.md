@@ -1,6 +1,7 @@
 ---
 title: T17 Add the enquiries inbox
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/add-enquiries-inbox.md
 ---
 
