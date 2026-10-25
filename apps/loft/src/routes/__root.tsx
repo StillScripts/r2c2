@@ -1,8 +1,29 @@
-import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
+import { ConvexBetterAuthProvider } from "@convex-dev/better-auth/react"
+import type { ConvexQueryClient } from "@convex-dev/react-query"
+import type { QueryClient } from "@tanstack/react-query"
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router"
+import { createServerFn } from "@tanstack/react-start"
 
 import appCss from "@workspace/ui/globals.css?url"
+import { providerAuthClient } from "@/lib/auth-client"
+import { getToken } from "@/lib/auth-server"
 
-export const Route = createRootRoute({
+const getAuth = createServerFn({ method: "GET" }).handler(() => getToken())
+
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+  convexQueryClient: ConvexQueryClient
+}>()({
+  beforeLoad: async ({ context }) => {
+    const token = await getAuth()
+    if (token) context.convexQueryClient.serverHttpClient?.setAuth(token)
+    return { token }
+  },
   head: () => ({
     meta: [
       {
@@ -29,8 +50,22 @@ export const Route = createRootRoute({
       <p>The requested page could not be found.</p>
     </main>
   ),
+  component: RootComponent,
   shellComponent: RootDocument,
 })
+
+function RootComponent() {
+  const { convexQueryClient, token } = Route.useRouteContext()
+  return (
+    <ConvexBetterAuthProvider
+      client={convexQueryClient.convexClient}
+      authClient={providerAuthClient}
+      initialToken={token}
+    >
+      <Outlet />
+    </ConvexBetterAuthProvider>
+  )
+}
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
