@@ -10,6 +10,26 @@ vp run --filter @workspace/backend r2:check  # write, read and delete a test obj
 vp test                                  # includes the convex-test suites
 ```
 
+## Staff sign-in
+
+Better Auth runs inside Convex (`convex/auth.ts`), with email and password and public
+sign-up closed (ADR-009). Each deployment needs two variables. `SITE_URL` is the Loft's
+origin, which Better Auth trusts:
+
+```bash
+npx convex env set BETTER_AUTH_SECRET "$(openssl rand -base64 32)"
+npx convex env set SITE_URL http://localhost:3000
+```
+
+Create staff accounts from the CLI. The first member of a site becomes its owner, and later
+ones are editors unless you pass `"role": "owner"`. `site` is a slug and defaults to the
+seed site, `r2c2`. For an email that already has an account, leave out `name` and
+`password` to add it to another site.
+
+```bash
+vp exec convex run staff:create '{"email": "you@example.com", "name": "You", "password": "…"}'
+```
+
 Every public function that touches site data is defined with `siteQuery` or
 `siteMutation` from `convex/access.ts`, and loads any other document through `ownDoc`.
 

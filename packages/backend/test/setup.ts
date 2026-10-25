@@ -1,3 +1,4 @@
+import betterAuth from "@convex-dev/better-auth/test"
 import { convexTest } from "convex-test"
 import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
@@ -6,7 +7,11 @@ import type { Role } from "../convex/validators"
 
 const modules = import.meta.glob("../convex/**/*.*s")
 
-export const setup = () => convexTest(schema, modules)
+export const setup = () => {
+  const t = convexTest(schema, modules)
+  betterAuth.register(t)
+  return t
+}
 
 /** Create a site, optionally with a member, and return its ID. */
 export async function addSite(
