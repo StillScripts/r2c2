@@ -44,8 +44,8 @@ Resend component, which handles retries and Resend's rate limits.
   - per-member notification settings;
   - HTML or branded emails;
   - Resend's delivery webhook (bounces and complaints);
-  - the Loft inbox (T17), so the link goes to the site's page in the Loft until T17
-    exists.
+  - the Loft inbox itself (T17, merged alongside this as #32; the email links straight
+    to the enquiry there).
 
 ## Action items
 
@@ -74,6 +74,8 @@ Resend component, which handles retries and Resend's rate limits.
 - Reply-To comes from `receive`, not from a field named `email`. Intake takes the first
   of the form's `type="email"` fields, which it has already validated, and passes it to
   the scheduled notification, so forms that call the field `your_email` work too.
+- After #32 (the inbox) landed, the email links to `/sites/<id>/enquiries/<id>` and adds
+  the referrer and campaign, reusing core's `enquiryCampaign`.
 - The tests spy on `Resend.prototype.sendEmail`. They check the idempotency key, not
   the component's dedupe itself, which the component owns.
 

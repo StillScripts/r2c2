@@ -1,4 +1,5 @@
 import { Resend } from "@convex-dev/resend"
+import { enquiryCampaign } from "@workspace/core"
 import { v } from "convex/values"
 import { components } from "./_generated/api"
 import type { Doc } from "./_generated/dataModel"
@@ -11,7 +12,10 @@ export const TEST_INBOX = "delivered@resend.dev"
 /** The subject and plain-text body of a new-enquiry email. */
 export function enquiryEmailText(
   site: Pick<Doc<"sites">, "_id" | "name">,
-  enquiry: Pick<Doc<"enquiries">, "form" | "data" | "source" | "createdAt">,
+  enquiry: Pick<
+    Doc<"enquiries">,
+    "_id" | "form" | "data" | "source" | "createdAt"
+  >,
   loftUrl: string | undefined
 ) {
   const lines = [
@@ -20,8 +24,18 @@ export function enquiryEmailText(
     ...Object.entries(enquiry.data).map(([name, value]) => `${name}: ${value}`),
     "",
     ...(enquiry.source ? [`Page: ${enquiry.source.page}`] : []),
+    ...(enquiry.source?.referrer
+      ? [`Referrer: ${enquiry.source.referrer}`]
+      : []),
+    ...(enquiry.source && Object.keys(enquiry.source.utm).length
+      ? [`Campaign: ${enquiryCampaign(enquiry.source.utm)}`]
+      : []),
     `Received: ${new Date(enquiry.createdAt).toUTCString()}`,
-    ...(loftUrl ? [`See it in the Loft: ${loftUrl}/sites/${site._id}`] : []),
+    ...(loftUrl
+      ? [
+          `See it in the Loft: ${loftUrl}/sites/${site._id}/enquiries/${enquiry._id}`,
+        ]
+      : []),
   ]
   return {
     subject: `New enquiry on ${site.name}: ${enquiry.form}`,

@@ -28,7 +28,11 @@ afterEach(() => {
 const ENQUIRY = {
   form: "contact",
   data: { name: "Ada", email: "ada@example.com", message: "Hi" },
-  source: { page: "/contact", utm: {} },
+  source: {
+    page: "/contact",
+    referrer: "https://google.com/",
+    utm: { utm_source: "newsletter" },
+  },
   createdAt: Date.UTC(2026, 9, 25, 9, 30),
 }
 
@@ -110,7 +114,7 @@ describe("enquiryEmailText", () => {
   test("lists the fields, the page, the time and the Loft link", () => {
     const { text } = enquiryEmailText(
       { _id: "s1" as Id<"sites">, name: "Clinic" },
-      ENQUIRY,
+      { _id: "e1" as Id<"enquiries">, ...ENQUIRY },
       "https://loft.example"
     )
     expect(text).toBe(
@@ -122,8 +126,10 @@ describe("enquiryEmailText", () => {
         "message: Hi",
         "",
         "Page: /contact",
+        "Referrer: https://google.com/",
+        "Campaign: source: newsletter",
         "Received: Sun, 25 Oct 2026 09:30:00 GMT",
-        "See it in the Loft: https://loft.example/sites/s1",
+        "See it in the Loft: https://loft.example/sites/s1/enquiries/e1",
       ].join("\n")
     )
   })

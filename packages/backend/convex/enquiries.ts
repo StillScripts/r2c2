@@ -10,8 +10,14 @@ import {
 import type { FormField } from "@workspace/html"
 import { v } from "convex/values"
 import { components, internal } from "./_generated/api"
-import { httpAction, internalMutation } from "./_generated/server"
-import { enquiryIntake } from "./validators"
+import type { Id } from "./_generated/dataModel"
+import {
+  httpAction,
+  internalMutation,
+  type QueryCtx,
+} from "./_generated/server"
+import { audit, ownDoc, siteMutation, siteQuery } from "./access"
+import { type EnquiryStatus, enquiryIntake, enquiryStatus } from "./validators"
 
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -100,12 +106,12 @@ export const receive = internalMutation({
       createdAt: now,
       bodyHash: args.bodyHash,
     })
-    // Scheduled, so a failure to enqueue the email can never lose the enquiry
     // The form's first email field, already validated above, becomes the Reply-To
     const replyTo = form.fields
       .filter((field) => field.type === "email")
       .map((field) => args.data[field.name]?.trim())
       .find(Boolean)
+    // Scheduled, so a failure to enqueue the email can never lose the enquiry
     await ctx.scheduler.runAfter(0, internal.notifications.enquiryEmail, {
       enquiryId,
       replyTo,
@@ -118,7 +124,7 @@ const reply = (status: number, body?: EnquiryResponse) =>
   body ? Response.json(body, { status }) : new Response(null, { status })
 
 /** Hash of the form and its fields, ignoring field order, for the dedupe window. */
-const enquiryHash = (form: string, data: Record<string, string>) =>
+export const enquiryHash = (form: string, data: Record<string, string>) =>
   sha256Hex(
     JSON.stringify([
       form,
@@ -166,4 +172,57 @@ export const intake = httpAction(async (ctx, request) => {
     return reply(400, { ok: false, errors: receipt.errors })
   }
   return reply(receipt.reason === "unknown_site" ? 404 : 429)
+})
+
+/** The most enquiries the inbox shows per tab, and where the new count stops. */
+const INBOX_LIMIT = 100
+
+/** Up to `INBOX_LIMIT` enquiries with a status, newest first, and whether there are more. */
+async function inboxPage(
+  ctx: QueryCtx,
+  siteId: Id<"sites">,
+  status: EnquiryStatus
+) {
+  const page = await ctx.db
+    .query("enquiries")
+    .withIndex("by_site_status_created", (q) =>
+      q.eq("siteId", siteId).eq("status", status)
+    )
+    .order("desc")
+    .take(INBOX_LIMIT + 1)
+  return {
+    enquiries: page.slice(0, INBOX_LIMIT),
+    capped: page.length > INBOX_LIMIT,
+  }
+}
+
+export const list = siteQuery({
+  args: { status: enquiryStatus },
+  handler: (ctx, { status }) => inboxPage(ctx, ctx.site._id, status),
+})
+
+export const newCount = siteQuery({
+  args: {},
+  handler: async (ctx) => {
+    const { enquiries, capped } = await inboxPage(ctx, ctx.site._id, "new")
+    return { count: enquiries.length, capped }
+  },
+})
+
+export const get = siteQuery({
+  args: { enquiryId: v.id("enquiries") },
+  handler: (ctx, { enquiryId }) => ownDoc(ctx, "enquiries", enquiryId),
+})
+
+export const setStatus = siteMutation({
+  args: { enquiryId: v.id("enquiries"), status: enquiryStatus },
+  handler: async (ctx, { enquiryId, status }) => {
+    const enquiry = await ownDoc(ctx, "enquiries", enquiryId)
+    if (enquiry.status === status) return
+    await ctx.db.patch("enquiries", enquiryId, { status })
+    await audit(ctx, {
+      action: status === "handled" ? "enquiry.handled" : "enquiry.reopened",
+      target: enquiryId,
+    })
+  },
 })

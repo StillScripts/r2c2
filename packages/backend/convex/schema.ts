@@ -69,7 +69,7 @@ export default defineSchema({
     // SHA-256 of the form name and sorted fields, for the 10-minute dedupe
     bodyHash: v.string(),
   })
-    .index("by_site_created", ["siteId", "createdAt"])
+    .index("by_site_status_created", ["siteId", "status", "createdAt"])
     .index("by_site_hash", ["siteId", "bodyHash", "createdAt"]),
 
   memberships: defineTable({
