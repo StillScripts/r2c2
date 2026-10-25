@@ -1,3 +1,4 @@
+import { pageHeaders } from "@workspace/core"
 import { WorkerEntrypoint } from "cloudflare:workers"
 
 type Props = { siteId: string }
@@ -13,17 +14,20 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, Props> {
       return Response.json({ purged: tag, hasCache: !!this.ctx.cache, result })
     }
 
-    const short = pathname.startsWith("/short/")
+    const renderId = crypto.randomUUID()
+    const headers = new Headers(
+      pageHeaders({
+        siteId,
+        pageId: pathname.split("/").pop()!,
+        hash: renderId,
+      })
+    )
+    if (pathname.startsWith("/short/")) {
+      headers.set("cache-control", "public, max-age=3600, s-maxage=5")
+    }
     return Response.json(
-      { site: siteId, path: pathname, renderId: crypto.randomUUID() },
-      {
-        headers: {
-          "cache-control": short
-            ? "public, max-age=3600, s-maxage=5"
-            : "public, max-age=0, s-maxage=60",
-          "cache-tag": `site-${siteId},page-${pathname.split("/").pop()}`,
-        },
-      }
+      { site: siteId, path: pathname, renderId },
+      { headers }
     )
   }
 }
