@@ -1,6 +1,7 @@
 ---
 title: T15 Add pages and the HTML editor
 created: 2026-10-24
+plan: docs/plans/add-pages-and-html-editor.md
 ---
 
 Let staff create and edit pages without publishing.
