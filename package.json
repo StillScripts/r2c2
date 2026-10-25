@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vp run --filter loft dev",
     "build": "vp run -r build",
-    "prepare": "vp config"
+    "prepare": "vp config && vp run --filter docs sync"
   },
   "devDependencies": {
     "typescript": "catalog:",

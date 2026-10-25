@@ -1,0 +1,46 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro"
+import TaskColumn from "../../components/TaskColumn.astro"
+import { roadmapStatuses, tasksIn } from "../../tasks"
+
+const columns = await Promise.all(
+  roadmapStatuses.map(async ({ name, id }) => ({ name, tasks: await tasksIn(id) }))
+)
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Roadmap",
+    description: "What's in progress, blocked, and planned, read from tasks/.",
+    tableOfContents: false,
+  }}
+>
+  <p>
+    Every task is a file in <code>tasks/</code>, and its folder is its status.
+    See what has shipped on the <a href="/roadmap/completed/">Completed</a> page.
+  </p>
+  <div class="board not-content">
+    {columns.map((column) => <TaskColumn {...column} />)}
+  </div>
+</StarlightPage>
+
+<style>
+  .board {
+    display: grid;
+    gap: 1rem;
+    align-items: start;
+    margin-top: 2rem;
+  }
+
+  @media (min-width: 50rem) {
+    .board {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<style is:global>
+  :root:has(.board) {
+    --sl-content-width: 64rem;
+  }
+</style>

@@ -1,0 +1,6 @@
+.astro
+
+# copied from the repo by src/sync-content.ts
+src/content/docs/plans
+src/content/docs/decisions
+src/content/tasks
