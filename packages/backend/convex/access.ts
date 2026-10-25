@@ -3,7 +3,7 @@ import {
   customQuery,
 } from "convex-helpers/server/customFunctions"
 import type { TableNamesInDataModel } from "convex/server"
-import { ConvexError, v } from "convex/values"
+import { v } from "convex/values"
 import type { DataModel, Doc, Id } from "./_generated/dataModel"
 import {
   mutation,
@@ -12,14 +12,8 @@ import {
   type QueryCtx,
 } from "./_generated/server"
 
+import { fail } from "./errors"
 import type { Role } from "./validators"
-
-/** The `data.code` of every ConvexError the access helpers throw. */
-export type AccessErrorCode = "unauthenticated" | "not_found" | "forbidden"
-
-/** A user-facing failure, as a ConvexError whose `data.code` callers can switch on. */
-export const fail = <Code extends string>(code: Code) =>
-  new ConvexError({ code })
 
 type SiteCtx = Awaited<ReturnType<typeof loadSite>>
 

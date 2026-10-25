@@ -45,7 +45,7 @@ export default internalMutation({
       title: "R2C2",
       draftHtml: "",
     })
-    await scheduleRouteSync(ctx, (await ctx.db.get("sites", siteId))!)
+    await scheduleRouteSync(ctx, { _id: siteId })
     return siteId
   },
 })

@@ -1,35 +1,13 @@
-import { normaliseHost } from "@workspace/core"
+import { parseHostname } from "@workspace/core"
 import { v } from "convex/values"
-import type { QueryCtx } from "./_generated/server"
-import { audit, fail, ownDoc, siteMutation, siteQuery } from "./access"
-import type { Doc } from "./_generated/dataModel"
-import { scheduleRouteSync } from "./routes"
+import { audit, ownDoc, siteMutation, siteQuery } from "./access"
+import { fail } from "./errors"
+import { domainByHost, domainsOf, scheduleRouteSync } from "./routes"
 import { domainKind } from "./validators"
-
-const HOSTNAME =
-  /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/
-
-/** Normalise a typed-in hostname, or return null if it isn't a bare hostname. */
-export function parseHostname(input: string): string | null {
-  const trimmed = input.trim()
-  if (!/^[^/?#@\s]+$/.test(trimmed)) return null
-  try {
-    const hostname = normaliseHost(new URL(`https://${trimmed}`))
-    return HOSTNAME.test(hostname) ? hostname : null
-  } catch {
-    return null
-  }
-}
-
-const siteDomains = (ctx: QueryCtx & { site: Doc<"sites"> }) =>
-  ctx.db
-    .query("domains")
-    .withIndex("by_site", (q) => q.eq("siteId", ctx.site._id))
-    .collect()
 
 export const list = siteQuery({
   args: {},
-  handler: siteDomains,
+  handler: (ctx) => domainsOf(ctx, ctx.site._id),
 })
 
 export const add = siteMutation({
@@ -38,14 +16,10 @@ export const add = siteMutation({
   handler: async (ctx, { hostname: input, kind }) => {
     const hostname = parseHostname(input)
     if (!hostname) throw fail("invalid_hostname")
-    const taken = await ctx.db
-      .query("domains")
-      .withIndex("by_hostname", (q) => q.eq("hostname", hostname))
-      .first()
-    if (taken) throw fail("hostname_taken")
+    if (await domainByHost(ctx, hostname)) throw fail("hostname_taken")
     if (
       kind === "primary" &&
-      (await siteDomains(ctx)).some((domain) => domain.kind === "primary")
+      (await domainsOf(ctx, ctx.site._id)).some((d) => d.kind === "primary")
     ) {
       throw fail("primary_exists")
     }
@@ -69,7 +43,7 @@ export const remove = siteMutation({
     const domain = await ownDoc(ctx, "domains", domainId)
     if (
       domain.kind === "primary" &&
-      (await siteDomains(ctx)).some((other) => other.kind === "redirect")
+      (await domainsOf(ctx, ctx.site._id)).some((d) => d.kind === "redirect")
     ) {
       throw fail("primary_has_redirects")
     }

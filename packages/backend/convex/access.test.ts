@@ -1,19 +1,17 @@
 import { describe, expect, test } from "vite-plus/test"
 import { api } from "./_generated/api"
-import { addSite, setup } from "../test/setup"
-
-const error = (code: string) => expect.objectContaining({ data: { code } })
+import { addSite, errorCode, setup } from "../test/setup"
 
 describe("site access", () => {
   test("signed-out callers are refused", async () => {
     const t = setup()
     const siteId = await addSite(t, "a")
     await expect(t.query(api.sites.get, { siteId })).rejects.toEqual(
-      error("unauthenticated")
+      errorCode("unauthenticated")
     )
     await expect(
       t.mutation(api.sites.rename, { siteId, name: "x" })
-    ).rejects.toEqual(error("unauthenticated"))
+    ).rejects.toEqual(errorCode("unauthenticated"))
   })
 
   test("members read their own site and nobody else's", async () => {
@@ -26,7 +24,7 @@ describe("site access", () => {
       slug: "a",
     })
     await expect(ann.query(api.sites.get, { siteId: b })).rejects.toEqual(
-      error("not_found")
+      errorCode("not_found")
     )
   })
 
@@ -36,7 +34,7 @@ describe("site access", () => {
     await t.run((ctx) => ctx.db.delete("sites", a))
     await expect(
       t.withIdentity({ subject: "ann" }).query(api.sites.get, { siteId: a })
-    ).rejects.toEqual(error("not_found"))
+    ).rejects.toEqual(errorCode("not_found"))
   })
 
   test("only owners rename, and each rename is audited", async () => {
@@ -50,7 +48,7 @@ describe("site access", () => {
       t
         .withIdentity({ subject: "eve" })
         .mutation(api.sites.rename, { siteId: a, name: "Eve's" })
-    ).rejects.toEqual(error("forbidden"))
+    ).rejects.toEqual(errorCode("forbidden"))
 
     await t
       .withIdentity({ subject: "ann" })
@@ -79,7 +77,7 @@ describe("site access", () => {
       t
         .withIdentity({ subject: "ann" })
         .mutation(api.sites.rename, { siteId: b, name: "taken" })
-    ).rejects.toEqual(error("not_found"))
+    ).rejects.toEqual(errorCode("not_found"))
     const site = await t.run((ctx) => ctx.db.get("sites", b))
     expect(site?.name).toBe("b")
   })
@@ -102,6 +100,6 @@ describe("site access", () => {
     ).toMatchObject({ siteId: a })
     await expect(
       ann.query(api.pages.get, { siteId: a, pageId: pageB })
-    ).rejects.toEqual(error("not_found"))
+    ).rejects.toEqual(errorCode("not_found"))
   })
 })

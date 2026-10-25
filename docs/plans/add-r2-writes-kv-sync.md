@@ -31,7 +31,7 @@ Connect Convex to the edge's storage. Convex writes objects to the R2 bucket the
 
 ### KV sync (`convex/routes.ts`)
 
-- **`routeEntries(site, domains)`** is a pure function returning one row per hostname: either a `RouteEntry` or `null`, meaning delete.
+- **`routeEntries(site, domains)`**, in `packages/core`'s `routing.ts` next to the KV schema, is a pure function returning one row per hostname: either a `RouteEntry` or `null`, meaning delete.
   - An active primary gives `{ site: site._id, status: site.status }`.
   - An active redirect gives `{ redirect: "https://<active primary hostname>" }`, or `null` if the site has no active primary.
   - A pending domain gives `null`.
@@ -50,7 +50,7 @@ Connect Convex to the edge's storage. Convex writes objects to the R2 bucket the
 
 - **`domains.list`** (member) lists the site's domains.
 - **`domains.add`** (owner) takes `{ hostname, kind }`.
-  - **Normalising:** the input is parsed as `new URL("https://" + input)` and normalised with core's `normaliseHost`, which takes a `URL` and lowercases the hostname, strips the port and the trailing dot.
+  - **Normalising:** the input is parsed as `new URL("https://" + input)` and normalised with `parseHostname`, which lives in core's `paths.ts` so the Loft's form can reuse it. It builds on `normaliseHost`, which takes a `URL` and lowercases the hostname, strips the port and the trailing dot.
   - **Validating:** the result must match a hostname pattern of dot-separated labels, each 1–63 characters of `a-z0-9-` that don't start or end with `-`, at most 253 characters in total, and ending in a letters-only TLD, so IP addresses fail. `*.localhost` passes for dev. Inputs with a path, query, `@` or anything else besides a host and an optional port fail too. All of these are `invalid_hostname`.
   - A hostname that already exists on any site is `hostname_taken`.
   - A second primary on the same site is `primary_exists`.

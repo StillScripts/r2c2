@@ -7,50 +7,7 @@ import {
   vi,
 } from "vite-plus/test"
 import { internal } from "./_generated/api"
-import type { Id } from "./_generated/dataModel"
-import { routeEntries } from "./routes"
-import { addSite, scheduled, setup } from "../test/setup"
-
-const site = { _id: "site1" as Id<"sites">, status: "live" as const }
-const active = (hostname: string, kind: "primary" | "redirect") => ({
-  hostname,
-  kind,
-  status: "active" as const,
-})
-
-describe("routeEntries", () => {
-  test("points the primary at the site and redirects at the primary", () => {
-    expect(
-      routeEntries(site, [
-        active("r2c2.dev", "primary"),
-        active("www.r2c2.dev", "redirect"),
-      ])
-    ).toEqual([
-      ["r2c2.dev", { site: "site1", status: "live" }],
-      ["www.r2c2.dev", { redirect: "https://r2c2.dev" }],
-    ])
-  })
-
-  test("carries the site's coming-soon status", () => {
-    expect(
-      routeEntries({ ...site, status: "coming-soon" }, [
-        active("r2c2.dev", "primary"),
-      ])
-    ).toEqual([["r2c2.dev", { site: "site1", status: "coming-soon" }]])
-  })
-
-  test("deletes pending domains and redirects with no active primary", () => {
-    expect(
-      routeEntries(site, [
-        { ...active("r2c2.dev", "primary"), status: "pending" },
-        active("www.r2c2.dev", "redirect"),
-      ])
-    ).toEqual([
-      ["r2c2.dev", null],
-      ["www.r2c2.dev", null],
-    ])
-  })
-})
+import { addSite, scheduled, scheduledJobs, setup } from "../test/setup"
 
 describe("routes.sync", () => {
   const fetchMock = vi.fn<typeof fetch>()
@@ -123,7 +80,7 @@ describe("routes.sync", () => {
         url: `${KV}/bulk/delete`,
         method: "POST",
         auth: "Bearer token",
-        body: ["host:old.a.dev", "host:gone.a.dev"],
+        body: ["host:gone.a.dev", "host:old.a.dev"],
       },
     ])
   })
@@ -140,8 +97,8 @@ describe("routes.sync", () => {
 
   test("deletes removed hostnames of a deleted site", async () => {
     const { t, siteId } = await siteWithDomains()
-    await t.run((ctx) => ctx.db.delete("sites", siteId))
     await t.run(async (ctx) => {
+      await ctx.db.delete("sites", siteId)
       for (const domain of await ctx.db.query("domains").collect()) {
         await ctx.db.delete("domains", domain._id)
       }
@@ -177,9 +134,7 @@ describe("routes.sync", () => {
     fetchMock.mockImplementation(async () => reply())
     const { t, siteId } = await siteWithDomains()
     await t.action(internal.routes.sync, { siteId, version: 1, attempt: 2 })
-    const jobs = await t.run((ctx) =>
-      ctx.db.system.query("_scheduled_functions").collect()
-    )
+    const jobs = await scheduledJobs(t)
     expect(jobs).toHaveLength(1)
     expect(jobs[0]!.args[0]).toEqual({ siteId, version: 1, attempt: 3 })
     expect(

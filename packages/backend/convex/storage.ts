@@ -1,7 +1,6 @@
 import { R2 } from "@convex-dev/r2"
 import { components } from "./_generated/api"
 import { type ActionCtx, internalAction } from "./_generated/server"
-import { fail } from "./access"
 
 export const r2 = new R2(components.r2)
 
@@ -21,8 +20,7 @@ async function step<T>(name: string, run: () => Promise<T>) {
   try {
     return await run()
   } catch (error) {
-    console.error(`R2 check failed at ${name}`, error)
-    throw fail(`r2_check_${name}_failed`)
+    throw new Error(`R2 check failed at ${name}: ${String(error)}`)
   }
 }
 
@@ -39,7 +37,7 @@ export const check = internalAction({
       return response.text()
     })
     await step("delete", () => r2.deleteObject(ctx, key))
-    if (read !== body) throw fail("r2_check_compare_failed")
+    if (read !== body) throw new Error("R2 check read back different content")
     return { ok: true }
   },
 })

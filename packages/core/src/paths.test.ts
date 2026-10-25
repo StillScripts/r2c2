@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vite-plus/test"
-import { normaliseHost, normalisePath, stripTrackingParams } from "./paths"
+import {
+  normaliseHost,
+  normalisePath,
+  parseHostname,
+  stripTrackingParams,
+} from "./paths"
 
 describe("normaliseHost", () => {
   it.each([
@@ -59,5 +64,31 @@ describe("stripTrackingParams", () => {
     const url = new URL("https://r2c2.dev/?gclid=1")
     stripTrackingParams(url)
     expect(url.search).toBe("?gclid=1")
+  })
+})
+
+describe("parseHostname", () => {
+  it.each([
+    ["R2C2.dev", "r2c2.dev"],
+    ["  www.r2c2.dev.  ", "www.r2c2.dev"],
+    ["r2c2.dev:8787", "r2c2.dev"],
+    ["r2c2.localhost", "r2c2.localhost"],
+    ["bücher.example", "xn--bcher-kva.example"],
+  ])("normalises %j", (input, expected) => {
+    expect(parseHostname(input)).toBe(expected)
+  })
+
+  it.each([
+    "",
+    "localhost",
+    "r2c2.dev/about",
+    "user@r2c2.dev",
+    "r2c2.dev?x=1",
+    "https://r2c2.dev",
+    "1.2.3.4",
+    "-bad.dev",
+    "two words.dev",
+  ])("rejects %j", (input) => {
+    expect(parseHostname(input)).toBeNull()
   })
 })

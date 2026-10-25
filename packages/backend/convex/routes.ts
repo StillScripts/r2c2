@@ -1,42 +1,32 @@
-import { type RouteEntry, routeKey } from "@workspace/core"
+import { routeEntries, routeKey } from "@workspace/core"
 import { v } from "convex/values"
 import { internal } from "./_generated/api"
-import type { Doc } from "./_generated/dataModel"
+import type { Doc, Id } from "./_generated/dataModel"
 import {
   internalAction,
   internalQuery,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server"
-
-type Site = Pick<Doc<"sites">, "_id" | "status">
-type Domain = Pick<Doc<"domains">, "hostname" | "kind" | "status">
 
 const RETRY_DELAYS_MS = [5_000, 30_000, 120_000, 600_000]
 
-/** The KV entry each of a site's hostnames should hold; `null` means delete it. */
-export function routeEntries(
-  site: Site,
-  domains: Domain[]
-): [hostname: string, entry: RouteEntry | null][] {
-  const primary = domains.find(
-    (domain) => domain.kind === "primary" && domain.status === "active"
-  )
-  return domains.map(({ hostname, kind, status }) => {
-    if (status !== "active") return [hostname, null]
-    if (kind === "primary") {
-      return [hostname, { site: site._id, status: site.status }]
-    }
-    return [
-      hostname,
-      primary ? { redirect: `https://${primary.hostname}` } : null,
-    ]
-  })
-}
+export const domainsOf = (ctx: QueryCtx, siteId: Id<"sites">) =>
+  ctx.db
+    .query("domains")
+    .withIndex("by_site", (q) => q.eq("siteId", siteId))
+    .collect()
+
+export const domainByHost = (ctx: QueryCtx, hostname: string) =>
+  ctx.db
+    .query("domains")
+    .withIndex("by_hostname", (q) => q.eq("hostname", hostname))
+    .first()
 
 /** Queue a KV rewrite for the site; call it in every mutation that changes what KV should hold. */
 export async function scheduleRouteSync(
   ctx: MutationCtx,
-  site: Doc<"sites">,
+  site: Pick<Doc<"sites">, "_id" | "routesVersion">,
   removed?: string[]
 ) {
   const version = (site.routesVersion ?? 0) + 1
@@ -52,20 +42,10 @@ export const state = internalQuery({
   args: { siteId: v.id("sites"), removed: v.array(v.string()) },
   handler: async (ctx, { siteId, removed }) => {
     const site = await ctx.db.get("sites", siteId)
-    const domains = site
-      ? await ctx.db
-          .query("domains")
-          .withIndex("by_site", (q) => q.eq("siteId", siteId))
-          .collect()
-      : []
-    const stillUsed = await Promise.all(
-      removed.map((hostname) =>
-        ctx.db
-          .query("domains")
-          .withIndex("by_hostname", (q) => q.eq("hostname", hostname))
-          .first()
-      )
-    )
+    const [domains, stillUsed] = await Promise.all([
+      site ? domainsOf(ctx, siteId) : [],
+      Promise.all(removed.map((hostname) => domainByHost(ctx, hostname))),
+    ])
     return {
       site,
       domains,
@@ -73,6 +53,8 @@ export const state = internalQuery({
     }
   },
 })
+
+const KV_METHODS = { bulk: "PUT", "bulk/delete": "POST" } as const
 
 function kvConfig() {
   const {
@@ -89,12 +71,12 @@ function kvConfig() {
 
 async function kvRequest(
   kv: NonNullable<ReturnType<typeof kvConfig>>,
-  path: "bulk" | "bulk/delete",
-  method: "PUT" | "POST",
-  body: unknown
+  path: keyof typeof KV_METHODS,
+  body: unknown[]
 ) {
+  if (!body.length) return
   const response = await fetch(`${kv.url}/${path}`, {
-    method,
+    method: KV_METHODS[path],
     headers: {
       authorization: `Bearer ${kv.token}`,
       "content-type": "application/json",
@@ -131,18 +113,22 @@ export const sync = internalAction({
     )
     if ((site?.routesVersion ?? 0) > args.version) return
 
-    const entries = site ? routeEntries(site, domains) : []
-    const writes = entries.flatMap(([hostname, entry]) =>
-      entry ? [{ key: routeKey(hostname), value: JSON.stringify(entry) }] : []
-    )
-    const deletes = [
-      ...entries.flatMap(([hostname, entry]) => (entry ? [] : [hostname])),
-      ...removed,
-    ].map(routeKey)
+    const writes: { key: string; value: string }[] = []
+    const deletes = removed.map(routeKey)
+    const entries = site
+      ? routeEntries({ id: site._id, status: site.status }, domains)
+      : []
+    for (const [hostname, entry] of entries) {
+      if (entry)
+        writes.push({ key: routeKey(hostname), value: JSON.stringify(entry) })
+      else deletes.push(routeKey(hostname))
+    }
 
     try {
-      if (writes.length) await kvRequest(kv, "bulk", "PUT", writes)
-      if (deletes.length) await kvRequest(kv, "bulk/delete", "POST", deletes)
+      await Promise.all([
+        kvRequest(kv, "bulk", writes),
+        kvRequest(kv, "bulk/delete", deletes),
+      ])
     } catch (error) {
       const attempt = args.attempt ?? 1
       const delay = RETRY_DELAYS_MS[attempt - 1]
