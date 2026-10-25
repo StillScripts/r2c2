@@ -1,6 +1,7 @@
 ---
 title: T18 Build the `<site-form>` element
 created: 2026-10-24
+plan: docs/plans/build-site-form-element.md
 ---
 
 Create `packages/elements`, starting with the enquiry form element.
