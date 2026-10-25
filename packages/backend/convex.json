@@ -1,5 +1,8 @@
 {
   "node": {
     "externalPackages": ["tailwindcss"]
+  },
+  "aiFiles": {
+    "skills": { "agents": [] }
   }
 }

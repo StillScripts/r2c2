@@ -32,6 +32,8 @@ release. Add a tool name to select part of the graph. For example, run
 
 # Skills
 
+## Workflow skills
+
 Use these project skills (in `.claude/skills/`) for each step:
 
 - `handle-task`: run one task end to end, from task to a PR ready for review, chaining the skills below.
@@ -47,7 +49,11 @@ Use these project skills (in `.claude/skills/`) for each step:
 - `resolve-conflicts`: resolve merge conflicts, including a PR that conflicts with `master`. Use it every time conflicts come up, in or outside a task.
 - `find-skills`: find and install new skills.
 
-`.claude/settings.json` allows all of them to run without a permission prompt; add new skills there too.
+`.claude/settings.json` allows all of them to run without a permission prompt; add new workflow skills there too.
+
+## Convex
+
+Working on Convex code (`packages/backend/convex/`, or Convex calls in `apps/loft`)? Read `packages/backend/convex/_generated/ai/guidelines.md` first and use the `convex-*` skills. Otherwise, ignore them. See [ADR-014](docs/decisions/ADR-014-install-convex-skills-at-root.md).
 
 # Installing Agent Skills
 
@@ -66,13 +72,9 @@ npx skills add <owner/repo> -s <skill-name> -a claude-code --copy -y
 
 Skills here are usually adapted from others and renamed to short verb-first names. When you change or rename one (see [ADR-001](docs/decisions/ADR-001-adopt-and-adapt-agent-skills.md)):
 
-- Remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite it. Only unmodified skills stay in the lock file (currently just `find-skills`).
+- Remove its entry from `skills-lock.json` so `npx skills update` doesn't overwrite it. Only unmodified skills stay in the lock file (`find-skills` and the `convex-*` skills).
 - Credit the original right under the skill's heading with one line: ``> **Source:** adapted from [`owner/repo` › `path`](link), copied <date> (<licence>, see `LICENSE.txt`). **Changes:** <what changed>.``
 - Copy the source repository's licence into the skill folder as `LICENSE.txt`.
-
-## Convex skills
-
-Convex's agent files in `packages/backend` are vendor-managed, like `convex/_generated` ([ADR-014](docs/decisions/ADR-014-let-convex-manage-its-agent-files.md)). Never edit them by hand; refresh them with `npx convex ai-files update` there and commit the result.
 
 # Task Tracking
 

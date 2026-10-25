@@ -25,8 +25,8 @@ export default defineConfig({
       "pnpm-lock.yaml",
       "**/*.gen.ts",
       "**/convex/_generated/**",
-      "packages/backend/{.agents,.claude/skills}/**",
-      "packages/backend/{AGENTS.md,CLAUDE.md,skills-lock.json}",
+      ".claude/skills/convex*/**",
+      "packages/backend/{AGENTS,CLAUDE}.md",
     ],
   },
   test: {
