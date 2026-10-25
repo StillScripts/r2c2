@@ -4,7 +4,10 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "spike:deploy": "wrangler deploy --config spike/wrangler.jsonc",
+    "spike:check": "vpx spike/check.ts",
+    "spike:delete": "wrangler delete --config spike/wrangler.jsonc"
   },
   "dependencies": {
     "@workspace/core": "workspace:*"
