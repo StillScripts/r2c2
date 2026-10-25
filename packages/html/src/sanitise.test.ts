@@ -21,6 +21,8 @@ describe("sanitise", () => {
     '<math><mtext><table><mglyph><style><img src=x onerror="alert(1)">',
     '<noscript><p title="</noscript><img src=x onerror=alert(1)>">',
     '<iframe src="https://evil.example"></iframe>',
+    '<site-form name="c"><form action="https://evil.example"></form></site-form>',
+    '<img src="https://cdn.example/a.png" alt="A">',
   ])("refuses to silently strip %s", (payload) => {
     expect(() => sanitise(page(payload))).toThrow(SanitiserChangedPageError)
   })

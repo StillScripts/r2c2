@@ -27,9 +27,7 @@ async function loadStylesheet(id: string, base: string) {
 const names = (css: string, pattern: RegExp) =>
   [...css.matchAll(pattern)].map((match) => match[1]!)
 
-export type Theme = Awaited<ReturnType<typeof loadTheme>>
-
-export async function loadTheme(themeCss: string) {
+async function buildTheme(themeCss: string) {
   const css = `@import "tailwindcss";\n${RESET}\n${themeCss}`
   const options = { base: process.cwd(), loadStylesheet }
   const [designSystem, compiler] = await Promise.all([
@@ -45,4 +43,17 @@ export async function loadTheme(themeCss: string) {
     },
     build: (classes: string[]) => compiler.build(classes),
   }
+}
+
+export type Theme = Awaited<ReturnType<typeof buildTheme>>
+
+const themes = new Map<string, Promise<Theme>>()
+
+export function loadTheme(themeCss: string): Promise<Theme> {
+  let theme = themes.get(themeCss)
+  if (!theme) {
+    theme = buildTheme(themeCss)
+    themes.set(themeCss, theme)
+  }
+  return theme
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test"
-import { compileCss, hashContent } from "./css"
+import { compileCss } from "./css"
 import { THEME } from "./fixtures"
 import { loadTheme } from "./theme"
 
@@ -44,9 +44,5 @@ describe("compileCss", () => {
     expect(first.css).not.toContain("--color-red")
     expect(first.hash).toMatch(/^[0-9a-f]{16}$/)
     expect((await compileCss(html, theme)).hash).toBe(first.hash)
-  })
-
-  it("hashes content to 16 hex characters", async () => {
-    expect(await hashContent("hello")).toBe("2cf24dba5fb0a30e")
   })
 })

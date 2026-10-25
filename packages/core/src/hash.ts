@@ -12,3 +12,6 @@ export const sha256Hex = async (data: string | Uint8Array<ArrayBuffer>) =>
       typeof data === "string" ? encoder.encode(data) : data
     )
   )
+
+export const hashContent = async (content: string) =>
+  (await sha256Hex(content)).slice(0, 16)

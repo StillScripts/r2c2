@@ -10,7 +10,18 @@ const check = (body: string, head?: string) =>
 
 describe("checkPage", () => {
   it("passes a clean page", async () => {
-    expect(await check(CLEAN_BODY)).toEqual({ errors: [], warnings: [] })
+    expect(await check(CLEAN_BODY)).toEqual({
+      errors: [],
+      warnings: [],
+      forms: [
+        {
+          name: "contact",
+          fields: [
+            { name: "email", type: "email", required: true, maxLength: 200 },
+          ],
+        },
+      ],
+    })
   })
 
   it.each([

@@ -6,11 +6,7 @@ const validator = new HtmlValidate({
   elements: [
     "html5",
     {
-      "site-form": {
-        flow: true,
-        transparent: true,
-        attributes: { name: { required: true } },
-      },
+      "site-form": { flow: true, transparent: true },
     },
   ],
   rules: {

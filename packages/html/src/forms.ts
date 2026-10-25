@@ -1,6 +1,6 @@
 import type { Document, Element } from "domhandler"
 import { type Issue, issueAt, type Locate } from "./issues"
-import { elements, locator, parse } from "./parse"
+import { byTag, elements, locator, parse } from "./parse"
 
 export type FormField = {
   name: string
@@ -32,8 +32,7 @@ export function formsIn(doc: Document, locate: Locate) {
   const error = (element: Element, message: string) =>
     errors.push(issueAt(locate, element, "site-form", message))
 
-  for (const form of elements(doc)) {
-    if (form.name !== "site-form") continue
+  for (const form of byTag("site-form", doc)) {
     const name = form.attribs.name?.trim()
     const duplicate = forms.some((f) => f.name === name)
     if (!name) error(form, "<site-form> needs a name attribute.")

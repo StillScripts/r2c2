@@ -1,5 +1,6 @@
 import render from "dom-serializer"
-import { type AnyNode, type Document, type Element, isTag } from "domhandler"
+import type { Document, Element, ParentNode } from "domhandler"
+import { findAll, getElementsByTagName } from "domutils"
 import { parseDocument } from "htmlparser2"
 
 export const parse = (html: string) =>
@@ -8,12 +9,10 @@ export const parse = (html: string) =>
 export const serialise = (doc: Document) =>
   render(doc, { encodeEntities: "utf8" })
 
-export function* elements(node: AnyNode): Generator<Element> {
-  if (isTag(node)) yield node
-  if ("children" in node) {
-    for (const child of node.children) yield* elements(child)
-  }
-}
+export const elements = (root: ParentNode) => findAll(() => true, root.children)
+
+export const byTag = (tag: string, root: ParentNode) =>
+  getElementsByTagName(tag, root.children)
 
 export const classTokens = (element: Element) =>
   element.attribs.class?.split(/\s+/).filter(Boolean) ?? []

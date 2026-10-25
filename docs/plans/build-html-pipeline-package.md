@@ -32,7 +32,7 @@ Build `packages/html`, the pure functions the Loft and the publish action run on
 
 ### Input
 
-`draftHtml` is the whole page, including its metadata: a `<head>` with `<title>` and `<meta name="description">`, and a `<body>`. The site's `theme` CSS is passed alongside it. Adding the canonical URL, the CSS link and the elements script, and choosing what gets hashed, are T13's job. This package exports a `hashContent` helper for that.
+`draftHtml` is the whole page, including its metadata: a `<head>` with `<title>` and `<meta name="description">`, and a `<body>`. The site's `theme` CSS is passed alongside it. Adding the canonical URL, the CSS link and the elements script, and choosing what gets hashed, are T13's job. Core exports a `hashContent` helper for that.
 
 ### One allow-list, two uses
 
@@ -67,7 +67,7 @@ For each `<site-form name="…">` it returns `{ forms, errors }`, where each for
 
 ### House rules: `checkPage(html, theme)`
 
-It returns `{ errors, warnings }`, each item being `{ line, column, rule, message }`. Each message is written to be fixed directly, e.g. `Line 12: bg-[#1f5b8a] isn't allowed. Use a theme colour: bg-brand, bg-ink, bg-paper.` Errors block a publish; warnings don't. `checkPage` includes `extractForms`'s errors, so one call gives the full list.
+It returns `{ errors, warnings, forms }`, each issue being `{ line, column, rule, message }`. Each message is written to be fixed directly, e.g. `Line 12: bg-[#1f5b8a] isn't allowed. Use a theme colour: bg-brand, bg-ink, bg-paper.` Errors block a publish; warnings don't. `checkPage` runs the form extraction itself, so one call gives the full list of errors plus the forms for a clean page.
 
 - **Allow-list.** It flags unknown tags or attributes, `on*` handlers, `style` attributes and non-allowed URL schemes, including `javascript:` and `data:`.
 - **Theme.**
@@ -93,11 +93,11 @@ One module, `theme.ts`, owns Tailwind. `loadTheme(themeCss)` compiles the theme 
 
 ### Sanitise: `sanitise(html)`
 
-`sanitize-html` is configured from the allow-list and runs after the check passes, as the backstop. If sanitising changes the parsed element and attribute structure of a page that passed the check, the publish fails with an internal "check missed something" error. It never ships the silently changed page, because that would be a checker gap.
+`sanitize-html` is configured from the allow-list and runs after the check passes, as the backstop. Value rules (site media, same-site form actions, allowed `meta` names, URL schemes) live in one `attributeProblem()` policy in `allowlist.ts`. The check reports through it, and the sanitiser drops any attribute it flags. If sanitising changes the parsed element and attribute structure of a page that passed the check, the publish fails with an internal "check missed something" error. It never ships the silently changed page, because that would be a checker gap.
 
 ### Hashing
 
-`sha256Hex` moves from private code in `packages/core/src/signing.ts` to an exported helper in core. `hashContent` truncates it to 16 hex characters for `versions/<hash>.html` and `assets/<cssHash>.css`.
+`sha256Hex` moves from private code in `packages/core/src/signing.ts` to an exported helper in core, next to `hashContent`, which truncates it to 16 hex characters for `versions/<hash>.html` and `assets/<cssHash>.css`.
 
 ### Publish order (T13)
 
@@ -122,7 +122,7 @@ flowchart LR
 ## Scope
 
 - In:
-  - `packages/html`: the allow-list, parse, `checkPage`, `sanitise`, `assignElementIds`, `extractForms`, `compileCss` and `hashContent`
+  - `packages/html`: the allow-list, parse, `checkPage`, `sanitise`, `assignElementIds`, `extractForms`, and `compileCss`
   - exporting `sha256Hex` from core
   - catalog entries for the new dependencies
   - tests
