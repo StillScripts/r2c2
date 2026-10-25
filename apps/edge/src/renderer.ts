@@ -57,7 +57,7 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
     const object = await this.env.SITES.get(liveKey(siteId, path))
     if (!object) return this.#notFound()
 
-    const { pageId, hash = object.etag }: Partial<LivePageMetadata> =
+    const { page: pageId, hash = object.etag }: Partial<LivePageMetadata> =
       object.customMetadata ?? {}
     const headers = pageHeaders({ siteId, pageId: pageId ?? "", hash })
     if (!pageId) headers["cache-tag"] = siteTag(siteId)

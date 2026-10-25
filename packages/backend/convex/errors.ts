@@ -12,5 +12,8 @@ export type ErrorCode =
   | "invalid_path"
   | "path_taken"
   | "page_too_large"
+  | "form_conflict"
 
-export const fail = (code: ErrorCode) => new ConvexError({ code })
+/** A ConvexError the Loft can switch on, with optional details such as `{ form }`. */
+export const fail = (code: ErrorCode, details?: Record<string, string>) =>
+  new ConvexError({ code, ...details })

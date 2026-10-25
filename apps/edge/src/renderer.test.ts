@@ -13,7 +13,7 @@ import { describe, expect, it } from "vite-plus/test"
 
 const HASH = "0123456789abcdef"
 const page = "<!doctype html><title>Home</title>"
-const metadata: LivePageMetadata = { pageId: "p_home", hash: "v1" }
+const metadata: LivePageMetadata = { page: "p_home", hash: "v1" }
 
 let sites = 0
 /** A fresh site per test, so neither R2 nor Workers Cache leaks between tests. */
@@ -39,7 +39,7 @@ describe("renderer pages", () => {
     expect(response.status).toBe(200)
     expect(await response.text()).toBe(page)
     expect(headersOf(response)).toMatchObject(
-      pageHeaders({ siteId, ...metadata })
+      pageHeaders({ siteId, pageId: metadata.page, hash: metadata.hash })
     )
   })
 

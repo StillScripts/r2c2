@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises"
 import { createRequire } from "node:module"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 import { __unstable__loadDesignSystem, compile } from "tailwindcss"
 
 const require = createRequire(import.meta.url)
@@ -15,7 +16,9 @@ const RESET = `@theme {
 async function loadStylesheet(id: string, base: string) {
   const file =
     id === "tailwindcss"
-      ? require.resolve("tailwindcss/index.css")
+      ? // Convex installs external packages outside the module tree, where only
+        // the ESM resolver can find them
+        fileURLToPath(import.meta.resolve("tailwindcss/index.css"))
       : require.resolve(id, { paths: [base] })
   return {
     path: file,

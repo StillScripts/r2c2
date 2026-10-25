@@ -45,7 +45,31 @@ always record (SPEC §6).
 `preview:preview` is a Node action that compiles a draft's Tailwind with the site's theme
 and runs the house rules, exactly as publish will. `convex.json` keeps `tailwindcss`
 external (installed from this package's dependencies) so it can read its own stylesheet
-at runtime.
+at runtime. Convex only installs an external package that a file in this package
+imports, not one imported from `@workspace/html`, so `preview.ts` and `publish.ts`
+import `tailwindcss` themselves.
+
+## Publish and rollback
+
+`publish:publish` builds the draft with `buildRelease` from `@workspace/html`, writes its
+CSS, version and live copy to R2, then marks it live. `publish:rollback` copies an older
+version back to the live key. Both return or throw readable errors, and the edge picks
+the change up within a minute (ADR-011). Until the Loft has buttons for them (T16), run
+them as a member:
+
+```bash
+vp exec convex run publish:publish '{"siteId": "…", "pageId": "…"}' --identity '{"subject": "<userId>"}'
+vp exec convex run publish:rollback '{"siteId": "…", "pageId": "…", "versionId": "…"}' --identity '{"subject": "<userId>"}'
+```
+
+Pages with a `<site-form>` need `TURNSTILE_SITE_KEY` on the deployment
+(`1x00000000000000000000AA` in dev). They also load the shared elements script, which
+publish uploads from `elements.gen.ts` (ADR-012). After changing `packages/elements`,
+regenerate and commit it:
+
+```bash
+vp run --filter @workspace/backend elements
+```
 
 ## Storage and routing secrets
 

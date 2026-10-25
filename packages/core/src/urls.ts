@@ -27,5 +27,8 @@ export function parseAssetName(name: string) {
   return hash && ext && contentType ? { hash, ext, contentType } : null
 }
 
-/** Custom metadata publish writes on every live page copy. */
-export type LivePageMetadata = { pageId: string; hash: string }
+/**
+ * Custom metadata publish writes on every live page copy. Keys are single lowercase
+ * words because S3-style `x-amz-meta-*` headers don't keep their case.
+ */
+export type LivePageMetadata = { page: string; hash: string }
