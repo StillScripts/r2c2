@@ -37,7 +37,7 @@ Replace the edge's placeholder `Renderer` with one that serves published pages, 
 
 ### Page headers
 
-`pageHeaders` needs `pageId` and the version `hash`. T13 will write both as R2 custom metadata on the live copy (`{ pageId, hash }`); core exports a `LivePageMetadata` type for that contract. If the metadata is missing, the page is still served: the renderer narrows the cache tag to `site-<id>` and the etag falls back to R2's own etag. `pageHeaders` keeps `pageId` required, so publish can't forget it.
+`pageHeaders` needs `pageId` and the version `hash`. T13 will write both as R2 custom metadata on the live copy (`{ pageId, hash }`, renamed to `{ page, hash }` in T13 because S3 metadata keys lose their case); core exports a `LivePageMetadata` type for that contract. If the metadata is missing, the page is still served: the renderer narrows the cache tag to `site-<id>` and the etag falls back to R2's own etag. `pageHeaders` keeps `pageId` required, so publish can't forget it.
 
 ### Behaviour
 

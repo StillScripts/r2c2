@@ -164,6 +164,9 @@ settings:
 
 catalogs:
   default:
+    '@aws-sdk/client-s3':
+      specifier: 3.1156.0
+      version: 3.1156.0
     '@base-ui/react':
       specifier: 1.9.0
       version: 1.9.0
@@ -399,6 +402,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@aws-sdk/client-s3':
+        specifier: 'catalog:'
+        version: 3.1156.0
       '@convex-dev/better-auth':
         specifier: 'catalog:'
         version: 0.12.5(@standard-schema/spec@1.1.0)(better-auth@1.6.33(@tanstack/react-start@1.169.4(@voidzero-dev/vite-plus-core@1.4.0(@types/node@24.19.2)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.21.0)(typescript@7.0.2))(esbuild@0.28.2)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(rolldown@1.2.12)(supports-color@10.2.2))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(vitest@5.0.5))(convex@1.48.0(react@19.3.1))(hono@4.13.13)(react@19.3.1)(typescript@7.0.2)
@@ -427,6 +433,9 @@ importers:
       '@edge-runtime/vm':
         specifier: 'catalog:'
         version: 5.0.0
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.19.2
       '@workspace/core':
         specifier: workspace:*
         version: link:../core

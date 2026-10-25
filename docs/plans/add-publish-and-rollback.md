@@ -2,6 +2,8 @@
 title: T13 Add publish and rollback
 depth: detailed
 created: 2026-10-25
+decisions:
+  - docs/decisions/ADR-012-ship-elements-bundle-as-generated-module.md
 ---
 
 # T13 Add publish and rollback
@@ -90,7 +92,7 @@ purge: the edge picks the change up within the 60 s `s-maxage` (ADR-011).
   reads a version back for rollback.
 - **Elements bundle:**
   - a new `vp run --filter @workspace/backend elements` script builds
-    `packages/elements` and writes `convex/elementsBundle.generated.ts`, exporting the
+    `packages/elements` and writes `packages/backend/elements.gen.ts`, exporting the
     minified JS as a string;
   - the file is committed;
   - CI runs the script and fails on `git diff`, so it can't go stale;
@@ -195,21 +197,21 @@ purge: the edge picks the change up within the 60 s `s-maxage` (ADR-011).
 
 ## Action items
 
-- [ ] Add `buildRelease` and document assembly to `packages/html`, with unit tests
+- [x] Add `buildRelease` and document assembly to `packages/html`, with unit tests
       (below).
-- [ ] Change `LivePageMetadata` to `{ page, hash }` in core and the renderer, and update
+- [x] Change `LivePageMetadata` to `{ page, hash }` in core and the renderer, and update
       the renderer tests.
-- [ ] Pin `@aws-sdk/client-s3` to the version `@convex-dev/r2` resolves, and add it to
+- [x] Pin `@aws-sdk/client-s3` to the version `@convex-dev/r2` resolves, and add it to
       the backend. Extend `putObject` with metadata and add `getObjectText`.
-- [ ] Add the `elements` script, `convex/elementsBundle.generated.ts`, and the CI step
+- [x] Add the `elements` script, `packages/backend/elements.gen.ts`, and the CI step
       that fails on a stale bundle.
-- [ ] Add `convex/publishing.ts` (`context`, `markLive`, `markRolledBack`,
+- [x] Add `convex/publishing.ts` (`context`, `markLive`, `markRolledBack`,
       `syncForms`), `form_conflict`, and `fail(code, details?)`.
-- [ ] Add `convex/publish.ts` (`publish`, `rollback`) and `TURNSTILE_SITE_KEY` handling.
-- [ ] Add `convex-test` suites for `publishing.ts` (below).
-- [ ] Update SPEC §8, the backend `.env.example` and the README (env, CLI publish and
+- [x] Add `convex/publish.ts` (`publish`, `rollback`) and `TURNSTILE_SITE_KEY` handling.
+- [x] Add `convex-test` suites for `publishing.ts` (below).
+- [x] Update SPEC §8, the backend `.env.example` and the README (env, CLI publish and
       rollback).
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Run `vp check`, `vp test` and `vp run build`.
 
 ## Testing
 
@@ -259,6 +261,24 @@ reach Convex or R2):
 - publish again, roll back to the first version, and see the old page after the cache
   expires.
 
+## As built
+
+- The generated bundle is `packages/backend/elements.gen.ts`, outside `convex/` so Convex
+  doesn't treat it as a function module, and matching `*.gen.ts` so the formatter
+  skips it. The script lives in `packages/backend/scripts/` with its own Node
+  tsconfig.
+- `buildRelease` takes a `cssUrl(cssHash)` option alongside `elementsUrl`, so the URL
+  shape stays in the backend next to the key builders.
+- Publish uploads the elements script only when the finished page actually references
+  it.
+- `markLive` reuses an existing version row when the same hash is published again.
+- `loadSite` from `access.ts` is exported for the internal `publishing.context` query,
+  which runs as the caller because Convex forwards the identity through
+  `ctx.runQuery`.
+- `publish.test.ts` runs both actions in `convex-test` with `./storage` mocked, which
+  covers the write order, the live metadata, the elements upload and rollback. Only
+  real R2 and the edge are left for the manual check.
+
 ## Risks
 
 - **No Convex or R2 in the agent session.** The actions can't be run end to end here.
@@ -281,14 +301,14 @@ reach Convex or R2):
 
 ## Decisions
 
-- Needs ADR: how the elements bundle reaches R2. It's a generated module committed to
-  the backend and checked in CI, which is a repo-wide build convention.
+- [ADR-012](../decisions/ADR-012-ship-elements-bundle-as-generated-module.md): the
+  elements bundle ships as a generated module committed to the backend and checked in
+  CI.
 - The `LivePageMetadata` key change follows T06's plan, which made the type the
   contract. No ADR, but the PR calls it out.
 
-## Open questions
+## Settled
 
-- Should editors be able to publish, or only owners? This plan assumes both, as SPEC
-  doesn't restrict it.
-- Should the honeypot name stay `website` (the T18 and T21 contract), and authored
-  `website` fields be refused?
+- Editors and owners can both publish.
+- The elements bundle ships as a generated module committed to the backend (approach A),
+  recorded in ADR-012.

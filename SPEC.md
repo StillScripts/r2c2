@@ -213,6 +213,7 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | Convex | `R2C2_SIGNING_SECRET`                                                                                                          | signing                       |
 | Convex | `R2_*` (per `@convex-dev/r2`), `RESEND_API_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_KV_NAMESPACE_ID`, `CLOUDFLARE_ACCOUNT_ID` | storage, email, KV sync       |
 | Convex | `BETTER_AUTH_SECRET`, `SITE_URL`                                                                                               | Loft auth                     |
+| Convex | `TURNSTILE_SITE_KEY`                                                                                                           | `sitekey` on published forms  |
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
 | Loft   | `VITE_CONVEX_URL`, `CONVEX_SITE_URL`                                                                                           | backend                       |
 
