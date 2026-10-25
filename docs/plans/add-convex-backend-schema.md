@@ -90,8 +90,8 @@ a slug, and Convex can check it with `v.id("sites")` without a lookup. SPEC §5'
   that takes another document's ID goes through it. Checking `siteId` alone isn't enough:
   a member of A could pass A's `siteId` with B's `pageId`.
 - `audit(ctx, { action, target })` inserts into `auditLog` with the site and actor from
-  `ctx`. Internal callers (HTTP actions, the scheduler) use `auditAs(ctx, siteId, actor,
-  …)`, with an actor such as `"system"`.
+  `ctx`. Internal callers (HTTP actions, the scheduler) get their own helper, with an actor
+  such as `"system"`, when T13 and T19 need one.
 
 **Seed** (`convex/seed.ts`): an internal mutation, run with `vp run seed` (a backend
 script calling `convex run seed:default`). It's idempotent by slug. It creates the `r2c2`
@@ -134,7 +134,7 @@ needs all three anyway.
 - [x] Add `convex-helpers` 0.1.129, `convex-test` 0.0.65 and `@edge-runtime/vm` 5.0.0 to the catalog and `packages/backend`.
 - [x] Rewire `packages/backend`: point `exports` at the generated API, remove `src/`, cover `convex/` in its tsconfig, add `vite.config.ts` for convex-test and a `seed` script.
 - [x] Write `convex/validators.ts` and `convex/schema.ts` per the approach.
-- [x] Write `convex/access.ts` (`siteQuery`, `siteMutation`, owner-only option, `ownDoc`, `audit`, `auditAs`).
+- [x] Write `convex/access.ts` (`siteQuery`, `siteMutation`, owner-only option, `ownDoc`, `audit`).
 - [x] Write `convex/sites.ts` (`get`, `rename`), `convex/pages.ts` (`get`) and `convex/seed.ts`.
 - [x] Add tests (below), then run `vp check` and `vp test`.
 - [x] Push to the dev deployment with `convex dev --once`, run the seed twice, and confirm one site, two domains and one page exist.

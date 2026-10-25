@@ -3,7 +3,7 @@ import { audit, siteMutation, siteQuery } from "./access"
 
 export const get = siteQuery({
   args: {},
-  handler: async (ctx) => ctx.site,
+  handler: (ctx) => ctx.site,
 })
 
 export const rename = siteMutation({

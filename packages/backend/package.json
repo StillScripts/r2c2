@@ -17,6 +17,8 @@
   },
   "devDependencies": {
     "@edge-runtime/vm": "catalog:",
+    "@workspace/core": "workspace:*",
+    "@workspace/html": "workspace:*",
     "convex-test": "catalog:",
     "vite-plus": "catalog:"
   }

@@ -1,12 +1,11 @@
 import { convexTest } from "convex-test"
-import type { Doc, Id } from "../convex/_generated/dataModel"
+import type { Id } from "../convex/_generated/dataModel"
 import schema from "../convex/schema"
+import type { Role } from "../convex/validators"
 
 const modules = import.meta.glob("../convex/**/*.*s")
 
 export const setup = () => convexTest(schema, modules)
-
-type Role = Doc<"memberships">["role"]
 
 /** Create a site, optionally with a member, and return its ID. */
 export async function addSite(

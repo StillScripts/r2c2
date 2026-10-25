@@ -361,6 +361,12 @@ importers:
       '@edge-runtime/vm':
         specifier: 'catalog:'
         version: 5.0.0
+      '@workspace/core':
+        specifier: workspace:*
+        version: link:../core
+      '@workspace/html':
+        specifier: workspace:*
+        version: link:../html
       convex-test:
         specifier: 'catalog:'
         version: 0.0.65(convex@1.48.0(react@19.3.1))

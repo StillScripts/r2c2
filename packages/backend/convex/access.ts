@@ -12,16 +12,14 @@ import {
   type QueryCtx,
 } from "./_generated/server"
 
-type Role = Doc<"memberships">["role"]
-type Code = "unauthenticated" | "not_found" | "forbidden"
+import type { Role } from "./validators"
 
-const fail = (code: Code) => new ConvexError({ code })
+/** The `data.code` of every ConvexError the access helpers throw. */
+export type AccessErrorCode = "unauthenticated" | "not_found" | "forbidden"
 
-type SiteCtx = {
-  site: Doc<"sites">
-  membership: Doc<"memberships">
-  userId: string
-}
+const fail = (code: AccessErrorCode) => new ConvexError({ code })
+
+type SiteCtx = Awaited<ReturnType<typeof loadSite>>
 
 async function loadSite(ctx: QueryCtx, siteId: Id<"sites">, needs?: Role) {
   const identity = await ctx.auth.getUserIdentity()
@@ -39,28 +37,23 @@ async function loadSite(ctx: QueryCtx, siteId: Id<"sites">, needs?: Role) {
   // A site you aren't a member of looks the same as one that doesn't exist
   if (!site || !membership) throw fail("not_found")
   if (needs === "owner" && membership.role !== "owner") throw fail("forbidden")
-  return { site, membership, userId } satisfies SiteCtx
+  return { site, membership, userId }
 }
 
-const siteArgs = { siteId: v.id("sites") }
+const siteAccess = {
+  args: { siteId: v.id("sites") },
+  input: async (
+    ctx: QueryCtx,
+    { siteId }: { siteId: Id<"sites"> },
+    extra: { role?: Role }
+  ) => ({ ctx: await loadSite(ctx, siteId, extra.role), args: { siteId } }),
+}
 
-/** A public query scoped to one site the caller is a member of. */
-export const siteQuery = customQuery(query, {
-  args: siteArgs,
-  input: async (ctx, { siteId }, extra: { role?: Role }) => ({
-    ctx: await loadSite(ctx, siteId, extra.role),
-    args: { siteId },
-  }),
-})
+/** A public query scoped to one site the caller is a member of; pass `role: "owner"` to refuse editors. */
+export const siteQuery = customQuery(query, siteAccess)
 
 /** A public mutation scoped to one site; pass `role: "owner"` to refuse editors. */
-export const siteMutation = customMutation(mutation, {
-  args: siteArgs,
-  input: async (ctx, { siteId }, extra: { role?: Role }) => ({
-    ctx: await loadSite(ctx, siteId, extra.role),
-    args: { siteId },
-  }),
-})
+export const siteMutation = customMutation(mutation, siteAccess)
 
 type SiteOwnedTable = {
   [T in TableNamesInDataModel<DataModel>]: Doc<T> extends {
@@ -81,24 +74,14 @@ export async function ownDoc<T extends SiteOwnedTable>(
   return doc
 }
 
-type AuditEntry = { action: string; target: string }
-
-/** Record an action by an internal caller such as an HTTP action or the scheduler. */
-export async function auditAs(
-  ctx: MutationCtx,
-  siteId: Id<"sites">,
-  actor: string,
-  { action, target }: AuditEntry
-) {
-  await ctx.db.insert("auditLog", {
-    siteId,
-    actor,
-    action,
-    target,
+/** Record an action by the signed-in member on their current site. */
+export const audit = (
+  ctx: MutationCtx & SiteCtx,
+  entry: { action: string; target: string }
+) =>
+  ctx.db.insert("auditLog", {
+    siteId: ctx.site._id,
+    actor: ctx.userId,
+    ...entry,
     at: Date.now(),
   })
-}
-
-/** Record an action by the signed-in member on their current site. */
-export const audit = (ctx: MutationCtx & SiteCtx, entry: AuditEntry) =>
-  auditAs(ctx, ctx.site._id, ctx.userId, entry)
