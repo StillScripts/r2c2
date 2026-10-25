@@ -19,17 +19,18 @@ Each deployment writes to its own R2 bucket and `ROUTES` KV namespace, because s
 differ between deployments (ADR-008). For dev:
 
 ```bash
-wrangler r2 bucket create r2c2-sites-dev --location oc
-wrangler kv namespace create ROUTES_DEV
-npx convex env set R2_BUCKET r2c2-sites-dev
-npx convex env set R2_TOKEN …            # R2 API token: Object Read & Write on the bucket
+wrangler r2 bucket create r2c2-dev --location oc
+wrangler kv namespace create R2C2_ROUTES_DEV
+npx convex env set R2_BUCKET r2c2-dev
+# From an R2 API token with Object Read & Write on the bucket (its "token value" isn't used):
 npx convex env set R2_ACCESS_KEY_ID …
 npx convex env set R2_SECRET_ACCESS_KEY …
-npx convex env set R2_ENDPOINT …
-npx convex env set CLOUDFLARE_API_TOKEN …  # API token: Workers KV Storage Edit only
+npx convex env set R2_ENDPOINT …         # https://<account-id>.r2.cloudflarestorage.com
 npx convex env set CLOUDFLARE_ACCOUNT_ID …
-npx convex env set CLOUDFLARE_KV_NAMESPACE_ID …
+npx convex env set CLOUDFLARE_KV_NAMESPACE_ID …  # the namespace's 32-character ID, not its name
+npx convex env set CLOUDFLARE_API_TOKEN …  # API token: Workers KV Storage Edit (Write) only
 ```
 
 Then run `r2:check`, and add a domain or rerun the seed to see `host:<hostname>` appear in
-the namespace. Without the `CLOUDFLARE_*` variables, route syncs log a skip and do nothing.
+the namespace. Without the `CLOUDFLARE_*` variables, route syncs log a skip and do nothing. A failed sync logs Cloudflare's error on
+each attempt and retries up to five times.

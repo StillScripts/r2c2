@@ -62,8 +62,8 @@ Connect Convex to the edge's storage. Convex writes objects to the R2 bucket the
 
 ### Environment
 
-- `packages/backend/.env.example` and the README list the eight secrets with the `npx convex env set` commands.
-- Each Convex deployment gets its own bucket and namespace: dev uses `r2c2-sites-dev` and a dev `ROUTES` namespace, and production uses `r2c2-sites`.
+- `packages/backend/.env.example` and the README list the seven secrets with the `npx convex env set` commands.
+- Each Convex deployment gets its own bucket and namespace: dev uses `r2c2-dev` and `R2C2_ROUTES_DEV`, and production uses `r2c2-sites`.
 - The Cloudflare API token needs only **Workers KV Storage: Edit** on the account.
 
 ## Alternatives considered
