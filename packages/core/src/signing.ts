@@ -1,3 +1,5 @@
+import { sha256Hex, toHex } from "./hash"
+
 export const SIGNATURE_HEADER = "x-r2c2-signature"
 export const SITE_HEADER = "x-r2c2-site"
 export const SIGNATURE_WINDOW_SECONDS = 60
@@ -10,11 +12,6 @@ export type SignedRequest = {
 }
 
 const encoder = new TextEncoder()
-
-const toHex = (buffer: ArrayBuffer) =>
-  Array.from(new Uint8Array(buffer), (byte) =>
-    byte.toString(16).padStart(2, "0")
-  ).join("")
 
 const fromHex = (hex: string) =>
   Uint8Array.from(hex.match(/../g) ?? [], (byte) => parseInt(byte, 16))
@@ -40,11 +37,7 @@ const prepare = (secret: string, request: SignedRequest, timestamp: number) =>
   Promise.all([importKey(secret), canonical(request, timestamp)])
 
 async function canonical(request: SignedRequest, timestamp: number) {
-  const body =
-    typeof request.body === "string"
-      ? encoder.encode(request.body)
-      : request.body
-  const bodyHash = toHex(await crypto.subtle.digest("SHA-256", body))
+  const bodyHash = await sha256Hex(request.body)
   return encoder.encode(
     [
       timestamp,
