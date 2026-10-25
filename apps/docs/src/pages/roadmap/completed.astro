@@ -1,0 +1,67 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro"
+import TaskCard from "../../components/TaskCard.astro"
+import { formatDate, tasksIn, type Task } from "../../tasks"
+
+const done = (await tasksIn("done")).sort(
+  (a, b) => (b.data.completed?.getTime() ?? 0) - (a.data.completed?.getTime() ?? 0)
+)
+
+const days = Map.groupBy(done, (task) =>
+  task.data.completed ? formatDate(task.data.completed) : "Undated"
+)
+
+const headings = [...days.keys()].map((day) => ({ depth: 2, slug: day, text: day }))
+---
+
+<StarlightPage
+  frontmatter={{
+    title: "Completed",
+    description: "Every task that has shipped, newest first, read from tasks/done/.",
+  }}
+  headings={headings}
+>
+  <p>
+    {done.length} tasks shipped so far. See what's next on the <a
+      href="/roadmap/">Roadmap</a
+    >.
+  </p>
+  {
+    [...days].map(([day, tasks]: [string, Task[]]) => (
+      <section class="day">
+        <h2 id={day}>
+          {day} <span class="count">{tasks.length}</span>
+        </h2>
+        <div class="cards not-content">
+          {tasks.map((task) => <TaskCard task={task} />)}
+        </div>
+      </section>
+    ))
+  }
+</StarlightPage>
+
+<style>
+  .count {
+    margin-inline-start: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: var(--sl-text-xs);
+    font-weight: 500;
+    vertical-align: middle;
+    color: var(--sl-color-gray-4);
+  }
+
+  .cards {
+    display: grid;
+    align-items: start;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  @media (min-width: 50rem) {
+    .cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

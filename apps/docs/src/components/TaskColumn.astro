@@ -1,0 +1,68 @@
+---
+import TaskCard from "./TaskCard.astro"
+import type { Task } from "../tasks"
+
+interface Props {
+  name: string
+  tasks: Task[]
+}
+
+const { name, tasks } = Astro.props
+---
+
+<section class="column">
+  <header class="column-header">
+    <h2>{name}</h2>
+    <span class="count">{tasks.length}</span>
+  </header>
+  <div class="cards">
+    {tasks.map((task) => <TaskCard task={task} />)}
+    {tasks.length === 0 && <p class="empty">Nothing here.</p>}
+  </div>
+</section>
+
+<style>
+  .column {
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-hairline-light);
+    border-radius: 0.75rem;
+    min-width: 0;
+  }
+
+  .column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.125rem;
+  }
+
+  .column-header h2 {
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--sl-color-gray-3);
+  }
+
+  .count {
+    background: var(--sl-color-bg);
+    border-radius: 999px;
+    padding: 0.125rem 0.625rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-4);
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    padding: 0 0.75rem 0.75rem;
+  }
+
+  .empty {
+    padding: 1rem;
+    text-align: center;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-4);
+  }
+</style>

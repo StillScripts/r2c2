@@ -1,0 +1,122 @@
+---
+import { render } from "astro:content"
+import { formatDate, planRoute, previewOf, slugOf, type Task } from "../tasks"
+
+interface Props {
+  task: Task
+}
+
+const { task } = Astro.props
+const { title, created, completed, plan } = task.data
+const { Content } = await render(task)
+---
+
+<details class="task-card" id={slugOf(task)}>
+  <summary>
+    <h3 class="task-title">{title}</h3>
+    <p class="task-preview">{previewOf(task)}</p>
+    <span class="task-meta">
+      <span>{completed ? `✓ ${formatDate(completed)}` : formatDate(created)}</span>
+      {plan && <a href={planRoute(plan)}>Plan</a>}
+    </span>
+  </summary>
+  <div class="task-body"><Content /></div>
+</details>
+
+<style>
+  .task-card {
+    background: var(--sl-color-bg);
+    border: 1px solid var(--sl-color-hairline);
+    border-radius: 0.625rem;
+    padding: 0.875rem 1rem;
+    box-shadow: var(--sl-shadow-sm);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+    scroll-margin-top: calc(var(--sl-nav-height) + 1rem);
+  }
+
+  .task-card:hover {
+    border-color: var(--sl-color-gray-5);
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  .task-card:target {
+    border-color: var(--sl-color-accent);
+  }
+
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .task-preview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+
+  [open] .task-preview {
+    display: none;
+  }
+
+  .task-title {
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--sl-color-white);
+  }
+
+  .task-preview,
+  .task-body {
+    margin-top: 0.375rem;
+    font-size: var(--sl-text-xs);
+    line-height: 1.5;
+    color: var(--sl-color-gray-3);
+    overflow-wrap: anywhere;
+  }
+
+  .task-body {
+    margin-top: 0.625rem;
+    padding-top: 0.625rem;
+    border-top: 1px solid var(--sl-color-hairline-light);
+  }
+
+  .task-body :global(* + *) {
+    margin-top: 0.5rem;
+  }
+
+  .task-body :global(ul) {
+    padding-inline-start: 1rem;
+  }
+
+  .task-body :global(li + li) {
+    margin-top: 0.125rem;
+  }
+
+  .task-body :global(code) {
+    font-size: 0.95em;
+    padding: 0.05em 0.3em;
+    border-radius: 0.25rem;
+    background: var(--sl-color-gray-6);
+  }
+
+  .task-body :global(a),
+  .task-meta a {
+    color: var(--sl-color-text-accent);
+  }
+
+  .task-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-4);
+  }
+</style>
