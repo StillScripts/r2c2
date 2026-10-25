@@ -18,7 +18,6 @@ export const createAuth = (
   betterAuth({
     baseURL: process.env.SITE_URL,
     secret: process.env.BETTER_AUTH_SECRET,
-    trustedOrigins: process.env.SITE_URL ? [process.env.SITE_URL] : [],
     database: authComponent.adapter(ctx),
     emailAndPassword: { enabled: true, disableSignUp: !signUp },
     plugins: [convex({ authConfig })],

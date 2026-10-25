@@ -37,8 +37,8 @@ trusts Better Auth's tokens.
 `authComponent = createClient(components.betterAuth)` and `createAuth(ctx, { signUp })`,
 which builds Better Auth with:
 
-- `baseURL: SITE_URL`, `secret: BETTER_AUTH_SECRET` (read from the environment), and
-  `trustedOrigins: [SITE_URL]`;
+- `baseURL: SITE_URL` and `secret: BETTER_AUTH_SECRET`, read from the environment. Better
+  Auth trusts the `baseURL` origin by default, so there's no `trustedOrigins` list;
 - `database: authComponent.adapter(ctx)`;
 - `emailAndPassword: { enabled: true, disableSignUp: !signUp }`, with no verification or
   reset emails;

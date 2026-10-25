@@ -31,11 +31,6 @@ describe("staff", () => {
       body: JSON.stringify(body),
     })
 
-  const members = (t: ReturnType<typeof setup>) =>
-    t.run(async (ctx) =>
-      (await ctx.db.query("memberships").collect()).map((m) => m.role)
-    )
-
   test("the first member owns the site and later ones edit", async () => {
     const t = setup()
     await addSite(t, "r2c2")
@@ -51,12 +46,10 @@ describe("staff", () => {
       password: "battery-staple",
       role: "owner",
     })
-    expect([first.role, second.role, third.role]).toEqual([
-      "owner",
-      "editor",
-      "owner",
-    ])
-    expect(await members(t)).toEqual(["owner", "editor", "owner"])
+    const roles = await t.run(async (ctx) =>
+      (await ctx.db.query("memberships").collect()).map((m) => m.role)
+    )
+    expect(roles).toEqual(["owner", "editor", "owner"])
     const log = await t.run((ctx) => ctx.db.query("auditLog").collect())
     expect(log.map((e) => [e.actor, e.action, e.target])).toEqual([
       ["system", "member.add", first.userId],

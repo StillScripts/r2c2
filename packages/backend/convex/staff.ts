@@ -1,13 +1,16 @@
 import { v } from "convex/values"
 import { components, internal } from "./_generated/api"
 import {
+  type ActionCtx,
   internalAction,
   internalMutation,
   internalQuery,
   query,
 } from "./_generated/server"
+import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
-import { role } from "./validators"
+import { SEED_SLUG } from "./seed"
+import { role, type Role } from "./validators"
 
 /**
  * Create a staff account, or reuse the one with this email, and add it to a site (the seed
@@ -23,27 +26,21 @@ export const create = internalAction({
     site: v.optional(v.string()),
     role: v.optional(role),
   },
-  handler: async (ctx, args): Promise<{ userId: string; role: string }> => {
-    const slug = args.site ?? "r2c2"
-    const siteId = await ctx.runQuery(internal.staff.siteBySlug, { slug })
+  handler: async (ctx, args): Promise<{ userId: string; role: Role }> => {
+    const slug = args.site ?? SEED_SLUG
+    const email = args.email.toLowerCase()
+    const [siteId, existing] = await Promise.all([
+      ctx.runQuery(internal.staff.siteBySlug, { slug }),
+      ctx.runQuery(components.betterAuth.adapter.findOne, {
+        model: "user",
+        where: [{ field: "email", value: email }],
+      }),
+    ])
+    // Checked before sign-up, so an unknown site leaves no account behind
     if (!siteId) throw new Error(`No site with slug "${slug}"`)
 
-    const email = args.email.toLowerCase()
-    const existing = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-      model: "user",
-      where: [{ field: "email", value: email }],
-    })
-    let userId = existing?._id as string | undefined
-    if (!userId) {
-      if (!args.name || !args.password) {
-        throw new Error("A new account needs a name and a password")
-      }
-      const auth = createAuth(ctx, { signUp: true })
-      const { user } = await auth.api.signUpEmail({
-        body: { email, name: args.name, password: args.password },
-      })
-      userId = user.id
-    }
+    const userId: string =
+      existing?._id ?? (await signUp(ctx, { ...args, email })).user.id
     return ctx.runMutation(internal.staff.addMember, {
       siteId,
       userId,
@@ -51,6 +48,18 @@ export const create = internalAction({
     })
   },
 })
+
+function signUp(
+  ctx: ActionCtx,
+  { email, name, password }: { email: string; name?: string; password?: string }
+) {
+  if (!name || !password) {
+    throw new Error("A new account needs a name and a password")
+  }
+  return createAuth(ctx, { signUp: true }).api.signUpEmail({
+    body: { email, name, password },
+  })
+}
 
 export const siteBySlug = internalQuery({
   args: { slug: v.string() },
@@ -83,13 +92,11 @@ export const addMember = internalMutation({
 
     const granted = anyMember ? (role ?? "editor") : "owner"
     await ctx.db.insert("memberships", { siteId, userId, role: granted })
-    // audit() needs a signed-in member, so record the CLI as "system"
-    await ctx.db.insert("auditLog", {
+    await writeAudit(ctx, {
       siteId,
       actor: "system",
       action: "member.add",
       target: userId,
-      at: Date.now(),
     })
     return { userId, role: granted }
   },
