@@ -102,7 +102,7 @@ Internal packages ship as source (`exports` point at `src`) and are consumed wit
 **Serving a page**
 
 1. The site's domain points at Cloudflare and reaches the Worker.
-2. The gateway lowercases the host, strips the port and trailing dot, normalises the path, and drops tracking parameters (`utm_*`, `gclid`, `fbclid`).
+2. The gateway lowercases the host, strips the port and trailing dot, normalises the path, and drops the query string before calling the renderer, so query variations (tracking parameters, cache-busters) share one cache entry. Pages read nothing from the query; `<site-form>` reads `?sent=` in the browser.
 3. The gateway reads `host:<hostname>` from KV. Unknown host: 404. Redirect entry: 301. `coming-soon`: holding page.
 4. The gateway calls the renderer entrypoint with `props: { siteId }`. Workers Cache keys on path plus props, so sites never share entries. A hit returns here.
 5. On a miss, the renderer reads `sites/<siteId>/live/<path>/index.html` from R2 and returns it with the headers in section 5.

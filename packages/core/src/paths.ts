@@ -1,9 +1,7 @@
-const TRACKING_PARAMS = new Set(["gclid", "fbclid"])
-
 export const normaliseHost = (url: URL) => url.hostname.replace(/\.$/, "")
 
 const HOSTNAME =
-  /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/
+  /^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{1,59})$/
 
 /** Normalise a typed-in hostname, or return null if it isn't a bare hostname. */
 export function parseHostname(input: string): string | null {
@@ -29,14 +27,4 @@ export function normalisePath(pathname: string): string | null {
   const segments = decoded.split("/").filter(Boolean)
   if (segments.includes(".") || segments.includes("..")) return null
   return `/${segments.join("/")}`
-}
-
-export function stripTrackingParams(url: URL): URL {
-  const stripped = new URL(url)
-  for (const key of url.searchParams.keys()) {
-    if (key.startsWith("utm_") || TRACKING_PARAMS.has(key)) {
-      stripped.searchParams.delete(key)
-    }
-  }
-  return stripped
 }

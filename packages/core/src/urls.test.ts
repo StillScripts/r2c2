@@ -15,6 +15,7 @@ describe("parseAssetName", () => {
   it.each([
     "not-a-hash.css",
     "0123456789abcdef.svg",
+    "0123456789abcdef.constructor",
     "0123456789abcdef",
     "0123456789ABCDEF.css",
   ])("rejects %s", (name) => {

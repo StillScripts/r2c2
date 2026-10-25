@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vite-plus/test"
-import {
-  normaliseHost,
-  normalisePath,
-  parseHostname,
-  stripTrackingParams,
-} from "./paths"
+import { normaliseHost, normalisePath, parseHostname } from "./paths"
 
 describe("normaliseHost", () => {
   it.each([
@@ -45,28 +40,6 @@ describe("normalisePath", () => {
   })
 })
 
-describe("stripTrackingParams", () => {
-  it("drops utm_*, gclid and fbclid and keeps the rest", () => {
-    const url = new URL(
-      "https://r2c2.dev/about?utm_source=x&utm_medium=y&gclid=1&fbclid=2&page=3"
-    )
-    expect(stripTrackingParams(url).toString()).toBe(
-      "https://r2c2.dev/about?page=3"
-    )
-  })
-
-  it("removes the query string when only tracking params remain", () => {
-    const url = new URL("https://r2c2.dev/?utm_campaign=launch")
-    expect(stripTrackingParams(url).toString()).toBe("https://r2c2.dev/")
-  })
-
-  it("leaves the original URL untouched", () => {
-    const url = new URL("https://r2c2.dev/?gclid=1")
-    stripTrackingParams(url)
-    expect(url.search).toBe("?gclid=1")
-  })
-})
-
 describe("parseHostname", () => {
   it.each([
     ["R2C2.dev", "r2c2.dev"],
@@ -74,6 +47,7 @@ describe("parseHostname", () => {
     ["r2c2.dev:8787", "r2c2.dev"],
     ["r2c2.localhost", "r2c2.localhost"],
     ["bücher.example", "xn--bcher-kva.example"],
+    ["пример.рф", "xn--e1afmkfd.xn--p1ai"],
   ])("normalises %j", (input, expected) => {
     expect(parseHostname(input)).toBe(expected)
   })
