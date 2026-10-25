@@ -9,5 +9,8 @@ export type ErrorCode =
   | "hostname_taken"
   | "primary_exists"
   | "primary_has_redirects"
+  | "invalid_path"
+  | "path_taken"
+  | "page_too_large"
 
 export const fail = (code: ErrorCode) => new ConvexError({ code })

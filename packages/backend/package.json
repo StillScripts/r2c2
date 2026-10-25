@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     "./api": "./convex/_generated/api.js",
-    "./dataModel": "./convex/_generated/dataModel.d.ts"
+    "./dataModel": "./convex/_generated/dataModel.d.ts",
+    "./errors": "./convex/errors.ts"
   },
   "scripts": {
     "dev": "convex dev",
@@ -16,9 +17,11 @@
     "@convex-dev/better-auth": "catalog:",
     "@convex-dev/r2": "catalog:",
     "@convex-dev/rate-limiter": "catalog:",
+    "@convex-dev/table-history": "catalog:",
     "better-auth": "catalog:",
     "convex": "catalog:",
-    "convex-helpers": "catalog:"
+    "convex-helpers": "catalog:",
+    "tailwindcss": "catalog:"
   },
   "devDependencies": {
     "@edge-runtime/vm": "catalog:",

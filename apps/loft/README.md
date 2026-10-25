@@ -30,3 +30,11 @@ the user and the browser's client starts signed in.
 Signed-out visitors only reach `/sign-in`. Every other page lives under the `_authed`
 layout, which redirects to `/sign-in?redirect=…`. The Convex client waits for a token
 before it sends a query, so only routes under `_authed` should run Convex queries.
+
+## Pages
+
+`/sites/$siteId` lists a site's pages and creates new ones. `/sites/$siteId/pages/$pageId`
+is the HTML editor: the draft on the left, and a sandboxed `srcdoc` iframe on the right
+with no scripts. The CSS comes from the `preview:preview` action, called 400 ms after
+typing stops, which also returns the house-rule errors and warnings. Save (or ⌘/Ctrl+S)
+writes the draft; nothing is published.

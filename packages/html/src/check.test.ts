@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
-import { checkPage, MAX_PAGE_BYTES } from "./check"
+import { MAX_PAGE_BYTES } from "@workspace/core"
+import { checkPage } from "./check"
 import { CLEAN_BODY, page, THEME } from "./fixtures"
 import { formatIssue } from "./issues"
 import { loadTheme } from "./theme"

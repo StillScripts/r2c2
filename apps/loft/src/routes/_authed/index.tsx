@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { Link, createFileRoute } from "@tanstack/react-router"
 import { meQuery } from "@/lib/queries"
 
 export const Route = createFileRoute("/_authed/")({ component: Sites })
@@ -17,14 +17,17 @@ function Sites() {
       ) : (
         <ul className="mt-4 divide-y rounded-3xl border">
           {sites.map((site) => (
-            <li
-              key={site.siteId}
-              className="flex items-center justify-between px-4 py-3"
-            >
-              <span>{site.name}</span>
-              <span className="text-sm text-muted-foreground capitalize">
-                {site.role}
-              </span>
+            <li key={site.siteId}>
+              <Link
+                to="/sites/$siteId"
+                params={{ siteId: site.siteId }}
+                className="flex items-center justify-between px-4 py-3 hover:bg-muted"
+              >
+                <span>{site.name}</span>
+                <span className="text-sm text-muted-foreground capitalize">
+                  {site.role}
+                </span>
+              </Link>
             </li>
           ))}
         </ul>
