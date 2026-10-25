@@ -91,15 +91,15 @@ Connect Convex to the edge's storage. Convex writes objects to the R2 bucket the
 
 ## Action items
 
-- [ ] Add `@convex-dev/r2` (0.10.4) to the catalog and `packages/backend`; add `convex/convex.config.ts`
-- [ ] Write `storage.ts`: `r2`, `putObject` and the `check` action, plus an `r2:check` script
-- [ ] Write `routes.ts`: `routeEntries`, an internal query for site and domains, and the `sync` action with bulk PUT/delete and retries
-- [ ] Write `domains.ts` (`list`, `add`, `remove`) and `sites.setStatus`, each scheduling a sync and writing an audit entry
-- [ ] Make the seed schedule a sync
-- [ ] Tests: `routeEntries` cases, mutation validation and errors, sync calls (mocked `fetch`), retry scheduling, and `putObject` with the component's test helper
-- [ ] Update `.env.example`, the README and SPEC §8 (one bucket and namespace per environment)
-- [ ] Add `tasks/someday/clean-up-convex-schema.md`
-- [ ] Run `vp check`, `vp test` and `vp run build`
+- [x] Add `@convex-dev/r2` (0.10.4) to the catalog and `packages/backend`; add `convex/convex.config.ts`
+- [x] Write `storage.ts`: `r2`, `putObject` and the `check` action, plus an `r2:check` script
+- [x] Write `routes.ts`: `routeEntries`, an internal query for site and domains, and the `sync` action with bulk PUT/delete and retries
+- [x] Write `domains.ts` (`list`, `add`, `remove`) and `sites.setStatus`, each scheduling a sync and writing an audit entry
+- [x] Make the seed schedule a sync
+- [x] Tests: `routeEntries` cases, mutation validation and errors, sync calls (mocked `fetch`), and retry scheduling. `putObject` is left to `r2:check`, because faking the component's signed S3 upload wasn't worth it for a one-line wrapper. `convex/_generated/api.d.ts` was updated by hand (new modules plus `components.r2`), since codegen needs a configured deployment; `convex dev` regenerates the same output
+- [x] Update `.env.example`, the README and SPEC §8 (one bucket and namespace per environment)
+- [x] Add `tasks/someday/clean-up-convex-schema.md`
+- [x] Run `vp check`, `vp test` and `vp run build`
 
 ## Testing
 

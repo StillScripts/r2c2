@@ -9,9 +9,11 @@
   },
   "scripts": {
     "dev": "convex dev",
-    "seed": "convex run seed:default"
+    "seed": "convex run seed:default",
+    "r2:check": "convex run storage:check"
   },
   "dependencies": {
+    "@convex-dev/r2": "catalog:",
     "convex": "catalog:",
     "convex-helpers": "catalog:"
   },

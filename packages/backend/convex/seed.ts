@@ -1,4 +1,5 @@
 import { internalMutation } from "./_generated/server"
+import { scheduleRouteSync } from "./routes"
 
 const THEME = `@theme {
   --color-brand: oklch(0.45 0.12 250);
@@ -8,7 +9,7 @@ const THEME = `@theme {
   --radius-card: 0.75rem;
 }`
 
-/** Create the r2c2 site, its local domains and an empty home page. Safe to rerun. */
+/** Create the r2c2 site, its local domains and an empty home page, then sync its routes. Safe to rerun. */
 export default internalMutation({
   args: {},
   handler: async (ctx) => {
@@ -16,7 +17,10 @@ export default internalMutation({
       .query("sites")
       .withIndex("by_slug", (q) => q.eq("slug", "r2c2"))
       .unique()
-    if (existing) return existing._id
+    if (existing) {
+      await scheduleRouteSync(ctx, existing)
+      return existing._id
+    }
 
     const siteId = await ctx.db.insert("sites", {
       name: "R2C2",
@@ -41,6 +45,7 @@ export default internalMutation({
       title: "R2C2",
       draftHtml: "",
     })
+    await scheduleRouteSync(ctx, (await ctx.db.get("sites", siteId))!)
     return siteId
   },
 })

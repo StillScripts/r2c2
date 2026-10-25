@@ -18,6 +18,8 @@ export default defineSchema({
     status: siteStatus,
     // CSS with the site's @theme tokens and @utility component classes
     theme: v.string(),
+    // Bumped on every change KV must reflect, so stale route syncs skip
+    routesVersion: v.optional(v.number()),
   }).index("by_slug", ["slug"]),
 
   domains: defineTable({

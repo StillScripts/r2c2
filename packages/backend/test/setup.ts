@@ -24,3 +24,11 @@ export async function addSite(
     return siteId
   })
 }
+
+/** Scheduled function calls, as `[name, args]`, in the order they were queued. */
+export const scheduled = (t: ReturnType<typeof setup>) =>
+  t.run(async (ctx) =>
+    (await ctx.db.system.query("_scheduled_functions").collect()).map(
+      (job) => [job.name, job.args[0]] as const
+    )
+  )

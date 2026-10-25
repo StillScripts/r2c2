@@ -17,7 +17,9 @@ import type { Role } from "./validators"
 /** The `data.code` of every ConvexError the access helpers throw. */
 export type AccessErrorCode = "unauthenticated" | "not_found" | "forbidden"
 
-const fail = (code: AccessErrorCode) => new ConvexError({ code })
+/** A user-facing failure, as a ConvexError whose `data.code` callers can switch on. */
+export const fail = <Code extends string>(code: Code) =>
+  new ConvexError({ code })
 
 type SiteCtx = Awaited<ReturnType<typeof loadSite>>
 
