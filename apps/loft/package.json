@@ -9,10 +9,17 @@
     "preview": "vp preview"
   },
   "dependencies": {
+    "@convex-dev/better-auth": "catalog:",
+    "@convex-dev/react-query": "catalog:",
     "@tailwindcss/vite": "catalog:",
+    "@tanstack/react-query": "catalog:",
     "@tanstack/react-router": "catalog:",
+    "@tanstack/react-router-ssr-query": "catalog:",
     "@tanstack/react-start": "catalog:",
+    "@workspace/backend": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "better-auth": "catalog:",
+    "convex": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:"

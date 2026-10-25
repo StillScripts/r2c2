@@ -87,8 +87,9 @@ Sign-out is a button in the signed-in layout rather than its own page. A `/sign-
 route that signs out when it loads would fire on link preload (`defaultPreload: "intent"`).
 The button is the "sign-out page" the task asks for.
 
-**UI.** Add `Input` and `Label` to `@workspace/ui` with the shadcn CLI (`base-rhea`
-style), so the form uses shared components. Card-like layout with plain Tailwind.
+**UI.** Add `Input` and `Label` to `@workspace/ui` in the `base-rhea` style, so the form
+uses shared components. The shadcn registry was unreachable from the agent session, so
+they were written by hand to match `Button`. Card-like layout with plain Tailwind.
 
 **Dependencies.** Catalog pins for `@tanstack/react-query` 5.104.5,
 `@convex-dev/react-query` 0.1.0 and `@tanstack/react-router-ssr-query` 1.167.3. `loft`
@@ -117,22 +118,23 @@ adds those plus `convex`, `better-auth`, `@convex-dev/better-auth` and
 
 ## Action items
 
-- [ ] Pin the three new packages in `pnpm-workspace.yaml` and add the dependencies to
+- [x] Pin the three new packages in `pnpm-workspace.yaml` and add the dependencies to
       `apps/loft/package.json`. Run `vp install`.
-- [ ] Add `Input` and `Label` to `packages/ui` through the shadcn CLI.
-- [ ] Add `src/lib/auth-client.ts`, `src/lib/auth-server.ts` and the
+- [x] Add `Input` and `Label` to `packages/ui` (by hand: the shadcn registry was
+      blocked in the agent session).
+- [x] Add `src/lib/auth-client.ts`, `src/lib/auth-server.ts` and the
       `src/routes/api/auth/$.ts` proxy route.
-- [ ] Rework `src/router.tsx` for the Convex and query clients, router context and SSR
+- [x] Rework `src/router.tsx` for the Convex and query clients, router context and SSR
       query integration.
-- [ ] Rework `__root.tsx`: context type, `getAuth` server function in `beforeLoad`, and
+- [x] Rework `__root.tsx`: context type, `getAuth` server function in `beforeLoad`, and
       `ConvexBetterAuthProvider`.
-- [ ] Add `/sign-in`, the `_authed` layout with sign-out, and the sites list at `/`.
+- [x] Add `/sign-in`, the `_authed` layout with sign-out, and the sites list at `/`.
       Remove the old placeholder index.
-- [ ] Keep the redirect target safe: only same-origin paths starting with `/` are
+- [x] Keep the redirect target safe: only same-origin paths starting with `/` are
       accepted. Put that in a small helper and unit test it.
-- [ ] Document the Loft's env and how to run it locally (`apps/loft/README.md`, and
+- [x] Document the Loft's env and how to run it locally (`apps/loft/README.md`, and
       `.env.example` comments).
-- [ ] Run `vp check`, `vp test` and `vp run build`. Start `vp dev` and check that `/`
+- [x] Run `vp check`, `vp test` and `vp run build`. Start `vp dev` and check that `/`
       redirects to `/sign-in` and the form renders.
 
 ## Testing
@@ -140,8 +142,10 @@ adds those plus `convex`, `better-auth`, `@convex-dev/better-auth` and
 - `vp test`: a unit test for the redirect helper (accepts `/`, `/x?y`; rejects
   `//evil.com`, `https://…`, `javascript:` and empty values, falling back to `/`).
 - `vp run build` proves the server route, server function and SSR bundle compile.
-- Manual in this session: `vp dev` with placeholder env shows the redirect to `/sign-in`
-  and the form.
+- Manual in this session: `vp dev` against a stub `.convex.site` server showed `/`
+  redirecting to `/sign-in?redirect=%2F`, `/api/auth/*` reaching the stub, and in
+  Chromium a wrong password showing "Wrong email or password." The form posts with
+  `method="post"`, so a submit before hydration never puts the password in the URL.
 - Manual on a real dev deployment (needs Convex credentials this session doesn't have):
   sign in with an account from `staff:create` and see the seed site listed, reload and
   stay signed in, sign out and land on `/sign-in`, and get an inline error for a wrong
