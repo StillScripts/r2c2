@@ -9,7 +9,7 @@ export const ALLOWED_TAGS = [
     html head body title meta
     header footer main nav section article aside
     div span p h1 h2 h3 h4 h5 h6 blockquote
-    a strong em b i small br hr time address
+    a strong em b i small br hr time address code pre sub sup
     ul ol li dl dt dd
     table thead tbody tfoot tr th td caption
     figure figcaption img picture source

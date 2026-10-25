@@ -30,14 +30,14 @@ Rebuild the homepage design (a Claude design export, kept out of the repo) as th
 
 ## Action items
 
-- [ ] Add `code`, `pre`, `sub` and `sup` to `packages/html/src/allowlist.ts`, with a test.
-- [ ] Write `sites/r2c2/theme.css` from the design's values.
-- [ ] Write `sites/r2c2/index.html`, section by section, with the contact form.
-- [ ] Add `packages/html/src/sites.test.ts`: every `sites/<name>/index.html` passes `checkPage` with its own `theme.css`, with no errors or warnings, and declares the `contact` form.
-- [ ] Add `seed:importSite` to `packages/backend/convex/seed.ts`, with tests: it sets the theme, updates an existing page's draft, creates a missing page, and records history.
-- [ ] Add `packages/backend/scripts/import-site.ts` and the `site:import` script; document it in the backend README and `sites/r2c2/README.md`.
-- [ ] Screenshot the page with its compiled CSS at desktop and phone widths, next to the design, and fix differences.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Add `code`, `pre`, `sub` and `sup` to `packages/html/src/allowlist.ts`, with a test.
+- [x] Write `sites/r2c2/theme.css` from the design's values.
+- [x] Write `sites/r2c2/index.html`, section by section, with the contact form.
+- [x] Add `packages/html/src/sites.test.ts`: every `sites/<name>/index.html` passes `checkPage` with its own `theme.css`, with no errors or warnings, and declares the `contact` form.
+- [x] Add `seed:importSite` to `packages/backend/convex/seed.ts`, with tests: it sets the theme, updates an existing page's draft, creates a missing page, and records history.
+- [x] Add `packages/backend/scripts/import-site.ts` and the `site:import` script; document it in the backend README and `sites/r2c2/README.md`.
+- [x] Screenshot the page with its compiled CSS at desktop and phone widths, next to the design, and fix differences.
+- [x] Run `vp check`, `vp test` and `vp run build`.
 
 ## Open questions
 

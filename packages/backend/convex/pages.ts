@@ -75,7 +75,7 @@ export const create = siteMutation({
 })
 
 /** Check a new draft and patch it in, keeping `title` in step with its `<title>`. */
-async function writeDraft(
+export async function writeDraft(
   ctx: MutationCtx,
   page: Doc<"pages">,
   draftHtml: string

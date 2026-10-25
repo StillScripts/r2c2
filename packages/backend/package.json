@@ -11,6 +11,7 @@
   "scripts": {
     "dev": "convex dev",
     "seed": "convex run seed:default",
+    "site:import": "vpx scripts/import-site.ts",
     "r2:check": "convex run storage:check",
     "elements": "vp run --filter @workspace/elements build && vpx scripts/elements.ts"
   },

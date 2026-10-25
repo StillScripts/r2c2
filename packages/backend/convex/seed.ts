@@ -1,6 +1,11 @@
+import { parsePagePath } from "@workspace/core"
+import { v } from "convex/values"
 import type { Id } from "./_generated/dataModel"
 import { internalMutation, type MutationCtx } from "./_generated/server"
 import { enquiryHash } from "./enquiries"
+import { fail } from "./errors"
+import { recordDraft } from "./history"
+import { writeDraft } from "./pages"
 import { scheduleRouteSync } from "./routes"
 
 /** The slug of the site the seed creates, and the default for `staff:create`. */
@@ -74,6 +79,48 @@ export default internalMutation({
     const site = existing ?? { _id: await createSite(ctx) }
     await seedEnquiry(ctx, site._id)
     await scheduleRouteSync(ctx, site)
+    return site._id
+  },
+})
+
+/** The site's page at `rawPath`, created empty if it doesn't exist yet. */
+async function pageAt(ctx: MutationCtx, siteId: Id<"sites">, rawPath: string) {
+  const path = parsePagePath(rawPath)
+  if (!path) throw fail("invalid_path")
+  const existing = await ctx.db
+    .query("pages")
+    .withIndex("by_site_path", (q) => q.eq("siteId", siteId).eq("path", path))
+    .unique()
+  if (existing) return existing
+  const pageId = await ctx.db.insert("pages", {
+    siteId,
+    path,
+    title: path,
+    draftHtml: "",
+  })
+  return (await ctx.db.get("pages", pageId))!
+}
+
+/** Load a site's theme and page drafts from `sites/<slug>/`, creating pages that don't exist yet. Publishing stays a Loft step. */
+export const importSite = internalMutation({
+  args: {
+    slug: v.optional(v.string()),
+    theme: v.string(),
+    pages: v.array(v.object({ path: v.string(), html: v.string() })),
+  },
+  handler: async (ctx, { slug = SEED_SLUG, theme, pages }) => {
+    const site = await ctx.db
+      .query("sites")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique()
+    if (!site) throw fail("not_found")
+    await ctx.db.patch("sites", site._id, { theme })
+
+    for (const { path, html } of pages) {
+      const page = await pageAt(ctx, site._id, path)
+      const saved = await writeDraft(ctx, page, html)
+      await recordDraft(ctx, saved, { reason: "save", actor: "system" })
+    }
     return site._id
   },
 })
