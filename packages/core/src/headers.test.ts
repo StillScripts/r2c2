@@ -2,6 +2,7 @@ import { describe, expect, it } from "vite-plus/test"
 import {
   API_HEADERS,
   ASSET_HEADERS,
+  assetHeaders,
   CSP,
   notFoundHeaders,
   pageHeaders,
@@ -42,5 +43,13 @@ describe("response headers", () => {
       "cache-control": "public, max-age=31536000, immutable",
     })
     expect(API_HEADERS).toEqual({ "cache-control": "no-store" })
+  })
+
+  it("adds the content type and nosniff to asset headers", () => {
+    expect(assetHeaders("image/webp")).toEqual({
+      ...ASSET_HEADERS,
+      "content-type": "image/webp",
+      "x-content-type-options": "nosniff",
+    })
   })
 })

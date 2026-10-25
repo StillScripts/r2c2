@@ -1,3 +1,5 @@
+import { ASSETS_PREFIX } from "@workspace/core"
+
 const words = (list: string) => list.trim().split(/\s+/)
 
 export const PLATFORM_TAGS = ["site-form"]
@@ -45,7 +47,6 @@ export const TAG_ATTRIBUTES: Record<string, string[]> = {
 export const URL_ATTRIBUTES = ["href", "src", "srcset", "action"]
 export const REQUEST_ATTRIBUTES = ["src", "srcset"]
 export const ALLOWED_SCHEMES = ["http", "https", "mailto", "tel"]
-export const MEDIA_PREFIX = "/assets/"
 export const META_NAMES = ["description", "viewport"]
 
 const matches = (allowed: string, name: string) =>
@@ -78,10 +79,10 @@ function urlProblem(name: string, url: string): Problem | undefined {
       message: `${protocol}: URLs aren't allowed.`,
     }
   }
-  if (REQUEST_ATTRIBUTES.includes(name) && !url.startsWith(MEDIA_PREFIX)) {
+  if (REQUEST_ATTRIBUTES.includes(name) && !url.startsWith(ASSETS_PREFIX)) {
     return {
       rule: "site-media",
-      message: `${url} isn't site media. Upload it and use its ${MEDIA_PREFIX} path.`,
+      message: `${url} isn't site media. Upload it and use its ${ASSETS_PREFIX} path.`,
     }
   }
   if (name === "action" && (protocol || url.startsWith("//"))) {

@@ -40,4 +40,10 @@ export const ASSET_HEADERS = {
   "cache-control": "public, max-age=31536000, immutable",
 }
 
+export const assetHeaders = (contentType: string) => ({
+  ...ASSET_HEADERS,
+  "content-type": contentType,
+  "x-content-type-options": "nosniff",
+})
+
 export const API_HEADERS = { "cache-control": "no-store" }

@@ -13,5 +13,7 @@ export const sha256Hex = async (data: string | Uint8Array<ArrayBuffer>) =>
     )
   )
 
+export const HASH_LENGTH = 16
+
 export const hashContent = async (content: string) =>
-  (await sha256Hex(content)).slice(0, 16)
+  (await sha256Hex(content)).slice(0, HASH_LENGTH)

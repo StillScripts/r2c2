@@ -1,18 +1,10 @@
-import { WorkerEntrypoint } from "cloudflare:workers"
 import {
   normaliseHost,
   normalisePath,
   stripTrackingParams,
 } from "@workspace/core"
 
-type RendererProps = { siteId: string }
-
-export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
-  fetch(request: Request) {
-    const { pathname } = new URL(request.url)
-    return new Response(`Hello from ${this.ctx.props.siteId}${pathname}`)
-  }
-}
+export { Renderer } from "./renderer"
 
 export default {
   fetch(request, _env, ctx) {
