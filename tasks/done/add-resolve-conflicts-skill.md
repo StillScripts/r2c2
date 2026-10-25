@@ -1,6 +1,7 @@
 ---
 title: Add a skill for resolving merge conflicts
 created: 2026-10-25
+completed: 2026-10-25
 ---
 
 Add a `resolve-conflicts` skill so every agent resolves merge conflicts the same way, which lets several PRs run in parallel safely.
