@@ -1,6 +1,7 @@
 ---
 title: T05 Spike: prove Workers Cache
 created: 2026-10-24
+completed: 2026-10-25
 ---
 
 Prove Workers Cache does what the edge design needs before building on it.
@@ -33,5 +34,7 @@ PASS  browser still gets max-age=3600
   - The tags match `pageHeaders()` (`site-<id>,page-<id>`). Cloudflare strips `cache-tag` from responses, so clients never see it.
   - The "purge only reaches the calling site" PASS means nothing on its own, since the purge cleared nothing.
 - **Untested:** the run used workers.dev, not a custom domain on a Cloudflare zone (production serves sites on custom domains), and only one location.
+
+Decision: [ADR-011](../../docs/decisions/ADR-011-workers-cache-without-purge.md), Workers Cache without purge for milestone 1.
 
 Related: [SPEC §10](../../SPEC.md#10-things-to-prove-early-t05-spike)

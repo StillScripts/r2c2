@@ -11,7 +11,7 @@ This file is the reference for every task in `tasks/`. Read the sections a task 
 In scope:
 
 - Monorepo, tooling and CI
-- Edge Worker: domain → site → cached page, assets, signed purge, `/_api` forms route
+- Edge Worker: domain → site → cached page, assets, `/_api` forms route
 - Convex backend: sites, domains, pages, versions, enquiries, audit log, publish pipeline to R2
 - Loft: sign-in, sites, pages, HTML editor with preview, publish, versions, rollback, enquiries inbox
 - `<site-form>` element and the enquiry path end to end, with email notification
@@ -112,10 +112,9 @@ Internal packages ship as source (`exports` point at `src`) and are consumed wit
 1. Check the house rules (section 12) and stop with readable errors if any fail. Sanitise the HTML, add stable `data-r2c2-id` attributes to elements, and record each `<site-form>` and its fields.
 2. Compile the page's Tailwind with the site's theme in-process (`tailwindcss` `compile()`), hash it.
 3. Write `versions/<hash>.html` and `assets/<cssHash>.css`, then copy the version to `live/<path>/index.html`.
-4. Mark the version live in Convex, call the Worker's signed purge route with the page's tag, write an audit entry.
-5. If the purge fails, retry through the Convex scheduler. Always write R2 before purging.
+4. Mark the version live in Convex and write an audit entry. The edge serves the new page once its cached copy expires, within about a minute (`s-maxage=60`). Milestone 1 doesn't purge ([ADR-011](docs/decisions/ADR-011-workers-cache-without-purge.md)).
 
-Rollback is the same steps 3 to 5 with an older version.
+Rollback is the same steps 3 and 4 with an older version.
 
 **Taking an enquiry**
 
@@ -163,7 +162,7 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 - Header `x-r2c2-signature: t=<unix seconds>,v1=<hex HMAC-SHA256>` over `t + "\n" + siteId + "\n" + method + "\n" + path + "\n" + sha256(body)`.
 - Header `x-r2c2-site: <siteId>`.
 - Convex rejects missing, invalid, or older than 60 seconds. Use Web Crypto on both sides. One shared secret, `R2C2_SIGNING_SECRET`, in Worker secrets and Convex env.
-- The purge route uses the same scheme in the other direction (Convex → Worker).
+- A future purge route would use the same scheme in the other direction (Convex → Worker); milestone 1 has none (ADR-011).
 
 **Enquiry API**
 
@@ -211,7 +210,7 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | ------ | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
 | Worker | `SITES` (R2 binding), `ROUTES` (KV binding)                                                                                    | storage and routing           |
 | Worker | `R2C2_SIGNING_SECRET`, `TURNSTILE_SECRET`, `CONVEX_SITE_URL`                                                                   | signing, bot check, backend   |
-| Convex | `R2C2_SIGNING_SECRET`, `EDGE_PURGE_URL`                                                                                        | signing, purge                |
+| Convex | `R2C2_SIGNING_SECRET`                                                                                                          | signing                       |
 | Convex | `R2_*` (per `@convex-dev/r2`), `RESEND_API_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_KV_NAMESPACE_ID`, `CLOUDFLARE_ACCOUNT_ID` | storage, email, KV sync       |
 | Convex | `BETTER_AUTH_SECRET`, `SITE_URL`                                                                                               | Loft auth                     |
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
@@ -235,7 +234,7 @@ Each Convex deployment has its own R2 bucket and KV namespace (dev: bucket `r2c2
 - New env vars added to `.env.example` and section 8.
 - Contracts changed only in `packages/core`, with both sides updated in the same PR.
 
-**Review checkpoints.** Pause for an outside review (a fresh Claude session given repo access) after T08 (edge serving), T13 (publish pipeline) and T21 (enquiry path).
+**Review checkpoints.** Pause for an outside review (a fresh Claude session given repo access) after T07 (edge serving), T13 (publish pipeline) and T21 (enquiry path).
 
 ## 10. Things to prove early (T05 spike)
 
@@ -246,6 +245,8 @@ Workers Cache launched in July 2026. Before building on it, confirm:
 3. `s-maxage` is honoured separately from `max-age`.
 
 If any fails, fall back to the Cache API (`caches.default` with `Cache-Tag`) and zone-level purge by tag. Either way, record the decision as an ADR in `docs/decisions/`.
+
+**Result:** 1 and 3 hold, but 2 failed on `workers.dev`: the purge reported success and cleared nothing. [ADR-011](docs/decisions/ADR-011-workers-cache-without-purge.md) keeps Workers Cache without purge for milestone 1 and re-tests purge on a custom domain at T23.
 
 ## 11. Later specs (outlines)
 
