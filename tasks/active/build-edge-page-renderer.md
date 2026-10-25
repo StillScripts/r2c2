@@ -1,6 +1,7 @@
 ---
 title: T06 Build the renderer
 created: 2026-10-24
+plan: docs/plans/build-edge-page-renderer.md
 ---
 
 Serve published pages and assets from R2.
