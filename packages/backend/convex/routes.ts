@@ -85,9 +85,13 @@ async function kvRequest(
   })
   const result = (await response.json().catch(() => null)) as {
     success?: boolean
+    errors?: { code: number; message: string }[]
   } | null
   if (!response.ok || !result?.success) {
-    throw new Error(`Cloudflare KV ${path} failed with ${response.status}`)
+    const reasons = result?.errors?.map((e) => `${e.code} ${e.message}`)
+    throw new Error(
+      `Cloudflare KV ${path} failed with ${response.status}: ${reasons?.join("; ") || "no details"}`
+    )
   }
 }
 
@@ -132,6 +136,7 @@ export const sync = internalAction({
     } catch (error) {
       const attempt = args.attempt ?? 1
       const delay = RETRY_DELAYS_MS[attempt - 1]
+      console.warn(`KV sync for ${args.siteId}, attempt ${attempt}:`, error)
       if (delay === undefined) {
         console.error(
           `KV sync for ${args.siteId} gave up after ${attempt} attempts`,
