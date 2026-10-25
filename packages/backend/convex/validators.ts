@@ -1,7 +1,7 @@
-import type { EnquirySource, RouteEntry } from "@workspace/core"
+import type { EnquiryIntake, EnquirySource, RouteEntry } from "@workspace/core"
 import type { FormDefinition, FormField } from "@workspace/html"
 import { literals } from "convex-helpers/validators"
-import { type Infer, v } from "convex/values"
+import { type Infer, type ObjectType, v } from "convex/values"
 
 export const siteStatus = literals("live", "coming-soon")
 export const domainKind = literals("primary", "redirect")
@@ -26,6 +26,11 @@ export const enquirySource = v.object({
   referrer: v.optional(v.string()),
   utm: v.record(v.string(), v.string()),
 })
+export const enquiryIntake = {
+  form: v.string(),
+  data: v.record(v.string(), v.string()),
+  source: v.optional(enquirySource),
+}
 
 // Fails to type check if these drift from the shapes in packages/core and packages/html
 type Same<A, B> =
@@ -43,4 +48,5 @@ export type SharedShapes = [
   Expect<Same<Infer<typeof formField>, FormField>>,
   Expect<Same<Infer<typeof formDefinition>, FormDefinition>>,
   Expect<Same<Infer<typeof enquirySource>, EnquirySource>>,
+  Expect<Same<ObjectType<typeof enquiryIntake>, EnquiryIntake>>,
 ]

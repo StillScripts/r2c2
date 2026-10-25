@@ -11,10 +11,14 @@ import {
   test,
   vi,
 } from "vite-plus/test"
+import type { FormField } from "@workspace/html"
+import type { Id } from "../convex/_generated/dataModel"
 import { addSite, setup } from "../test/setup"
 
+type T = ReturnType<typeof setup>
+
 const SECRET = "test-secret"
-const FIELDS = [
+const FIELDS: FormField[] = [
   { name: "name", type: "text", required: true, maxLength: 20 },
   { name: "email", type: "email", required: true },
   { name: "message", type: "textarea", required: false },
@@ -29,12 +33,15 @@ afterEach(() => {
   vi.unstubAllEnvs()
 })
 
+const addForm = (t: T, siteId: Id<"sites">) =>
+  t.run((ctx) =>
+    ctx.db.insert("forms", { siteId, name: "contact", fields: FIELDS })
+  )
+
 async function siteWithForm() {
   const t = setup()
   const siteId = await addSite(t, "a")
-  await t.run((ctx) =>
-    ctx.db.insert("forms", { siteId, name: "contact", fields: FIELDS })
-  )
+  await addForm(t, siteId)
   return { t, siteId }
 }
 
@@ -43,27 +50,27 @@ type Options = {
   secret?: string
   signAt?: number
   header?: string
+  send?: string
 }
 
-async function post(
-  t: ReturnType<typeof setup>,
-  body: string,
-  options: Options
-) {
+async function post(t: T, body: string, options: Options) {
   const headers = await signedHeaders(
     options.secret ?? SECRET,
     { siteId: options.siteId, method: "POST", path: ENQUIRY_INTAKE_PATH, body },
     options.signAt ?? Date.now()
   )
   if (options.header) headers["x-r2c2-site"] = options.header
-  return t.fetch(ENQUIRY_INTAKE_PATH, { method: "POST", headers, body })
+  return t.fetch(ENQUIRY_INTAKE_PATH, {
+    method: "POST",
+    headers,
+    body: options.send ?? body,
+  })
 }
 
 const enquiry = (data: Record<string, string>, extra: object = {}) =>
   JSON.stringify({ form: "contact", data, ...extra })
 
-const stored = (t: ReturnType<typeof setup>) =>
-  t.run((ctx) => ctx.db.query("enquiries").collect())
+const stored = (t: T) => t.run((ctx) => ctx.db.query("enquiries").collect())
 
 describe("enquiry intake", () => {
   test("stores a signed, valid enquiry", async () => {
@@ -110,16 +117,9 @@ describe("enquiry intake", () => {
     })
     expect(unsigned.status).toBe(401)
 
-    const headers = await signedHeaders(SECRET, {
+    const tampered = await post(t, enquiry(valid), {
       siteId,
-      method: "POST",
-      path: ENQUIRY_INTAKE_PATH,
-      body: enquiry(valid),
-    })
-    const tampered = await t.fetch(ENQUIRY_INTAKE_PATH, {
-      method: "POST",
-      headers,
-      body: enquiry({ ...valid, name: "Eve" }),
+      send: enquiry({ ...valid, name: "Eve" }),
     })
     expect(tampered.status).toBe(401)
   })
@@ -149,14 +149,16 @@ describe("enquiry intake", () => {
     })
   })
 
-  test.each([
-    ["a site ID that isn't one", "not-a-site"],
-    ["a deleted site", "deleted"],
-  ])("returns 404 for %s", async (_, kind) => {
+  test("returns 404 for a site ID that isn't one", async () => {
+    const { t } = await siteWithForm()
+    const response = await post(t, enquiry(valid), { siteId: "not-a-site" })
+    expect(response.status).toBe(404)
+  })
+
+  test("returns 404 for a deleted site", async () => {
     const { t, siteId } = await siteWithForm()
-    if (kind === "deleted") await t.run((ctx) => ctx.db.delete("sites", siteId))
-    const target = kind === "deleted" ? siteId : kind
-    expect((await post(t, enquiry(valid), { siteId: target })).status).toBe(404)
+    await t.run((ctx) => ctx.db.delete("sites", siteId))
+    expect((await post(t, enquiry(valid), { siteId })).status).toBe(404)
   })
 
   test.each([
@@ -200,11 +202,7 @@ describe("enquiry intake", () => {
 
   test("drops duplicates within 10 minutes, whatever the field order", async () => {
     const { t, siteId } = await siteWithForm()
-    const reordered = {
-      message: "Hello",
-      email: "ada@example.com",
-      name: "Ada",
-    }
+    const reordered = Object.fromEntries(Object.entries(valid).reverse())
     expect((await post(t, enquiry(valid), { siteId })).status).toBe(201)
     expect((await post(t, enquiry(reordered), { siteId })).status).toBe(201)
     expect(await stored(t)).toHaveLength(1)
@@ -222,9 +220,7 @@ describe("enquiry intake", () => {
   test("rate limits per site, not counting duplicates", async () => {
     const { t, siteId } = await siteWithForm()
     const other = await addSite(t, "b")
-    await t.run((ctx) =>
-      ctx.db.insert("forms", { siteId: other, name: "contact", fields: FIELDS })
-    )
+    await addForm(t, other)
     const send = (site: string, n: number) =>
       post(t, enquiry({ ...valid, message: `m${n}` }), { siteId: site })
 

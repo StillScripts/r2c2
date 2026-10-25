@@ -1,19 +1,16 @@
 import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter"
 import {
-  ENQUIRY_INTAKE_PATH,
   type EnquiryResponse,
   enquiryIntakeSchema,
   MAX_ENQUIRY_BYTES,
   sha256Hex,
-  SIGNATURE_HEADER,
-  SITE_HEADER,
-  verify,
+  verifyRequest,
 } from "@workspace/core"
+import type { FormField } from "@workspace/html"
 import { v } from "convex/values"
 import { components, internal } from "./_generated/api"
-import type { Doc } from "./_generated/dataModel"
 import { httpAction, internalMutation } from "./_generated/server"
-import { enquirySource } from "./validators"
+import { enquiryIntake } from "./validators"
 
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -29,8 +26,8 @@ type Receipt =
   | { ok: false; reason: "invalid"; errors: FieldErrors }
 
 /** Check submitted fields against a form's registry entry from publish. */
-export function fieldErrors(
-  fields: Doc<"forms">["fields"],
+function fieldErrors(
+  fields: FormField[],
   data: Record<string, string>
 ): FieldErrors {
   const errors: FieldErrors = {}
@@ -59,9 +56,7 @@ export function fieldErrors(
 export const receive = internalMutation({
   args: {
     siteId: v.string(),
-    form: v.string(),
-    data: v.record(v.string(), v.string()),
-    source: v.optional(enquirySource),
+    ...enquiryIntake,
     bodyHash: v.string(),
   },
   handler: async (ctx, args): Promise<Receipt> => {
@@ -113,7 +108,7 @@ const reply = (status: number, body?: EnquiryResponse) =>
   body ? Response.json(body, { status }) : new Response(null, { status })
 
 /** Hash of the form and its fields, ignoring field order, for the dedupe window. */
-export const enquiryHash = (form: string, data: Record<string, string>) =>
+const enquiryHash = (form: string, data: Record<string, string>) =>
   sha256Hex(
     JSON.stringify([
       form,
@@ -141,13 +136,8 @@ export const intake = httpAction(async (ctx, request) => {
     console.error("R2C2_SIGNING_SECRET isn't set; refusing enquiries")
     return reply(503)
   }
-  const siteId = request.headers.get(SITE_HEADER) ?? ""
-  const signed = await verify(
-    secret,
-    { siteId, method: "POST", path: ENQUIRY_INTAKE_PATH, body },
-    request.headers.get(SIGNATURE_HEADER)
-  )
-  if (!signed) return reply(401)
+  const siteId = await verifyRequest(secret, request, body)
+  if (siteId === null) return reply(401)
 
   const parsed = parse(body)
   if (!parsed?.success) {
