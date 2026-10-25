@@ -1,6 +1,7 @@
 ---
 title: Add a Starlight docs site
 created: 2026-10-25
+completed: 2026-10-25
 ---
 
 Add `apps/docs`, an Astro Starlight site for the project's coding docs. On dev and build
