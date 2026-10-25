@@ -13,7 +13,8 @@ import {
 } from "vite-plus/test"
 import type { FormField } from "@workspace/html"
 import type { Id } from "../convex/_generated/dataModel"
-import { addSite, setup } from "../test/setup"
+import { api } from "./_generated/api"
+import { addSite, errorCode, setup } from "../test/setup"
 
 type T = ReturnType<typeof setup>
 
@@ -229,5 +230,102 @@ describe("enquiry intake", () => {
     expect((await send(siteId, 0)).status).toBe(201)
     expect((await send(siteId, 40)).status).toBe(429)
     expect((await send(other, 0)).status).toBe(201)
+  })
+})
+
+describe("enquiries inbox", () => {
+  async function inbox() {
+    const t = setup()
+    const siteId = await addSite(t, "inbox", { userId: "ed", role: "editor" })
+    const ed = t.withIdentity({ subject: "ed" })
+    const add = (status: "new" | "handled", createdAt: number) =>
+      t.run((ctx) =>
+        ctx.db.insert("enquiries", {
+          siteId,
+          form: "contact",
+          data: { name: `at ${createdAt}` },
+          status,
+          createdAt,
+          bodyHash: `${createdAt}`,
+        })
+      )
+    return { t, siteId, ed, add }
+  }
+
+  test("lists a status newest first and counts new enquiries", async () => {
+    const { siteId, ed, add } = await inbox()
+    await add("new", 1)
+    await add("new", 3)
+    await add("handled", 2)
+
+    const fresh = await ed.query(api.enquiries.list, { siteId, status: "new" })
+    expect(fresh.map((e) => e.createdAt)).toEqual([3, 1])
+    const handled = await ed.query(api.enquiries.list, {
+      siteId,
+      status: "handled",
+    })
+    expect(handled.map((e) => e.createdAt)).toEqual([2])
+    expect(await ed.query(api.enquiries.newCount, { siteId })).toBe(2)
+  })
+
+  test("an editor marks an enquiry handled and reopens it, audited", async () => {
+    const { t, siteId, ed, add } = await inbox()
+    const enquiryId = await add("new", 1)
+
+    await ed.mutation(api.enquiries.setStatus, {
+      siteId,
+      enquiryId,
+      status: "handled",
+    })
+    await ed.mutation(api.enquiries.setStatus, {
+      siteId,
+      enquiryId,
+      status: "handled",
+    })
+    expect(
+      (await ed.query(api.enquiries.get, { siteId, enquiryId })).status
+    ).toBe("handled")
+    await ed.mutation(api.enquiries.setStatus, {
+      siteId,
+      enquiryId,
+      status: "new",
+    })
+
+    const log = await t.run((ctx) => ctx.db.query("auditLog").collect())
+    expect(log.map((entry) => [entry.action, entry.target])).toEqual([
+      ["enquiry.handled", enquiryId],
+      ["enquiry.reopened", enquiryId],
+    ])
+  })
+
+  test("hides another site's enquiries and refuses non-members", async () => {
+    const { t, siteId, ed } = await inbox()
+    const other = await addSite(t, "other")
+    const foreign = await t.run((ctx) =>
+      ctx.db.insert("enquiries", {
+        siteId: other,
+        form: "contact",
+        data: {},
+        status: "new",
+        createdAt: 1,
+        bodyHash: "x",
+      })
+    )
+
+    await expect(
+      ed.query(api.enquiries.get, { siteId, enquiryId: foreign })
+    ).rejects.toEqual(errorCode("not_found"))
+    await expect(
+      ed.mutation(api.enquiries.setStatus, {
+        siteId,
+        enquiryId: foreign,
+        status: "handled",
+      })
+    ).rejects.toEqual(errorCode("not_found"))
+    await expect(
+      t
+        .withIdentity({ subject: "stranger" })
+        .query(api.enquiries.list, { siteId, status: "new" })
+    ).rejects.toEqual(errorCode("not_found"))
   })
 })

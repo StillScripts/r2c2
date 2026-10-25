@@ -24,3 +24,14 @@ export const snapshotQuery = (
   pageId: Id<"pages">,
   ts: number
 ) => convexQuery(api.pages.snapshot, { siteId, pageId, ts })
+
+export const enquiriesQuery = (
+  siteId: Id<"sites">,
+  status: "new" | "handled"
+) => convexQuery(api.enquiries.list, { siteId, status })
+
+export const newEnquiriesQuery = (siteId: Id<"sites">) =>
+  convexQuery(api.enquiries.newCount, { siteId })
+
+export const enquiryQuery = (siteId: Id<"sites">, enquiryId: Id<"enquiries">) =>
+  convexQuery(api.enquiries.get, { siteId, enquiryId })

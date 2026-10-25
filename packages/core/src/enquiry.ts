@@ -25,6 +25,9 @@ export const enquirySchema = z
 export type EnquirySource = z.infer<typeof enquirySourceSchema>
 export type Enquiry = z.infer<typeof enquirySchema>
 
+/** The most enquiries the Loft inbox shows per tab. */
+export const INBOX_LIMIT = 100
+
 export type FieldErrors = Record<string, string[]>
 
 export type EnquiryResponse = { ok: true } | { ok: false; errors: FieldErrors }

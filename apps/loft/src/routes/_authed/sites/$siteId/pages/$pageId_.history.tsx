@@ -8,6 +8,7 @@ import { useState } from "react"
 import { ConfirmButton } from "@/components/confirm-button"
 import { PreviewFrame, usePreview } from "@/components/page-preview"
 import { errorMessage } from "@/lib/errors"
+import { when } from "@/lib/format"
 import { parsePageParams } from "@/lib/params"
 import {
   historyQuery,
@@ -28,12 +29,6 @@ export const Route = createFileRoute(
     ]),
   component: PageHistory,
 })
-
-const when = (time: number) =>
-  new Date(time).toLocaleString(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
-  })
 
 type Reason = FunctionReturnType<typeof api.pages.history>[number]["reason"]
 

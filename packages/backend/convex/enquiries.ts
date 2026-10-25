@@ -3,6 +3,7 @@ import {
   type EnquiryResponse,
   type FieldErrors,
   enquiryIntakeSchema,
+  INBOX_LIMIT,
   MAX_ENQUIRY_BYTES,
   sha256Hex,
   verifyRequest,
@@ -11,7 +12,8 @@ import type { FormField } from "@workspace/html"
 import { v } from "convex/values"
 import { components, internal } from "./_generated/api"
 import { httpAction, internalMutation } from "./_generated/server"
-import { enquiryIntake } from "./validators"
+import { audit, ownDoc, siteMutation, siteQuery } from "./access"
+import { enquiryIntake, enquiryStatus } from "./validators"
 
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -156,4 +158,47 @@ export const intake = httpAction(async (ctx, request) => {
     return reply(400, { ok: false, errors: receipt.errors })
   }
   return reply(receipt.reason === "unknown_site" ? 404 : 429)
+})
+
+export const list = siteQuery({
+  args: { status: enquiryStatus },
+  handler: (ctx, { status }) =>
+    ctx.db
+      .query("enquiries")
+      .withIndex("by_site_status_created", (q) =>
+        q.eq("siteId", ctx.site._id).eq("status", status)
+      )
+      .order("desc")
+      .take(INBOX_LIMIT),
+})
+
+export const newCount = siteQuery({
+  args: {},
+  handler: async (ctx) =>
+    (
+      await ctx.db
+        .query("enquiries")
+        .withIndex("by_site_status_created", (q) =>
+          q.eq("siteId", ctx.site._id).eq("status", "new")
+        )
+        .take(INBOX_LIMIT + 1)
+    ).length,
+})
+
+export const get = siteQuery({
+  args: { enquiryId: v.id("enquiries") },
+  handler: (ctx, { enquiryId }) => ownDoc(ctx, "enquiries", enquiryId),
+})
+
+export const setStatus = siteMutation({
+  args: { enquiryId: v.id("enquiries"), status: enquiryStatus },
+  handler: async (ctx, { enquiryId, status }) => {
+    const enquiry = await ownDoc(ctx, "enquiries", enquiryId)
+    if (enquiry.status === status) return
+    await ctx.db.patch("enquiries", enquiryId, { status })
+    await audit(ctx, {
+      action: status === "handled" ? "enquiry.handled" : "enquiry.reopened",
+      target: enquiryId,
+    })
+  },
 })

@@ -11,8 +11,8 @@ Let site members read enquiries in the Loft and mark them handled, with an audit
 ## Approach
 
 - **Backend (`packages/backend/convex/enquiries.ts`):**
-  - `list` (member): `{ siteId, status }`, newest first through a new `by_site_status_created` index, at most 100.
-  - `counts` (member): the number of new enquiries, for a badge on the site page. It counts up to 100 and shows "100+" past that.
+  - `list` (member): `{ siteId, status }`, newest first through a new `by_site_status_created` index (replacing the unused `by_site_created`), at most `INBOX_LIMIT` (100, in core so the Loft can say when the list is capped).
+  - `newCount` (member): the number of new enquiries, for a badge on the site page. It counts up to 100 and shows "100+" past that.
   - `get` (member): one enquiry through `ownDoc`.
   - `setStatus` (member, so editors can handle enquiries too): `new` ↔ `handled`. It does nothing if the status is unchanged; otherwise it writes the audit entry `enquiry.handled` or `enquiry.reopened` with the enquiry ID as target.
 - **Seed:** add one sample enquiry to the seed site if it has none, including on already-seeded deployments, so the inbox has something to show.
@@ -29,10 +29,10 @@ Let site members read enquiries in the Loft and mark them handled, with an audit
 
 ## Action items
 
-- [ ] Schema index and `enquiries.list` / `counts` / `get` / `setStatus`, with convex-test coverage (access, filtering, audit, no-op)
-- [ ] Seed a sample enquiry
-- [ ] Loft list and detail routes, site-page link, display helpers with tests
-- [ ] Run `vp check`, `vp test`, `vp run build`
+- [x] Schema index and `enquiries.list` / `newCount` / `get` / `setStatus`, with convex-test coverage (access, filtering, audit, no-op)
+- [x] Seed a sample enquiry
+- [x] Loft list and detail routes, site-page link, display helpers with tests
+- [x] Run `vp check`, `vp test`, `vp run build`
 
 ## Decisions
 

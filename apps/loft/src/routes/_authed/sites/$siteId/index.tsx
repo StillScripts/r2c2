@@ -10,7 +10,8 @@ import type { FunctionArgs } from "convex/server"
 import type { FormEvent } from "react"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
-import { pagesQuery, siteQuery } from "@/lib/queries"
+import { newEnquiriesQuery, pagesQuery, siteQuery } from "@/lib/queries"
+import { INBOX_LIMIT } from "@workspace/core"
 
 export const Route = createFileRoute("/_authed/sites/$siteId/")({
   params: { parse: parseSiteParams },
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/_authed/sites/$siteId/")({
     Promise.all([
       context.queryClient.ensureQueryData(siteQuery(siteId)),
       context.queryClient.ensureQueryData(pagesQuery(siteId)),
+      context.queryClient.ensureQueryData(newEnquiriesQuery(siteId)),
     ]),
   component: SitePages,
 })
@@ -26,6 +28,7 @@ function SitePages() {
   const { siteId } = Route.useParams()
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const { data: pages } = useSuspenseQuery(pagesQuery(siteId))
+  const { data: newCount } = useSuspenseQuery(newEnquiriesQuery(siteId))
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
@@ -33,7 +36,19 @@ function SitePages() {
         <Link to="/" className="text-sm text-muted-foreground hover:underline">
           Your sites
         </Link>
-        <h1 className="text-2xl font-medium">{site.name}</h1>
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="text-2xl font-medium">{site.name}</h1>
+          <Link
+            to="/sites/$siteId/enquiries"
+            params={{ siteId }}
+            search={{ status: "new" }}
+            className="text-sm hover:underline"
+          >
+            Enquiries
+            {newCount > 0 &&
+              ` (${newCount > INBOX_LIMIT ? `${INBOX_LIMIT}+` : newCount} new)`}
+          </Link>
+        </div>
       </div>
       {pages.length === 0 ? (
         <p className="text-muted-foreground">This site has no pages yet.</p>
