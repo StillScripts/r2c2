@@ -7,7 +7,7 @@ metadata:
 
 # Create Plan
 
-> **Source:** adapted from [`openai/skills` › `skills/.experimental/create-plan`](https://github.com/openai/skills/tree/a5119697b819090e00e5d11ee1d86834d7c1043a/skills/.experimental/create-plan), at commit `a5119697` (since removed upstream) (Apache-2.0, see `LICENSE.txt`). **Changes:** saves plans to `docs/plans/`, adds a detailed depth and a reader test.
+> **Source:** adapted from [`openai/skills` › `skills/.experimental/create-plan`](https://github.com/openai/skills/tree/a5119697b819090e00e5d11ee1d86834d7c1043a/skills/.experimental/create-plan), at commit `a5119697` (since removed upstream) (Apache-2.0, see `LICENSE.txt`). **Changes:** saves plans to `docs/plans/`, adds a detailed depth and a reader test, and presents the plan in the chat when running as a background agent.
 
 ## Goal
 
@@ -63,8 +63,19 @@ matching task file's `plan:` line.
    in the plan; move genuine unknowns to Open questions. One round only. If no subagent
    is available, skip this step and say so.
 
-7. **Report.** Give the path. For a simple plan, show the plan. For a detailed plan, give
-   a 2–3 line summary, any decisions flagged for an ADR, and the reader-test outcome.
+7. **Report.** Where the plan goes depends on where you're running:
+   - **Background or cloud agent** (`CLAUDE_CODE_REMOTE` is `true`, or another hosted
+     agent the user follows from a phone or browser, such as a Cursor background agent):
+     the user may not be able to open files. Present the whole plan in the chat in plain
+     language, readable on a phone: what it does, the steps in order, the choices worth
+     overriding, and what's out of scope. Then give the path, the reader-test outcome and
+     any ADRs.
+   - **Local or desktop** (Claude Code in a terminal or desktop app, Cursor, any editor):
+     the user can open the file. Give the path. For a simple plan, show the plan. For a
+     detailed plan, give a 2–3 line summary, any decisions flagged for an ADR, and the
+     reader-test outcome.
+
+   Check with `echo "$CLAUDE_CODE_REMOTE"` when unsure.
 
 ## Frontmatter
 
