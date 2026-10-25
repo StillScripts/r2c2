@@ -36,26 +36,29 @@ Connect Convex to the edge's storage. Convex writes objects to the R2 bucket the
   - An active redirect gives `{ redirect: "https://<active primary hostname>" }`, or `null` if the site has no active primary.
   - A pending domain gives `null`.
   - It's typed against `RouteEntry` from core.
-- **`routes.sync`** is an internal action that takes `{ siteId, removed?: string[], attempt? }`.
+- **`routes.sync`** is an internal action that takes `{ siteId, version, removed?: string[], attempt? }`.
   - It loads the site and its domains through an internal query and computes the entries.
   - It makes at most two Cloudflare calls: `PUT …/storage/kv/namespaces/{ns}/bulk` for the entries to write, and `POST …/bulk/delete` for the `null` rows plus `removed` hostnames. Both use `Authorization: Bearer $CLOUDFLARE_API_TOKEN`.
-  - If the site no longer exists, every hostname in `removed` is deleted.
-  - On a failed call it reschedules itself with backoff (1 s, 5 s, 30 s, 2 min, 10 min). After five attempts it gives up and logs the error, so a Cloudflare outage can't loop forever.
-  - It rewrites the site's entries in full on every run, so it's idempotent, and the latest run always wins.
+  - **Stale deletes:** `removed` is filtered against the current `domains` rows, across every site, before deleting. A delayed retry therefore never deletes a hostname that was added again in the meantime. If the site no longer exists, the surviving `removed` hostnames are still deleted.
+  - **Out-of-order runs:** each mutation that schedules a sync bumps a `routesVersion` counter on the site, a new optional field. A run whose `version` is older than the site's current one does nothing, because a newer run is queued. The check happens right before writing, which leaves only a tiny window for an older run to finish after a newer one.
+  - **Failures:** a non-2xx response, or a 2xx with Cloudflare's `success: false`, is a failure. There are five attempts in total: the first, then retries after 5 s, 30 s, 2 min and 10 min. After that it logs the error and gives up, so a Cloudflare outage can't loop forever.
+  - **No credentials:** if the `CLOUDFLARE_*` variables aren't set (local or test deployments), the run logs a skip and exits, with no retries.
+  - It rewrites the site's entries in full on every run, so it's idempotent.
 - **Triggers:** every mutation that changes what KV should hold schedules `routes.sync` with `runAfter(0)` in the same transaction. That way a change can't commit without its sync being queued.
 
 ### Domain and site mutations (`convex/domains.ts`, `convex/sites.ts`)
 
 - **`domains.list`** (member) lists the site's domains.
 - **`domains.add`** (owner) takes `{ hostname, kind }`.
-  - The hostname is normalised with core's `normaliseHost`, which lowercases it and strips the port and trailing dot. Anything that isn't a bare hostname is refused with `invalid_hostname`.
+  - **Normalising:** the input is parsed as `new URL("https://" + input)` and normalised with core's `normaliseHost`, which takes a `URL` and lowercases the hostname, strips the port and the trailing dot.
+  - **Validating:** the result must match a hostname pattern of dot-separated labels, each 1–63 characters of `a-z0-9-` that don't start or end with `-`, at most 253 characters in total, and ending in a letters-only TLD, so IP addresses fail. `*.localhost` passes for dev. Inputs with a path, query, `@` or anything else besides a host and an optional port fail too. All of these are `invalid_hostname`.
   - A hostname that already exists on any site is `hostname_taken`.
   - A second primary on the same site is `primary_exists`.
   - New domains are `active` in milestone 1. `pending` arrives with client domains through Cloudflare for SaaS.
   - It's audited.
-- **`domains.remove`** (owner) loads the domain through `ownDoc` and deletes it. It schedules a sync with the hostname in `removed`, and it's audited.
+- **`domains.remove`** (owner) loads the domain through `ownDoc` and deletes it. It schedules a sync with the hostname in `removed`, and it's audited. Removing a primary while the site still has redirects is refused with `primary_has_redirects`, so redirects never silently stop resolving. Remove the redirects first, or add the new primary before removing the old one. (`primary_exists` blocks having two primaries, so changing the primary means removing the redirects first.)
 - **`sites.setStatus`** (owner) switches between `live` and `coming-soon`, is audited and schedules a sync.
-- **The seed** schedules a sync after creating the r2c2 site.
+- **The seed** schedules a sync every time it runs, including for an already-seeded deployment.
 
 ### Environment
 
@@ -109,9 +112,16 @@ convex-test suites with `fetch` stubbed:
   - a hostname taken on another site is refused;
   - a second primary is refused;
   - editors are `forbidden` and non-members `not_found`;
-  - each change is audited and schedules exactly one sync.
-- `routes.sync`: the bulk PUT body and the bulk delete keys (including `removed`), the auth header and URL, a failed call rescheduling with the next delay, and giving up after five attempts.
-- `putObject` stores through the registered R2 test component.
+  - removing a primary that still has redirects is refused;
+  - each change is audited, bumps `routesVersion` and schedules exactly one sync.
+- `routes.sync`:
+  - the bulk PUT body, the bulk delete keys (including `removed`), the auth header and the URL;
+  - a re-added hostname isn't deleted;
+  - a stale `version` skips;
+  - missing env vars skip;
+  - a non-2xx response or `success: false` reschedules with the next delay;
+  - it gives up after the fifth attempt.
+- `putObject`: register the component with `@convex-dev/r2/test` and stub the S3 `PUT` that `r2.store` makes from an action. If the component's upload can't be faked cleanly in convex-test, drop this unit test and rely on `r2:check` against the dev deployment.
 
 On the dev deployment, after the secrets are set:
 
@@ -122,7 +132,7 @@ On the dev deployment, after the secrets are set:
 
 - **A KV write lands but its delete is lost:** the full rewrite on the next change heals it. A manual `routes.sync` run (`convex run routes:sync`) fixes it immediately.
 - **The Cloudflare API token is too broad:** document the single KV Edit permission, and keep the token only in Convex env (SPEC §7).
-- **Concurrent syncs for one site:** each run reads the latest state, so the last to finish writes the latest entries. Two near-simultaneous runs can only leave the newer state.
+- **Concurrent syncs for one site:** the `routesVersion` check makes an older run skip, so only the newest run writes, apart from the small window between its check and its write. Any later change resyncs everything.
 - **Bulk endpoint limits** (10,000 keys or 100 MB per call): far beyond one site's domains.
 
 ## Decisions
