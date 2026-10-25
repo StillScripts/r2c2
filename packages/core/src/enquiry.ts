@@ -2,6 +2,11 @@ import { z } from "zod"
 
 export const MAX_ENQUIRY_BYTES = 32 * 1024
 
+export const FORMS_PREFIX = "/_api/forms/"
+export const TURNSTILE_FIELD = "cf-turnstile-response"
+/** The hidden honeypot field publish adds to every form; the edge checks it. */
+export const HONEYPOT_FIELD = "website"
+
 export const enquirySourceSchema = z.object({
   page: z.string(),
   referrer: z.string().optional(),
@@ -10,7 +15,7 @@ export const enquirySourceSchema = z.object({
 
 export const enquirySchema = z
   .object({
-    "cf-turnstile-response": z.string().min(1),
+    [TURNSTILE_FIELD]: z.string().min(1),
     _source: enquirySourceSchema,
   })
   .catchall(z.string())

@@ -8,4 +8,17 @@
   // wrangler r2 bucket create r2c2-sites --location oc
   "r2_buckets": [{ "binding": "SITES", "bucket_name": "r2c2-sites" }],
   "kv_namespaces": [{ "binding": "ROUTES" }],
+  // Per site and visitor IP: verified posts, and honeypot-only posts without JavaScript
+  "ratelimits": [
+    {
+      "name": "FORMS_LIMIT",
+      "namespace_id": "1001",
+      "simple": { "limit": 10, "period": 60 },
+    },
+    {
+      "name": "FORMS_NOJS_LIMIT",
+      "namespace_id": "1002",
+      "simple": { "limit": 3, "period": 60 },
+    },
+  ],
 }

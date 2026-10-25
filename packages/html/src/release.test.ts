@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vite-plus/test"
 import { CLEAN_BODY, page, THEME } from "./fixtures"
 import { ID_ATTRIBUTE } from "./ids"
-import { buildRelease, HONEYPOT_FIELD, type ReleaseOptions } from "./release"
+import { HONEYPOT_FIELD } from "@workspace/core"
+import { buildRelease, type ReleaseOptions } from "./release"
 import { loadTheme } from "./theme"
 
 const options: ReleaseOptions = {

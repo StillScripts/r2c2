@@ -1,4 +1,4 @@
-import { hashContent } from "@workspace/core"
+import { HONEYPOT_FIELD, hashContent } from "@workspace/core"
 import { type Document, Element, ProcessingInstruction } from "domhandler"
 import { appendChild, prependChild, removeElement } from "domutils"
 import { PLATFORM_TAGS } from "./allowlist"
@@ -10,9 +10,6 @@ import { type Issue, issueAt } from "./issues"
 import { byTag, elements, locator, parse, serialise } from "./parse"
 import { sanitise } from "./sanitise"
 import type { Theme } from "./theme"
-
-/** The field name of the hidden honeypot publish adds to every form (T21 checks it). */
-export const HONEYPOT_FIELD = "website"
 
 export type ReleaseOptions = {
   theme: Theme

@@ -70,9 +70,9 @@ The gateway handles `POST /_api/forms/<name>` before its `GET`/`HEAD` check; any
 
 ## Action items
 
-- [ ] Add the rate limit bindings and env typing; update `.env.example`
-- [ ] Write `apps/edge/src/forms.ts` and dispatch to it from the gateway
-- [ ] Tests below; run `vp check`, `vp test`, `vp run build`
+- [x] Add the rate limit bindings and env typing (`.env.example` already lists the secrets)
+- [x] Write `apps/edge/src/forms.ts` and dispatch to it from the gateway; move `HONEYPOT_FIELD` from `packages/html` into core with `FORMS_PREFIX` and `TURNSTILE_FIELD`, and move the KV lookup into `lookup.ts`
+- [x] Tests below; run `vp check`, `vp test`, `vp run build`
 
 ## Testing
 
@@ -81,9 +81,9 @@ Workers tests through the gateway, with `fetch` stubbed for Turnstile `siteverif
 - **JS post:** forwards `{ form, data, source }` without bot-check fields, signed; answers `201 { ok: true }`.
 - **No-JS post:** with an empty honeypot it forwards without `source` and answers `303` to the referring page with `?sent=<form>`; without a honeypot it's `403`.
 - **Bot checks:** a failed Turnstile check is `403`; a filled honeypot answers success and forwards nothing.
-- **Guards:** unknown host `404`, bad form name `404`, foreign `Origin` `403`, oversize `413`, wrong content type `415`, bad JSON `400`, missing secret `503`.
+- **Guards:** unknown host `404`, bad form name `404`, foreign `Origin` `403`, oversize `413`, wrong content type `415`, bad JSON `400`. The missing-secret `503` isn't tested: the test bindings are set for the whole suite.
 - **Convex outcomes:** `400` field errors pass through as JSON and as an HTML list; `429` passes through; `500` becomes `502`.
-- **Rate limit:** the no-JS limit trips before the JS one (if the local binding enforces limits in tests; otherwise the binding call is asserted).
+- **Rate limit:** the fourth honeypot-only post in a minute is `429` (the local binding does enforce limits).
 
 ## Risks
 
