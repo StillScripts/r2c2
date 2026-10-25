@@ -40,17 +40,17 @@ Public sites never call Convex directly (SPEC §7); this endpoint is the only wa
 
 `POST /api/enquiries` runs these steps in order, stopping at the first failure:
 
-1. **Size:** a body larger than `MAX_ENQUIRY_BYTES` gets `413`.
+1. **Size:** the raw body is read as bytes (`arrayBuffer`). Larger than `MAX_ENQUIRY_BYTES` gets `413`, whatever `Content-Length` says.
 2. **Signature:** `verify(R2C2_SIGNING_SECRET, { siteId: header, method: "POST", path: ENQUIRY_INTAKE_PATH, body: rawBody }, signatureHeader)`. A missing or wrong signature, or one older than 60 s, gets `401` with no detail. A missing secret logs an error and returns `503`.
 3. **Parse:** the body goes through `enquiryIntakeSchema`. Failure gets `400 { ok: false, errors }`.
-4. **Store:** it calls the internal mutation `enquiries.receive({ siteId, form, data, source, bodyHash })`. That returns either `{ ok: true }`, which includes duplicates, or one of the error codes below. The action maps each to a status:
+4. **Store:** it computes `bodyHash = sha256Hex(JSON.stringify([form, Object.entries(data).sort(([a], [b]) => a.localeCompare(b))]))` (`source` left out, so field order doesn't matter), then calls the internal mutation `enquiries.receive({ siteId, form, data, source, bodyHash })`. That returns either `{ ok: true }`, which includes duplicates, or one of the error codes below. The action maps each to a status:
 
-| Result                                                           | Status                      |
-| ---------------------------------------------------------------- | --------------------------- |
-| stored, or duplicate                                             | `201 { ok: true }`          |
-| `unknown_site` (site ID not a valid `sites` ID, or no such site) | `404`                       |
-| `invalid` (field errors)                                         | `400 { ok: false, errors }` |
-| `rate_limited`                                                   | `429`                       |
+| Result                                                           | Status                                                                                            |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| stored, or duplicate                                             | `201 { ok: true }`                                                                                |
+| `unknown_site` (site ID not a valid `sites` ID, or no such site) | `404`. Only reachable with a valid signature, so it leaks nothing; T21 treats it as its own error |
+| `invalid` (field errors)                                         | `400 { ok: false, errors }`                                                                       |
+| `rate_limited`                                                   | `429`                                                                                             |
 
 Duplicates return `201` like new ones, so retries are safe and the response leaks nothing.
 
@@ -62,28 +62,29 @@ Everything below runs in one transaction:
 2. **Form:** load `forms` by `(siteId, form)`. An unknown form is `invalid` with `errors: { form: ["Unknown form."] }`.
 3. **Fields:** check `data` against the registry.
    - Extra keys: `"Unexpected field."`.
-   - Missing required fields: `"Required."`.
-   - Over `maxLength`: `"Too long (max N)."`.
-   - `type: "email"` that isn't a plausible address: `"Enter a valid email."`.
+   - Missing required fields: `"Required."`. A value that's empty after trimming counts as missing.
+   - Over `maxLength`: `"Too long (max N)."`, measured in characters (string length).
+   - `type: "email"` not matching `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`: `"Enter a valid email."`. Other types are checked only as strings.
    - Errors are keyed by field name, which matches `<site-form>`'s field-error mapping.
-4. **Rate limit:** a token bucket per site, `enquiry:<siteId>`, at 20 per minute with bursts up to 40. Exceeding it is `rate_limited`. It runs after validation, so malformed posts don't use up a site's budget.
-5. **Dedupe:**
-   - The key is the `bodyHash` the action computed: SHA-256 of the canonical `{ form, data }` with keys sorted, so a field-order change still matches. `source` is deliberately left out.
-   - Look it up on a new `by_site_hash` index (`siteId`, `bodyHash`). A match with `createdAt` in the last 10 minutes returns `{ ok: true }` without inserting.
+4. **Dedupe:** look for a row on a new `by_site_hash` index (`siteId`, `bodyHash`, `createdAt`), using `.gte("createdAt", now - 10 min)`. A match returns `{ ok: true }` without inserting. It runs before the rate limit, so retries and double-submits don't use up the budget.
+5. **Rate limit:** a token bucket per site, `enquiry:<siteId>`, at 20 per minute with bursts up to 40. Exceeding it is `rate_limited`. It runs after validation and dedupe, so only new, valid enquiries count.
 6. **Insert:** `enquiries` with `status: "new"` and `createdAt`. T20 adds the email schedule right after this insert.
 
 ### Schema
 
 `enquiries` gains:
 
-- `bodyHash: v.string()` and an index `by_site_hash`;
+- `bodyHash: v.string()` and an index `by_site_hash` on (`siteId`, `bodyHash`, `createdAt`);
 - `source` becomes `v.optional(enquirySource)`.
 
 There's no data to migrate, because enquiries can't arrive yet.
 
 ### Rate limiter component
 
-`app.use(rateLimiter)` goes in `convex.config.ts`, with one `RateLimiter` instance in `enquiries.ts` (named limit `enquiry`, token bucket). `_generated/api.d.ts` gets `components.rateLimiter` by hand, as in T12, until `convex dev` regenerates it.
+`app.use(rateLimiter)` goes in `convex.config.ts`, with one `RateLimiter` instance in `enquiries.ts` (named limit `enquiry`, token bucket).
+
+- `_generated/api.d.ts` gets the `enquiries` and `http` modules and `components.rateLimiter` by hand, as in T12, until `convex dev` regenerates it. Check that the component's `_generated/component.js` path exists in 0.4.2.
+- `convex/http.ts` is `export default httpRouter()` with the one route. No CORS, because only the Worker calls it.
 
 ## Alternatives considered
 
@@ -119,7 +120,11 @@ There's no data to migrate, because enquiries can't arrive yet.
 
 ## Testing
 
-convex-test with `t.fetch` against the HTTP route, signing with core's `sign()` and a test secret set through `vi.stubEnv`:
+convex-test with `t.fetch` against the HTTP route:
+
+- requests are signed with core's `sign()`, passing the same `now` the fake timers use;
+- the test secret is set through `vi.stubEnv`;
+- the rate limiter component is registered with its test helper in `test/setup.ts`.
 
 - **Signature:**
   - unsigned, a wrong secret, older than 60 s, a tampered body, and a site header that doesn't match the signature all get `401`;
@@ -130,7 +135,7 @@ convex-test with `t.fetch` against the HTTP route, signing with core's `sign()` 
 - **Site and form:**
   - a site ID that isn't valid, or a deleted site, gets `404`;
   - an unknown form gets `400` on the `form` key.
-- **Fields:** an extra field, a missing required field, an over-long value and a bad email each get `400`, with the error on the right key.
+- **Fields:** an extra field, a missing or blank required field, an over-long value and a bad email each get `400`, with the error on the right key. An unknown form's error lands on `form`, which `<site-form>` shows as its general error.
 - **Success:**
   - a valid post gets `201` and stores `data`, `source` (optional), `status: "new"`, `createdAt` and `bodyHash`;
   - a no-JS post without `source` gets `201`.
@@ -138,7 +143,9 @@ convex-test with `t.fetch` against the HTTP route, signing with core's `sign()` 
   - the same post twice within 10 minutes stores one row and returns `201` both times;
   - field order doesn't matter;
   - after 10 minutes (fake timers) it stores again.
-- **Rate limit:** going over the per-site budget gets `429`, and another site is unaffected.
+- **Rate limit:**
+  - going over the per-site budget gets `429`, and another site is unaffected;
+  - duplicates don't use up the budget.
 
 ## Risks
 
