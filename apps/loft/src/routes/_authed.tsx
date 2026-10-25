@@ -12,7 +12,7 @@ import { meQuery } from "@/lib/queries"
 
 export const Route = createFileRoute("/_authed")({
   beforeLoad: ({ context, location }) => {
-    if (!context.isAuthenticated) {
+    if (!context.token) {
       throw redirect({ to: "/sign-in", search: { redirect: location.href } })
     }
   },

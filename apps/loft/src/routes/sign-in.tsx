@@ -8,11 +8,11 @@ import { safeRedirect } from "@/lib/redirect"
 
 export const Route = createFileRoute("/sign-in")({
   validateSearch: (search): { redirect?: string } =>
-    typeof search.redirect === "string" ? { redirect: search.redirect } : {},
+    search.redirect === undefined
+      ? {}
+      : { redirect: safeRedirect(search.redirect) },
   beforeLoad: ({ context, search }) => {
-    if (context.isAuthenticated) {
-      throw redirect({ href: safeRedirect(search.redirect) })
-    }
+    if (context.token) throw redirect({ href: search.redirect ?? "/" })
   },
   head: () => ({ meta: [{ title: "Sign in · R2C2 Loft" }] }),
   component: SignIn,
@@ -42,7 +42,7 @@ function SignIn() {
       )
       return
     }
-    await router.navigate({ href: safeRedirect(search.redirect) })
+    await router.navigate({ href: search.redirect ?? "/" })
   }
 
   return (

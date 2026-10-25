@@ -57,7 +57,7 @@ streams query data from the server render to the client.
 **Root route (`__root.tsx`).** It moves to `createRootRouteWithContext`. `beforeLoad`
 calls a `getAuth` server function (`createServerFn` → `getToken()`). During the server
 render it hands the token to `convexQueryClient.serverHttpClient`, so SSR queries run as
-the user. It returns `{ token, isAuthenticated }` into the route context. The root
+the user. It returns `{ token }` into the route context. The root
 component wraps the outlet in `ConvexBetterAuthProvider` with the Convex client,
 `authClient` and `initialToken`, so the browser's websocket starts authenticated with no
 flash.
@@ -70,7 +70,7 @@ flash.
   show inline: wrong password, and `Something went wrong` for anything else. No sign-up
   link, since sign-up is closed (ADR-009).
 - `_authed` (pathless layout): `beforeLoad` redirects to `/sign-in?redirect=<href>` when
-  `isAuthenticated` is false. Its loader prefetches `convexQuery(api.staff.me, {})`.
+  there is no token. Its loader prefetches `convexQuery(api.staff.me, {})`.
   It renders a small header with the user's email from that query and a **Sign out**
   button: `authClient.signOut()`, then `router.invalidate()`, then go to `/sign-in`. If
   `me` comes back `null` (a stale cookie whose token no longer verifies), the layout
