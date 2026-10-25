@@ -79,7 +79,7 @@ A Node-mode test drives Playwright directly. Vitest's browser mode can't turn Ja
 ### Dependencies and CI
 
 - `playwright` is added to the catalog, pinned to the version preinstalled in cloud sessions (1.63.0), so local runs use the bundled Chromium.
-- CI gets a cached `vp exec playwright install --with-deps chromium` step before `vp test`.
+- CI gets a `vp exec --filter @workspace/elements playwright install --with-deps chromium` step before `vp test`.
 
 ## Alternatives considered
 
@@ -101,11 +101,11 @@ A Node-mode test drives Playwright directly. Vitest's browser mode can't turn Ja
 
 ## Action items
 
-- [ ] Add `playwright` (1.63.0) to the catalog and `packages/elements`; add the CI install step
-- [ ] Configure `vp pack` in `packages/elements/vite.config.ts` (browser ESM, minified, `dist/site-elements.js`) and a `build` script
-- [ ] Implement the `site-form` element: Turnstile loader and widget, JSON submit, `_source`, states, field errors, `?sent=1`
-- [ ] Write the Playwright test: server, Turnstile stub, JS-off post, JS-on success, 400 field errors, 500 general error
-- [ ] Run `vp check`, `vp test` and `vp run build`; check the minified size
+- [x] Add `playwright` (1.63.0) to the catalog and `packages/elements`; add the CI install step
+- [x] Configure `vp pack` in `packages/elements/vite.config.ts` (browser ESM, minified, `dist/site-elements.js`) and a `build` script
+- [x] Implement the `site-form` element: Turnstile loader and widget, JSON submit, `_source`, states, field errors, `?sent=1`
+- [x] Write the Playwright test: server, Turnstile stub, JS-off post, JS-on success, 400 field errors, 500 general error
+- [x] Run `vp check`, `vp test` and `vp run build`; check the minified size
 
 ## Testing
 
@@ -113,7 +113,7 @@ The Playwright suite above runs in `vp test` locally and in CI. Edge cases it co
 
 ## Risks
 
-- **Playwright browsers in CI:** they add install time. Mitigation: cache `~/.cache/ms-playwright` and install Chromium only.
+- **Playwright browsers in CI:** they add install time. Mitigation: install Chromium only. Add a browser cache if CI time grows.
 - **The Turnstile API changes or loads slowly:** the element loads it with `render=explicit` and lazily on connect. A failed load leaves the form usable, and the server then rejects it with `403`, which shows the general error.
 - **Version drift between the preinstalled Playwright and the catalog:** pinning to 1.63.0 matches the cloud image. When the image moves, bump the catalog.
 
@@ -121,12 +121,7 @@ The Playwright suite above runs in `vp test` locally and in CI. Edge cases it co
 
 - No ADR needed: this follows SPEC §4/§5 and T11's allow-list. Revisit if the sitekey becomes per-site.
 
-## Open questions
+## Resolved questions
 
-- **Where does the Turnstile sitekey come from?**
-  - (a) The publish step (T13) adds a `sitekey` attribute to each `<site-form>`. This keeps the shared script generic and allows one widget per site later. _Recommended._
-  - (b) One platform-wide sitekey baked into the element at build time.
-- **No-JS posts can't pass Turnstile**, because the widget needs JavaScript, so they arrive with no `cf-turnstile-response` and no `_source`. Today's `enquirySchema` requires both, so T21 would answer `400`, not the `303`.
-  - In T18, "works with JS off" means the form posts its fields natively, and the test's stub answers `303`.
-  - For T21 the choice is (a) reject token-less posts with a plain `403` page, or (b) accept form-encoded posts without a token but with a honeypot field and a lower rate limit. Option (b) also makes `_source` optional for form posts.
-  - Your intent decides whether T18 should also add a hidden honeypot input now.
+- **Sitekey:** T13 adds a `sitekey` attribute to each `<site-form>` when it assembles the published page.
+- **No-JS posts:** T21 accepts form-encoded posts without a Turnstile token when a honeypot field is empty, with a lower rate limit, and `_source` is optional for those posts. The honeypot has to work without JavaScript, so it can't come from the element. T13 adds it (a visually hidden `<input name="website">`) next to the sitekey, and T21 checks it. T18's test page includes it and checks that a no-JS post sends it empty.

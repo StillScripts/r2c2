@@ -21,5 +21,6 @@ jobs:
         with:
           cache: true
       - run: vp check
+      - run: vp exec --filter @workspace/elements playwright install --with-deps chromium
       - run: vp test
       - run: vp run build
