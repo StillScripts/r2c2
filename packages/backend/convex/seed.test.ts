@@ -12,6 +12,7 @@ test("the seed creates the r2c2 site once", async () => {
     sites: (await ctx.db.query("sites").collect()).length,
     domains: (await ctx.db.query("domains").collect()).map((d) => d.kind),
     pages: (await ctx.db.query("pages").collect()).map((p) => p.path),
+    enquiries: (await ctx.db.query("enquiries").collect()).length,
   }))
   expect((await scheduled(t)).map(([name]) => name)).toEqual([
     "routes:sync",
@@ -21,5 +22,6 @@ test("the seed creates the r2c2 site once", async () => {
     sites: 1,
     domains: ["primary", "redirect"],
     pages: ["/"],
+    enquiries: 1,
   })
 })

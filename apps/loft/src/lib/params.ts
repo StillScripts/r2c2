@@ -11,3 +11,11 @@ export const parsePageParams = (params: {
   ...parseSiteParams(params),
   pageId: params.pageId as Id<"pages">,
 })
+
+export const parseEnquiryParams = (params: {
+  siteId: string
+  enquiryId: string
+}) => ({
+  ...parseSiteParams(params),
+  enquiryId: params.enquiryId as Id<"enquiries">,
+})
