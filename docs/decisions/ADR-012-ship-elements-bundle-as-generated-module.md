@@ -42,5 +42,5 @@ A backend script, `vp run --filter @workspace/backend elements`, builds `package
 ## Related
 
 - Plan: docs/plans/add-publish-and-rollback.md
-- Task: tasks/active/add-publish-and-rollback.md
+- Task: tasks/done/add-publish-and-rollback.md
 - Elements: docs/plans/build-site-form-element.md
