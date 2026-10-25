@@ -1,6 +1,7 @@
 import { MINUTE, RateLimiter } from "@convex-dev/rate-limiter"
 import {
   type EnquiryResponse,
+  type FieldErrors,
   enquiryIntakeSchema,
   MAX_ENQUIRY_BYTES,
   sha256Hex,
@@ -19,7 +20,6 @@ const rateLimiter = new RateLimiter(components.rateLimiter, {
   enquiry: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 40 },
 })
 
-type FieldErrors = Record<string, string[]>
 type Receipt =
   | { ok: true }
   | { ok: false; reason: "unknown_site" | "rate_limited" }

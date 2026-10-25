@@ -91,6 +91,8 @@ function postForm(
   )
 }
 
+const formBody = { ...fields, website: "" }
+
 const jsBody = {
   ...fields,
   website: "",
@@ -150,7 +152,7 @@ describe("forms route: JavaScript posts", () => {
 describe("forms route: posts without JavaScript", () => {
   it("forwards a post with an empty honeypot and redirects back as sent", async () => {
     const { host, siteId } = await site()
-    const response = await postForm(host, { ...fields, website: "" })
+    const response = await postForm(host, formBody)
 
     expect(response.status).toBe(303)
     expect(response.headers.get("location")).toBe(
@@ -168,11 +170,9 @@ describe("forms route: posts without JavaScript", () => {
 
   it("redirects to the home page when the referer is another site", async () => {
     const { host } = await site()
-    const response = await postForm(
-      host,
-      { ...fields, website: "" },
-      { referer: "https://elsewhere.test/" }
-    )
+    const response = await postForm(host, formBody, {
+      referer: "https://elsewhere.test/",
+    })
     expect(response.headers.get("location")).toBe(
       `https://${host}/?sent=contact`
     )
@@ -185,7 +185,7 @@ describe("forms route: posts without JavaScript", () => {
         { ok: false, errors: { "<b>": ["Too long (max 20)."] } },
         { status: 400 }
       )
-    const response = await postForm(host, { ...fields, website: "" })
+    const response = await postForm(host, formBody)
     const html = await response.text()
 
     expect(response.status).toBe(400)
@@ -199,8 +199,7 @@ describe("forms route: posts without JavaScript", () => {
     const statuses = []
     for (let n = 0; n < 4; n++) {
       statuses.push(
-        (await postForm(host, { ...fields, message: `m${n}`, website: "" }))
-          .status
+        (await postForm(host, { ...formBody, message: `m${n}` })).status
       )
     }
     expect(statuses).toEqual([303, 303, 303, 429])

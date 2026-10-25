@@ -42,6 +42,12 @@ describe("extractForms", () => {
       "<site-form> needs a name attribute.",
     ],
     [
+      "a form name that isn't URL-safe",
+      '<site-form name="Contact Us"><input name="a"></site-form>',
+      1,
+      'Form names use lowercase letters, numbers and hyphens, like "contact-us".',
+    ],
+    [
       "a duplicate form name",
       '<site-form name="c"></site-form>\n<site-form name="c"></site-form>',
       2,

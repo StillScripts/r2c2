@@ -1,3 +1,4 @@
+import { FORM_NAME } from "@workspace/core"
 import type { Document, Element } from "domhandler"
 import { type Issue, issueAt, type Locate } from "./issues"
 import { byTag, elements, locator, parse } from "./parse"
@@ -36,7 +37,12 @@ export function formsIn(doc: Document, locate: Locate) {
     const name = form.attribs.name?.trim()
     const duplicate = forms.some((f) => f.name === name)
     if (!name) error(form, "<site-form> needs a name attribute.")
-    else if (duplicate) {
+    else if (!FORM_NAME.test(name)) {
+      error(
+        form,
+        `Form names use lowercase letters, numbers and hyphens, like "contact-us".`
+      )
+    } else if (duplicate) {
       error(form, `There's already a form named "${name}" on this page.`)
     }
 

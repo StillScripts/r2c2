@@ -5,7 +5,9 @@ import {
   type EnquiryResponse,
   type EnquirySource,
   enquirySchema,
+  FORM_NAME,
   FORMS_PREFIX,
+  type FieldErrors,
   HONEYPOT_FIELD,
   MAX_ENQUIRY_BYTES,
   normaliseHost,
@@ -15,16 +17,8 @@ import {
 import { lookup } from "./lookup"
 import { builtInPage, escapeHtml, notFound } from "./responses"
 
-const FORM_NAME = /^[a-z0-9-]+$/
 const TURNSTILE_VERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify"
-
-type FieldErrors = Record<string, string[]>
-type Submission = {
-  fields: Record<string, string>
-  token?: string
-  source?: EnquirySource
-}
 
 const MESSAGES: Record<number, string> = {
   400: "Please check the form",
@@ -35,31 +29,38 @@ const MESSAGES: Record<number, string> = {
   429: "Too many messages, please try again in a minute",
 }
 
-function parse(type: string | null, body: Uint8Array): Submission | null {
+type BodyKind = "json" | "form"
+type RawSubmission = Record<string, string> & { _source?: EnquirySource }
+
+function bodyKind(type: string | null): BodyKind | null {
+  if (type?.startsWith("application/json")) return "json"
+  if (type?.startsWith("application/x-www-form-urlencoded")) return "form"
+  return null
+}
+
+/** Split a post into its bot-check parts and the fields Convex checks. */
+function parse(kind: BodyKind, body: Uint8Array) {
   const text = new TextDecoder().decode(body)
-  if (type?.startsWith("application/json")) {
+  let raw: RawSubmission
+  if (kind === "form") {
+    const { _source, ...fields } = Object.fromEntries(new URLSearchParams(text))
+    raw = fields
+  } else {
     try {
       const parsed = enquirySchema.safeParse(JSON.parse(text))
       if (!parsed.success) return null
-      const {
-        [TURNSTILE_FIELD]: token,
-        _source: source,
-        ...fields
-      } = parsed.data
-      return { fields, token, source }
+      raw = parsed.data
     } catch {
       return null
     }
   }
-  if (type?.startsWith("application/x-www-form-urlencoded")) {
-    const {
-      [TURNSTILE_FIELD]: token,
-      _source,
-      ...fields
-    } = Object.fromEntries(new URLSearchParams(text))
-    return { fields, token: token || undefined }
-  }
-  return null
+  const {
+    [TURNSTILE_FIELD]: token,
+    [HONEYPOT_FIELD]: honeypot,
+    _source: source,
+    ...data
+  } = raw
+  return { token: token || undefined, honeypot, source, data }
 }
 
 async function verifyTurnstile(secret: string, token: string, ip: string) {
@@ -78,12 +79,8 @@ async function verifyTurnstile(secret: string, token: string, ip: string) {
 
 /** The page a form was posted from, if it's on this site. */
 function formPage(request: Request, url: URL) {
-  const referer = request.headers.get("referer")
-  return referer &&
-    URL.canParse(referer) &&
-    new URL(referer).origin === url.origin
-    ? new URL(referer)
-    : new URL("/", url)
+  const referer = URL.parse(request.headers.get("referer") ?? "")
+  return referer?.origin === url.origin ? referer : new URL("/", url)
 }
 
 function answer(request: Request, url: URL, form: string) {
@@ -91,11 +88,12 @@ function answer(request: Request, url: URL, form: string) {
 
   return (status: number, errors?: FieldErrors) => {
     if (wantsJson) {
-      const body: EnquiryResponse | null =
-        status === 201 ? { ok: true } : errors ? { ok: false, errors } : null
-      return body
-        ? Response.json(body, { status, headers: API_HEADERS })
-        : new Response(null, { status, headers: API_HEADERS })
+      if (status !== 201 && !errors) {
+        return new Response(null, { status, headers: API_HEADERS })
+      }
+      const body: EnquiryResponse =
+        status === 201 ? { ok: true } : { ok: false, errors: errors! }
+      return Response.json(body, { status, headers: API_HEADERS })
     }
     const page = formPage(request, url)
     if (status === 201) {
@@ -123,18 +121,19 @@ function answer(request: Request, url: URL, form: string) {
 }
 
 async function forward(
-  env: { secret: string; convexUrl: string },
+  secret: string,
+  convexUrl: string,
   siteId: string,
   intake: EnquiryIntake
 ) {
   const body = JSON.stringify(intake)
-  const headers = await signedHeaders(env.secret, {
+  const headers = await signedHeaders(secret, {
     siteId,
     method: "POST",
     path: ENQUIRY_INTAKE_PATH,
     body,
   })
-  return fetch(new URL(ENQUIRY_INTAKE_PATH, env.convexUrl), {
+  return fetch(new URL(ENQUIRY_INTAKE_PATH, convexUrl), {
     method: "POST",
     headers: { ...headers, "content-type": "application/json" },
     body,
@@ -155,65 +154,55 @@ export async function handleForm(
   }
   const form = url.pathname.slice(FORMS_PREFIX.length)
   if (!FORM_NAME.test(form)) return notFound()
-  const entry = await lookup(env.ROUTES, normaliseHost(url))
-  if (!entry || "redirect" in entry) return notFound()
 
   const reply = answer(request, url, form)
   const origin = request.headers.get("origin")
   if (origin && origin !== url.origin) return reply(403)
 
-  const {
-    R2C2_SIGNING_SECRET: secret,
-    TURNSTILE_SECRET: turnstileSecret,
-    CONVEX_SITE_URL: convexUrl,
-  } = env
-  if (!secret || !turnstileSecret || !convexUrl) {
+  const { R2C2_SIGNING_SECRET, TURNSTILE_SECRET, CONVEX_SITE_URL } = env
+  if (!R2C2_SIGNING_SECRET || !TURNSTILE_SECRET || !CONVEX_SITE_URL) {
     console.error("The forms route is missing a secret or CONVEX_SITE_URL")
     return reply(503)
   }
 
+  const kind = bodyKind(request.headers.get("content-type"))
+  if (!kind) return reply(415)
+  if (Number(request.headers.get("content-length")) > MAX_ENQUIRY_BYTES) {
+    return reply(413)
+  }
+
+  const entry = await lookup(env.ROUTES, normaliseHost(url))
+  if (!entry || "redirect" in entry) return notFound()
+
   const body = new Uint8Array(await request.arrayBuffer())
   if (body.byteLength > MAX_ENQUIRY_BYTES) return reply(413)
-  const type = request.headers.get("content-type")
-  if (
-    !type?.startsWith("application/json") &&
-    !type?.startsWith("application/x-www-form-urlencoded")
-  ) {
-    return reply(415)
-  }
-  const submission = parse(type, body)
+  const submission = parse(kind, body)
   if (!submission) return reply(400, { body: ["Invalid enquiry."] })
 
-  const { [HONEYPOT_FIELD]: honeypot, ...data } = submission.fields
+  const { token, honeypot, source, data } = submission
   if (honeypot) return reply(201)
+  if (!token && honeypot === undefined) return reply(403)
 
   const ip = request.headers.get("cf-connecting-ip") ?? ""
-  if (submission.token) {
-    if (!(await verifyTurnstile(turnstileSecret, submission.token, ip))) {
-      return reply(403)
-    }
-  } else if (honeypot === undefined) {
+  const limiter = token ? env.FORMS_LIMIT : env.FORMS_NOJS_LIMIT
+  const { success } = await limiter.limit({ key: `${entry.site}:${ip}` })
+  if (!success) return reply(429)
+  if (token && !(await verifyTurnstile(TURNSTILE_SECRET, token, ip))) {
     return reply(403)
   }
 
-  const limiter = submission.token ? env.FORMS_LIMIT : env.FORMS_NOJS_LIMIT
-  const { success } = await limiter.limit({ key: `${entry.site}:${ip}` })
-  if (!success) return reply(429)
-
   try {
-    const response = await forward({ secret, convexUrl }, entry.site, {
-      form,
-      data,
-      source: submission.source,
-    })
-    if (response.status === 201) return reply(201)
+    const response = await forward(
+      R2C2_SIGNING_SECRET,
+      CONVEX_SITE_URL,
+      entry.site,
+      { form, data, source }
+    )
     if (response.status === 400) {
       const result = await response.json<EnquiryResponse>()
       return reply(400, result.ok ? undefined : result.errors)
     }
-    if (response.status === 404 || response.status === 429) {
-      return reply(response.status)
-    }
+    if ([201, 404, 429].includes(response.status)) return reply(response.status)
     console.error(`Convex refused an enquiry with ${response.status}`)
   } catch (error) {
     console.error("Couldn't reach Convex", error)

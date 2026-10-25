@@ -1,4 +1,8 @@
-import type { EnquiryResponse, EnquirySource } from "@workspace/core"
+import type {
+  EnquiryResponse,
+  EnquirySource,
+  FieldErrors,
+} from "@workspace/core"
 
 const TURNSTILE_SRC =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
@@ -104,7 +108,7 @@ export class SiteForm extends HTMLElement {
     if (state === "error") window.turnstile?.reset(this.#widgetId)
   }
 
-  #showFieldErrors(errors: Record<string, string[]>) {
+  #showFieldErrors(errors: FieldErrors) {
     const invalid = Object.entries(errors).map(([name, messages]) => ({
       name,
       text: messages[0] ?? MESSAGES.invalid,

@@ -38,6 +38,10 @@ The gateway handles `POST /_api/forms/<name>` before its `GET`/`HEAD` check; any
 8. **Forward:** strip `cf-turnstile-response`, `_source` and `website`. Build `{ form, data, source? }` (checked against `enquiryIntakeSchema`) and `POST` it to `CONVEX_SITE_URL + ENQUIRY_INTAKE_PATH` with `signedHeaders`.
 9. **Answer:** Convex's `201`/`400`/`429` pass through. `404` from Convex is `404`. Anything else (`401`, `503`, network error) is logged and becomes `502`, so the visitor sees a general error.
 
+After the clean-up review the order favours cheap rejects. The method, form name, `Origin`, secrets, content type and `Content-Length` are all checked before the KV read and the body read, and the rate limit runs before the Turnstile round trip.
+
+**Form names** must match core's `FORM_NAME` (`[a-z0-9-]+`). The pattern is shared: publish now rejects other names with a readable error, and `enquiryIntakeSchema` checks it too, so a form can't publish and then 404 on every post. `FieldErrors` is now one type in core, used by the edge, Convex and `<site-form>`.
+
 ### Response format
 
 - **JSON callers** (`Accept` includes `application/json`): the `EnquiryResponse` body with the status above and `API_HEADERS`.
