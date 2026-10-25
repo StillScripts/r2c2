@@ -5,7 +5,8 @@
   "private": true,
   "exports": {
     "./api": "./convex/_generated/api.js",
-    "./dataModel": "./convex/_generated/dataModel.d.ts"
+    "./dataModel": "./convex/_generated/dataModel.d.ts",
+    "./errors": "./convex/errors.ts"
   },
   "scripts": {
     "dev": "convex dev",

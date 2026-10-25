@@ -1,64 +1,60 @@
 import { useConvexAction, useConvexMutation } from "@convex-dev/react-query"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, useBlocker } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
-import { useEffect, useRef, useState } from "react"
+import type { FunctionReturnType } from "convex/server"
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
 import { errorMessage } from "@/lib/errors"
+import { parsePageParams } from "@/lib/params"
 import { previewDocument } from "@/lib/preview"
 import { pageQuery } from "@/lib/queries"
 
 const PREVIEW_DELAY_MS = 400
 
-type Preview = Awaited<ReturnType<ReturnType<typeof usePreviewAction>>>
-
-const usePreviewAction = () => useConvexAction(api.preview.preview)
+type Preview = FunctionReturnType<typeof api.preview.preview> & {
+  html: string
+}
 
 export const Route = createFileRoute("/_authed/sites/$siteId/pages/$pageId")({
-  loader: ({ context, params }) =>
-    context.queryClient.ensureQueryData(
-      pageQuery(params.siteId as Id<"sites">, params.pageId as Id<"pages">)
-    ),
+  params: { parse: parsePageParams },
+  loader: ({ context, params: { siteId, pageId } }) =>
+    context.queryClient.ensureQueryData(pageQuery(siteId, pageId)),
   component: PageEditor,
 })
 
 function PageEditor() {
-  const params = Route.useParams()
-  const siteId = params.siteId as Id<"sites">
-  const pageId = params.pageId as Id<"pages">
+  const { siteId, pageId } = Route.useParams()
   const { data: page } = useSuspenseQuery(pageQuery(siteId, pageId))
-  const saveDraft = useConvexMutation(api.pages.saveDraft)
+  const saveDraft = useMutation({
+    mutationFn: useConvexMutation(api.pages.saveDraft),
+  })
 
   const [draft, setDraft] = useState(page.draftHtml)
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<string>()
   const preview = usePreview(siteId, draft)
+  const srcDoc = useMemo(
+    () => previewDocument(preview?.html ?? page.draftHtml, preview?.css ?? ""),
+    [preview, page.draftHtml]
+  )
   const unsaved = draft !== page.draftHtml
 
-  async function save() {
-    if (!unsaved || saving) return
-    setSaving(true)
-    setSaveError(undefined)
-    try {
-      await saveDraft({ siteId, pageId, draftHtml: draft })
-    } catch (error) {
-      setSaveError(errorMessage(error))
-    } finally {
-      setSaving(false)
+  function save() {
+    if (unsaved && !saveDraft.isPending) {
+      saveDraft.mutate({ siteId, pageId, draftHtml: draft })
     }
   }
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key === "s") {
-        event.preventDefault()
-        void save()
-      }
+  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === "s") {
+      event.preventDefault()
+      save()
     }
+  })
+  useEffect(() => {
     window.addEventListener("keydown", onKeyDown)
     return () => window.removeEventListener("keydown", onKeyDown)
-  })
+  }, [])
 
   useBlocker({
     shouldBlockFn: () =>
@@ -85,17 +81,17 @@ function PageEditor() {
           </h1>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          {saveError ? (
+          {saveDraft.error ? (
             <span role="alert" className="text-destructive">
-              {saveError}
+              {errorMessage(saveDraft.error)}
             </span>
           ) : (
             unsaved && (
               <span className="text-muted-foreground">Unsaved changes</span>
             )
           )}
-          <Button onClick={save} disabled={!unsaved || saving}>
-            {saving ? "Saving…" : "Save"}
+          <Button onClick={save} disabled={!unsaved || saveDraft.isPending}>
+            {saveDraft.isPending ? "Saving…" : "Save"}
           </Button>
         </div>
       </div>
@@ -113,7 +109,7 @@ function PageEditor() {
         <iframe
           title="Preview"
           sandbox=""
-          srcDoc={previewDocument(draft, preview?.css ?? "")}
+          srcDoc={srcDoc}
           className="h-full min-h-80 w-full rounded-2xl border bg-white"
         />
       </div>
@@ -123,7 +119,7 @@ function PageEditor() {
 
 /** The latest preview for the draft, fetched once typing pauses. Stale responses are dropped. */
 function usePreview(siteId: Id<"sites">, html: string) {
-  const runPreview = usePreviewAction()
+  const runPreview = useConvexAction(api.preview.preview)
   const [preview, setPreview] = useState<Preview>()
   const latest = useRef(0)
 
@@ -131,7 +127,8 @@ function usePreview(siteId: Id<"sites">, html: string) {
     const request = ++latest.current
     const timer = setTimeout(() => {
       runPreview({ siteId, html }).then(
-        (result) => request === latest.current && setPreview(result),
+        (result) =>
+          request === latest.current && setPreview({ ...result, html }),
         () => {}
       )
     }, PREVIEW_DELAY_MS)

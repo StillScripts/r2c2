@@ -1,28 +1,29 @@
 import { useConvexMutation } from "@convex-dev/react-query"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { useState, type FormEvent } from "react"
+import type { FunctionArgs } from "convex/server"
+import type { FormEvent } from "react"
 import { errorMessage } from "@/lib/errors"
+import { parseSiteParams } from "@/lib/params"
 import { pagesQuery, siteQuery } from "@/lib/queries"
 
 export const Route = createFileRoute("/_authed/sites/$siteId/")({
-  loader: ({ context, params }) => {
-    const siteId = params.siteId as Id<"sites">
-    return Promise.all([
+  params: { parse: parseSiteParams },
+  loader: ({ context, params: { siteId } }) =>
+    Promise.all([
       context.queryClient.ensureQueryData(siteQuery(siteId)),
       context.queryClient.ensureQueryData(pagesQuery(siteId)),
-    ])
-  },
+    ]),
   component: SitePages,
 })
 
 function SitePages() {
-  const siteId = Route.useParams().siteId as Id<"sites">
+  const { siteId } = Route.useParams()
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const { data: pages } = useSuspenseQuery(pagesQuery(siteId))
 
@@ -66,29 +67,25 @@ function SitePages() {
 
 function NewPageForm({ siteId }: { siteId: Id<"sites"> }) {
   const navigate = useNavigate()
-  const create = useConvexMutation(api.pages.create)
-  const [error, setError] = useState<string>()
-  const [pending, setPending] = useState(false)
-
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    setPending(true)
-    setError(undefined)
-    try {
-      const pageId = await create({
-        siteId,
-        path: form.get("path") as string,
-        title: form.get("title") as string,
-      })
-      await navigate({
+  const createPage = useConvexMutation(api.pages.create)
+  const create = useMutation({
+    mutationFn: (args: FunctionArgs<typeof api.pages.create>) =>
+      createPage(args),
+    onSuccess: (pageId) =>
+      navigate({
         to: "/sites/$siteId/pages/$pageId",
         params: { siteId, pageId },
-      })
-    } catch (caught) {
-      setError(errorMessage(caught))
-      setPending(false)
-    }
+      }),
+  })
+
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const form = new FormData(event.currentTarget)
+    create.mutate({
+      siteId,
+      path: form.get("path") as string,
+      title: form.get("title") as string,
+    })
   }
 
   return (
@@ -106,13 +103,13 @@ function NewPageForm({ siteId }: { siteId: Id<"sites"> }) {
         <Label htmlFor="path">Path</Label>
         <Input id="path" name="path" placeholder="/about" required />
       </div>
-      {error && (
+      {create.error && (
         <p role="alert" className="text-sm text-destructive">
-          {error}
+          {errorMessage(create.error)}
         </p>
       )}
-      <Button type="submit" disabled={pending} className="self-start">
-        {pending ? "Creating…" : "Create page"}
+      <Button type="submit" disabled={create.isPending} className="self-start">
+        {create.isPending ? "Creating…" : "Create page"}
       </Button>
     </form>
   )

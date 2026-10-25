@@ -77,15 +77,12 @@ export const saveDraft = siteMutation({
     const page = await ownDoc(ctx, "pages", pageId)
     if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
 
-    const saved = {
-      ...page,
-      draftHtml,
-      title: draftTitle(draftHtml) ?? page.title,
-    }
-    await ctx.db.patch("pages", pageId, {
-      draftHtml: saved.draftHtml,
-      title: saved.title,
-    })
-    await recordDraft(ctx, saved, { reason: "save", actor: ctx.userId })
+    const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
+    await ctx.db.patch("pages", pageId, patch)
+    await recordDraft(
+      ctx,
+      { ...page, ...patch },
+      { reason: "save", actor: ctx.userId }
+    )
   },
 })

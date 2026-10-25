@@ -5,7 +5,9 @@ export const MAX_PAGE_PATH_LENGTH = 200
 
 const SEGMENT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 
-export const pageBytes = (html: string) => new TextEncoder().encode(html).length
+const encoder = new TextEncoder()
+
+export const pageBytes = (html: string) => encoder.encode(html).length
 
 /** Normalise a typed-in page path, or return null if it isn't `/` or kebab-case segments. */
 export function parsePagePath(input: string): string | null {

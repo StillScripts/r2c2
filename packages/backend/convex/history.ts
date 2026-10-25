@@ -1,6 +1,6 @@
 import { TableHistory } from "@convex-dev/table-history"
 import { components } from "./_generated/api"
-import type { DataModel, Doc } from "./_generated/dataModel"
+import type { DataModel, Doc, Id } from "./_generated/dataModel"
 import type { MutationCtx, QueryCtx } from "./_generated/server"
 
 export const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000
@@ -16,10 +16,10 @@ const LATEST = Number.MAX_SAFE_INTEGER
 /** A page's snapshots, newest first. */
 export const draftHistory = (
   ctx: QueryCtx,
-  page: Doc<"pages">,
+  pageId: Id<"pages">,
   numItems = 100
 ) =>
-  pageHistory.listDocumentHistory(ctx, page._id, LATEST, {
+  pageHistory.listDocumentHistory(ctx, pageId, LATEST, {
     numItems,
     cursor: null,
   })
@@ -36,9 +36,8 @@ export async function recordDraft(
   if (attribution.reason === "save") {
     const {
       page: [last],
-    } = await draftHistory(ctx, page, 1)
-    if (last && Date.now() - last.ts < SNAPSHOT_INTERVAL_MS) return false
+    } = await draftHistory(ctx, page._id, 1)
+    if (last && Date.now() - last.ts < SNAPSHOT_INTERVAL_MS) return
   }
   await pageHistory.update(ctx, page._id, page, attribution)
-  return true
 }

@@ -18,10 +18,7 @@ async function editorSite() {
 }
 
 const snapshots = (t: ReturnType<typeof setup>, pageId: Id<"pages">) =>
-  t.run(async (ctx) => {
-    const page = await ctx.db.get("pages", pageId)
-    return (await draftHistory(ctx, page!)).page
-  })
+  t.run(async (ctx) => (await draftHistory(ctx, pageId)).page)
 
 afterEach(() => {
   vi.useRealTimers()
@@ -162,11 +159,10 @@ describe("draft history", () => {
       const { t, siteId, ed, pageId } = await editorSite()
       await ed.mutation(api.pages.saveDraft, { siteId, pageId, draftHtml: "" })
 
-      const recorded = await t.run(async (ctx) => {
+      await t.run(async (ctx) => {
         const page = await ctx.db.get("pages", pageId)
-        return recordDraft(ctx, page!, { reason, actor: "system" })
+        await recordDraft(ctx, page!, { reason, actor: "system" })
       })
-      expect(recorded).toBe(true)
       expect(await snapshots(t, pageId)).toHaveLength(2)
     }
   )

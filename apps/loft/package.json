@@ -17,6 +17,7 @@
     "@tanstack/react-router-ssr-query": "catalog:",
     "@tanstack/react-start": "catalog:",
     "@workspace/backend": "workspace:*",
+    "@workspace/core": "workspace:*",
     "@workspace/ui": "workspace:*",
     "better-auth": "catalog:",
     "convex": "catalog:",
