@@ -18,7 +18,8 @@ following SPEC §6's rules on when to record.
   goes through `siteQuery`/`siteMutation` and `ownDoc` (`convex/access.ts`), and
   `sites:get` returns the site, including its `theme` CSS.
 - **HTML pipeline:** `@workspace/html` (T11) has `loadTheme`, `compileCss(html, theme)`
-  and `checkPage(html, theme)`, which returns `Issue[]` with line and column. It
+  and `checkPage(html, theme)`, which returns `{ errors, warnings, forms }` of `Issue`s
+  with line and column. It
   imports `node:fs`, `node:module` and `path`, so it can only run in a Convex
   `"use node"` action, and nothing has run it inside Convex yet. A page's `<title>` and
   `<meta name="description">` live in `draftHtml` (T11 plan).
@@ -42,12 +43,13 @@ following SPEC §6's rules on when to record.
 **Backend: `convex/history.ts`**
 
 - `pageHistory = new TableHistory<DataModel, "pages">(components.pageHistory)`.
-- `recordDraft(ctx, page, reason)` takes `reason` as
-  `"save" | "ai-edit" | "publish" | "restore"` and stores `{ reason, actor }` as the
-  attribution.
+- `recordDraft(ctx, page, { reason, actor })` takes `reason` as
+  `"save" | "ai-edit" | "publish" | "restore"` and `actor` as the member's user ID (or
+  `"system"`, as in `auditLog`), and stores both as the attribution.
   - For `"save"`, it first reads the newest entry with `listDocumentHistory`, numItems 1.
     If that entry is under five minutes old (`SNAPSHOT_INTERVAL_MS`), it returns without
-    recording.
+    recording. The five minutes count from the last snapshot of any kind, so a save just
+    after a publish snapshot is skipped too.
   - Every other reason always records.
   - It's the only module that imports the component. T15 only calls it with `"save"`;
     the other reasons are typed now for T13, T16 and AI editing.
@@ -57,8 +59,10 @@ following SPEC §6's rules on when to record.
 - `list` (`siteQuery`): the site's pages through the `by_site_path` prefix, returning
   `_id`, `path`, `title` and whether each has a live version. Sorted by path.
 - `create` (`siteMutation`, editors allowed), taking `{ path, title }`:
-  - normalises and validates the path with a `pagePath` helper in `@workspace/core`:
-    `/` or lowercase kebab-case segments, no trailing slash, at most 200 characters;
+  - normalises and validates the path with a `parsePagePath` helper in `@workspace/core`.
+    It builds on the existing `normalisePath` (decode, lowercase, no `..`) and also
+    requires `/` or kebab-case segments (`[a-z0-9]+(-[a-z0-9]+)*`), with at most 200
+    characters;
   - fails with new `ErrorCode`s `invalid_path` and `path_taken`, following the domain
     codes (`invalid_hostname`, `hostname_taken`);
   - inserts a starter `draftHtml` with the title in `<title>`, an empty description
@@ -67,10 +71,13 @@ following SPEC §6's rules on when to record.
     SPEC §6 doesn't list creation.
 - `saveDraft` (`siteMutation`), taking `{ pageId, draftHtml }`:
   - loads the page through `ownDoc` and refuses HTML over `MAX_PAGE_BYTES` (500 KB)
-    with a new `page_too_large` code;
+    with a new `page_too_large` code. `MAX_PAGE_BYTES` moves from `@workspace/html` to
+    `@workspace/core` for the same reason, and `check.ts` imports it from there;
   - patches `draftHtml`, and `title` from the draft's `<title>` when it has one, so the
-    list label follows the page;
-  - calls `recordDraft(ctx, page, "save")`. It writes no audit entry, since saves are
+    list label follows the page. It reads the title with a small `draftTitle(html)`
+    regex helper in `@workspace/core`, not `@workspace/html`, because that package
+    loads `node:fs` through `theme.ts` and can't run in a mutation;
+  - calls `recordDraft(ctx, page, { reason: "save", actor: ctx.userId })`. It writes no audit entry, since saves are
     frequent and publish is what gets audited.
 - `get` stays as it is.
 
@@ -80,14 +87,16 @@ following SPEC §6's rules on when to record.
   - loads the site through `ctx.runQuery(api.sites.get, { siteId })`, so the caller's
     membership is checked the same way as everywhere else;
   - runs `loadTheme(site.theme)`, then `compileCss` and `checkPage` in parallel;
-  - returns `{ css, issues }`.
+  - returns `{ css, errors, warnings }`.
 - `convex.json` lists `tailwindcss` (and `@workspace/html` if needed) under
   `node.externalPackages`, so `require.resolve("tailwindcss/index.css")` finds the file
   at runtime.
 
 **Loft: routes under `_authed`**
 
-- `/sites/$siteId`: the page list (path, title, a "Live" badge if published) and a
+- Editors and owners can both create and save pages. Neither mutation passes
+  `role: "owner"`.
+- `/sites/$siteId`: the site's name from `sites:get`, the page list (path, title, a "Live" badge if published) and a
   small "New page" form (path, title). On create, it navigates to the editor. The
   sites on `/` link here.
 - `/sites/$siteId/pages/$pageId`: the editor.
@@ -96,8 +105,8 @@ following SPEC §6's rules on when to record.
     access. It shows the draft, with the compiled CSS injected as a `<style>` in
     `<head>`.
   - **Preview:** the editor calls `preview` 400 ms after typing stops, and ignores
-    out-of-order responses. The house-rule issues show under the editor as
-    `Line N: message`.
+    out-of-order responses. House-rule errors and warnings show under the editor as
+    `Line N: message`, with errors in the destructive colour and warnings muted.
   - **Saving:** the Save button (and ⌘/Ctrl+S) calls `saveDraft`. It shows "Unsaved
     changes" while the text differs from the stored draft, and warns before leaving
     with unsaved edits. Saving is manual, with no autosave, which matches SPEC §6's
@@ -124,7 +133,7 @@ following SPEC §6's rules on when to record.
 - In:
   - `@convex-dev/table-history` pin and `pageHistory` install;
   - `history.ts`, the `pages` functions, the `preview` action and `convex.json`;
-  - the `pagePath` helper in `@workspace/core`;
+  - `parsePagePath`, `draftTitle` and `MAX_PAGE_BYTES` in `@workspace/core`;
   - the two Loft routes and the editor;
   - tests, and README notes.
 - Out:
@@ -139,7 +148,8 @@ following SPEC §6's rules on when to record.
 - [ ] Pin `@convex-dev/table-history` 0.1.6 in the catalog and add it to
       `packages/backend`. Register `app.use(tableHistory, { name: "pageHistory" })`, and
       register it in `test/setup.ts` from the component's schema and modules.
-- [ ] Add `pagePath` (normalise and validate) to `packages/core`, with tests.
+- [ ] Add `parsePagePath` and `draftTitle` to `packages/core`, and move `MAX_PAGE_BYTES`
+      there, with tests.
 - [ ] Add `convex/history.ts` with `recordDraft`.
 - [ ] Add `pages:list`, `pages:create` and `pages:saveDraft`.
 - [ ] Add the `preview` action in `convex/preview.ts` and `convex.json` external
@@ -174,7 +184,7 @@ following SPEC §6's rules on when to record.
 
 **Other tests:**
 
-- `vp test` units for `pagePath` and `previewDocument`, including a fragment with no
+- `vp test` units for `parsePagePath`, `draftTitle` and `previewDocument`, including a fragment with no
   `<head>`.
 - The `preview` action is covered by `@workspace/html`'s own tests for the compile. A
   `convex-test` call checks that it refuses an outsider.
@@ -207,5 +217,5 @@ following SPEC §6's rules on when to record.
 
 ## Open questions
 
-- Should `title` track the draft's `<title>` on save (assumed yes here), or is that left
-  wholly to `clean-up-convex-schema`?
+- Should `title` track the draft's `<title>` on save? This plan assumes yes, which
+  settles that point of `clean-up-convex-schema` early.
