@@ -1,4 +1,5 @@
 import betterAuth from "@convex-dev/better-auth/test"
+import rateLimiter from "@convex-dev/rate-limiter/test"
 import { convexTest } from "convex-test"
 import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
@@ -10,6 +11,7 @@ const modules = import.meta.glob("../convex/**/*.*s")
 export const setup = () => {
   const t = convexTest(schema, modules)
   betterAuth.register(t)
+  rateLimiter.register(t)
   return t
 }
 

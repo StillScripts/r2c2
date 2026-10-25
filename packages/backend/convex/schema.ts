@@ -60,10 +60,15 @@ export default defineSchema({
     siteId: v.id("sites"),
     form: v.string(),
     data: v.record(v.string(), v.string()),
-    source: enquirySource,
+    // absent for no-JS form posts
+    source: v.optional(enquirySource),
     status: enquiryStatus,
     createdAt: v.number(),
-  }).index("by_site_created", ["siteId", "createdAt"]),
+    // SHA-256 of the form name and sorted fields, for the 10-minute dedupe
+    bodyHash: v.string(),
+  })
+    .index("by_site_created", ["siteId", "createdAt"])
+    .index("by_site_hash", ["siteId", "bodyHash", "createdAt"]),
 
   memberships: defineTable({
     // identity.subject, the Better Auth user ID

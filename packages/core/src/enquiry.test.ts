@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test"
-import { enquirySchema } from "./enquiry"
+import { enquiryIntakeSchema, enquirySchema } from "./enquiry"
 
 const valid = {
   name: "Ada",
@@ -30,5 +30,23 @@ describe("enquirySchema", () => {
     ["a non-string field", { name: 42 }],
   ])("rejects %s", (_, change) => {
     expect(enquirySchema.safeParse({ ...valid, ...change }).success).toBe(false)
+  })
+})
+
+describe("enquiryIntakeSchema", () => {
+  it("accepts a forwarded enquiry with or without a source", () => {
+    const intake = { form: "contact", data: { name: "Ada" } }
+    expect(enquiryIntakeSchema.parse(intake)).toEqual(intake)
+    expect(
+      enquiryIntakeSchema.parse({ ...intake, source: { page: "/contact" } })
+    ).toEqual({ ...intake, source: { page: "/contact", utm: {} } })
+  })
+
+  it.each([
+    ["a missing form", { data: {} }],
+    ["an empty form", { form: "", data: {} }],
+    ["non-string data", { form: "c", data: { n: 1 } }],
+  ])("rejects %s", (_, body) => {
+    expect(enquiryIntakeSchema.safeParse(body).success).toBe(false)
   })
 })

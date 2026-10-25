@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vite-plus/test"
-import { sign, signedHeaders, verify, type SignedRequest } from "./signing"
+import {
+  sign,
+  signedHeaders,
+  verify,
+  verifyRequest,
+  type SignedRequest,
+} from "./signing"
 
 const secret = "test-secret"
 const now = Date.UTC(2026, 9, 24, 12)
@@ -103,5 +109,33 @@ describe("verify", () => {
     `t=-1,v1=${"a".repeat(64)}`,
   ])("rejects a malformed header %j", async (header) => {
     expect(await verify(secret, request, header, now)).toBe(false)
+  })
+})
+
+describe("verifyRequest", () => {
+  const encoded = new TextEncoder().encode(body)
+  const signedRequest = (headers: Record<string, string>) =>
+    new Request(`https://convex.test${request.path}`, {
+      method: "POST",
+      headers,
+    })
+
+  it("returns the site a valid request was signed for", async () => {
+    const headers = await signedHeaders(secret, request, now)
+    expect(
+      await verifyRequest(secret, signedRequest(headers), encoded, now)
+    ).toBe("s_r2c2")
+  })
+
+  it("returns null when the site header isn't the signed one", async () => {
+    const headers = await signedHeaders(secret, request, now)
+    const forged = signedRequest({ ...headers, "x-r2c2-site": "other" })
+    expect(await verifyRequest(secret, forged, encoded, now)).toBeNull()
+  })
+
+  it("returns null without a signature", async () => {
+    expect(
+      await verifyRequest(secret, signedRequest({}), encoded, now)
+    ).toBeNull()
   })
 })

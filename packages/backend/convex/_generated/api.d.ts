@@ -11,6 +11,7 @@
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
 import type * as domains from "../domains.js";
+import type * as enquiries from "../enquiries.js";
 import type * as errors from "../errors.js";
 import type * as http from "../http.js";
 import type * as pages from "../pages.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   access: typeof access;
   auth: typeof auth;
   domains: typeof domains;
+  enquiries: typeof enquiries;
   errors: typeof errors;
   http: typeof http;
   pages: typeof pages;
@@ -71,4 +73,5 @@ export declare const internal: FilterApi<
 export declare const components: {
   betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
   r2: import("@convex-dev/r2/_generated/component.js").ComponentApi<"r2">;
+  rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
 };

@@ -1,6 +1,8 @@
 ---
 title: T19 Add enquiry intake in Convex
 created: 2026-10-24
+completed: 2026-10-25
+plan: docs/plans/add-convex-enquiry-intake.md
 ---
 
 Accept signed enquiries from the edge and store them.
