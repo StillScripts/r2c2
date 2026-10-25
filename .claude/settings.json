@@ -22,6 +22,8 @@
       "Skill(handle-task *)",
       "Skill(mark-pr-ready)",
       "Skill(mark-pr-ready *)",
+      "Skill(resolve-conflicts)",
+      "Skill(resolve-conflicts *)",
       "Skill(task-management)",
       "Skill(task-management *)"
     ]

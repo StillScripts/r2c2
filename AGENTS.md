@@ -44,6 +44,7 @@ Use these project skills (in `.claude/skills/`) for each step:
 - `create-pr`: open a draft pull request, or update one.
 - `mark-pr-ready`: move the task to done and mark its draft PR ready for review.
 - `fix-ci`: fix failing GitHub Actions checks on a PR.
+- `resolve-conflicts`: resolve merge conflicts, including a PR that conflicts with `master`. Use it every time conflicts come up, in or outside a task.
 - `find-skills`: find and install new skills.
 
 `.claude/settings.json` allows all of them to run without a permission prompt; add new skills there too.
