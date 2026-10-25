@@ -51,22 +51,35 @@ the restore mutation the UI needs.
 
 ## Action items
 
-- [ ] Add `pages:versions`, `pages:history` and `pages:restoreDraft` to
+- [x] Add `pages:versions`, `pages:history` and `pages:restoreDraft` to
       `packages/backend/convex/pages.ts`, using `draftHistory` and `recordDraft`, with a
       `memberNames` helper for author names.
-- [ ] Add `convex-test` cases:
+- [x] Add `convex-test` cases:
   - versions are sorted newest first, with the live one marked;
   - history includes the reason and author;
   - `restoreDraft` writes the snapshot back and records a `restore` snapshot of the
     previous draft, which can itself be restored;
   - a snapshot from another page and an outsider are both refused.
-- [ ] Add `AlertDialog` to `packages/ui`.
-- [ ] Add Publish to the editor: save if unsaved, confirm, call `publish:publish`, then
+- [x] Add `AlertDialog` to `packages/ui`.
+- [x] Add Publish to the editor: save if unsaved, confirm, call `publish:publish`, then
       show the errors or "Published", with the History link.
-- [ ] Add the History route with versions and rollback, snapshots and preview, and
+- [x] Add the History route with versions and rollback, snapshots and preview, and
       restore.
-- [ ] Update `apps/loft/README.md`.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Update `apps/loft/README.md`.
+- [x] Run `vp check`, `vp test` and `vp run build`.
+
+## As built
+
+- Confirmations go through one `ConfirmButton` in `apps/loft/src/components/`, built on
+  the new `AlertDialog`.
+- The editor's preview hook, frame and issues list moved to
+  `apps/loft/src/components/page-preview.tsx`, so the History page previews snapshots
+  the same way.
+- The History route is `pages/$pageId_.history.tsx`, so it isn't nested inside the
+  editor's route.
+- History lists the newest 100 snapshots, the page size of `draftHistory`.
+- Clicking through the UI needs a Convex deployment, which the agent session can't
+  reach, so it's checked by `vp check`, the build and the backend tests only.
 
 ## Open questions
 
