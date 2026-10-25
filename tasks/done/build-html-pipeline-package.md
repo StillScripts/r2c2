@@ -1,6 +1,7 @@
 ---
 title: T11 Build the HTML pipeline package
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/build-html-pipeline-package.md
 ---
 
