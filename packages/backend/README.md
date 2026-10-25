@@ -75,7 +75,7 @@ vp run --filter @workspace/backend elements
 
 Each stored enquiry schedules `notifications:enquiryEmail`, which emails the site's
 owners through `@convex-dev/resend` (one email per enquiry, with Reply-To set to the
-visitor's email when it's valid). Set the sender and key on the deployment:
+form's email field). Set the sender and key on the deployment:
 
 ```bash
 npx convex env set RESEND_API_KEY …

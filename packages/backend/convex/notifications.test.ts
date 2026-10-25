@@ -27,13 +27,13 @@ afterEach(() => {
 
 const ENQUIRY = {
   form: "contact",
-  data: { name: "Ada", email: " ada@example.com ", message: "Hi" },
+  data: { name: "Ada", email: "ada@example.com", message: "Hi" },
   source: { page: "/contact", utm: {} },
   createdAt: Date.UTC(2026, 9, 25, 9, 30),
 }
 
 /** A site owned by Ann with an editor, Bob, and one stored enquiry. */
-async function site(data: Record<string, string> = ENQUIRY.data) {
+async function site() {
   const t = setup()
   const siteId = await addSite(t, "r2c2")
   for (const [name, role] of [
@@ -51,14 +51,13 @@ async function site(data: Record<string, string> = ENQUIRY.data) {
     ctx.db.insert("enquiries", {
       siteId,
       ...ENQUIRY,
-      data,
       status: "new",
       bodyHash: "h",
     })
   )
-  const notify = (id: Id<"enquiries"> = enquiryId) =>
-    t.mutation(internal.notifications.enquiryEmail, { enquiryId: id })
-  return { t, siteId, enquiryId, notify }
+  const notify = (replyTo?: string) =>
+    t.mutation(internal.notifications.enquiryEmail, { enquiryId, replyTo })
+  return { t, enquiryId, notify }
 }
 
 const sent = () => send.mock.calls.map(([, options]) => options)
@@ -66,7 +65,7 @@ const sent = () => send.mock.calls.map(([, options]) => options)
 describe("enquiryEmail", () => {
   test("in test mode, sends one email to Resend's test inbox naming the owners", async () => {
     const { enquiryId, notify } = await site()
-    await notify()
+    await notify("ada@example.com")
     expect(sent()).toEqual([
       expect.objectContaining({
         from: "R2C2 <hello@r2c2.dev>",
@@ -83,25 +82,26 @@ describe("enquiryEmail", () => {
     vi.stubEnv("RESEND_TEST_MODE", "false")
     const { notify } = await site()
     await notify()
-    expect(sent()).toEqual([expect.objectContaining({ to: ["ann@r2c2.dev"] })])
-    expect(sent()[0]).toMatchObject({
-      text: expect.not.stringContaining("Test mode"),
-    })
+    expect(sent()).toEqual([
+      expect.objectContaining({
+        to: ["ann@r2c2.dev"],
+        text: expect.not.stringContaining("Test mode"),
+      }),
+    ])
   })
 
-  test("leaves out Reply-To without a valid visitor email", async () => {
-    const { notify } = await site({ name: "Ada", email: "not an email" })
+  test("leaves out Reply-To when the form has no email", async () => {
+    const { notify } = await site()
     await notify()
     expect(sent()[0]).not.toHaveProperty("replyTo")
   })
 
-  test("sends nothing without a sender or for a missing enquiry", async () => {
+  test("sends nothing for a missing enquiry or without a sender", async () => {
     const { t, enquiryId, notify } = await site()
     await t.run((ctx) => ctx.db.delete("enquiries", enquiryId))
     await notify()
     vi.stubEnv("EMAIL_FROM", "")
-    const other = await site()
-    await other.notify()
+    await (await site()).notify()
     expect(sent()).toEqual([])
   })
 })
@@ -118,7 +118,7 @@ describe("enquiryEmailText", () => {
         'New enquiry from the "contact" form on Clinic.',
         "",
         "name: Ada",
-        "email:  ada@example.com ",
+        "email: ada@example.com",
         "message: Hi",
         "",
         "Page: /contact",

@@ -4,13 +4,9 @@ import { components } from "./_generated/api"
 import type { Doc } from "./_generated/dataModel"
 import { internalMutation } from "./_generated/server"
 import { authComponent } from "./auth"
-import { isEmail } from "./enquiries"
 
 /** Resend's inbox for test sends, used for every notification while test mode is on. */
 export const TEST_INBOX = "delivered@resend.dev"
-
-/** On unless `RESEND_TEST_MODE` is `false`, so dev never emails real owners. */
-const testMode = () => process.env.RESEND_TEST_MODE !== "false"
 
 /** The subject and plain-text body of a new-enquiry email. */
 export function enquiryEmailText(
@@ -35,17 +31,21 @@ export function enquiryEmailText(
 
 /** Email a site's owners about one enquiry, at most once. */
 export const enquiryEmail = internalMutation({
-  args: { enquiryId: v.id("enquiries") },
-  handler: async (ctx, { enquiryId }) => {
-    const enquiry = await ctx.db.get("enquiries", enquiryId)
-    const site = enquiry && (await ctx.db.get("sites", enquiry.siteId))
-    if (!enquiry || !site) return
-
+  args: {
+    enquiryId: v.id("enquiries"),
+    // The visitor's address from the form's email field, validated at intake
+    replyTo: v.optional(v.string()),
+  },
+  handler: async (ctx, { enquiryId, replyTo }) => {
     const from = process.env.EMAIL_FROM
     if (!from) {
       console.warn("EMAIL_FROM isn't set, so no enquiry email was sent")
       return
     }
+    const enquiry = await ctx.db.get("enquiries", enquiryId)
+    const site = enquiry && (await ctx.db.get("sites", enquiry.siteId))
+    if (!enquiry || !site) return
+
     const owners = (
       await ctx.db
         .query("memberships")
@@ -58,19 +58,19 @@ export const enquiryEmail = internalMutation({
     const emails = users.flatMap((user) => (user ? [user.email] : []))
     if (emails.length === 0) return
 
-    const test = testMode()
+    // On unless RESEND_TEST_MODE is "false", so dev never emails real owners
+    const test = process.env.RESEND_TEST_MODE !== "false"
     const { subject, text } = enquiryEmailText(
       site,
       enquiry,
       process.env.SITE_URL
     )
-    const visitor = enquiry.data.email
     await new Resend(components.resend, { testMode: test }).sendEmail(ctx, {
       from,
       to: test ? TEST_INBOX : emails,
       subject,
       text: test ? `${text}\n\n(Test mode: for ${emails.join(", ")})` : text,
-      ...(visitor && isEmail(visitor) && { replyTo: [visitor.trim()] }),
+      ...(replyTo && { replyTo: [replyTo] }),
       idempotencyKey: `enquiry:${enquiryId}`,
     })
   },

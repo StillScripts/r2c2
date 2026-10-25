@@ -16,8 +16,6 @@ import { enquiryIntake } from "./validators"
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export const isEmail = (value: string) => EMAIL.test(value.trim())
-
 const rateLimiter = new RateLimiter(components.rateLimiter, {
   enquiry: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 40 },
 })
@@ -48,7 +46,7 @@ function fieldErrors(
     if (maxLength !== undefined && value.length > maxLength) {
       add(name, `Too long (max ${maxLength}).`)
     }
-    if (type === "email" && !isEmail(value)) {
+    if (type === "email" && !EMAIL.test(value.trim())) {
       add(name, "Enter a valid email.")
     }
   }
@@ -75,7 +73,7 @@ export const receive = internalMutation({
     const errors = form
       ? fieldErrors(form.fields, args.data)
       : { form: ["Unknown form."] }
-    if (Object.keys(errors).length)
+    if (!form || Object.keys(errors).length)
       return { ok: false, reason: "invalid", errors }
 
     const now = Date.now()
@@ -103,8 +101,14 @@ export const receive = internalMutation({
       bodyHash: args.bodyHash,
     })
     // Scheduled, so a failure to enqueue the email can never lose the enquiry
+    // The form's first email field, already validated above, becomes the Reply-To
+    const replyTo = form.fields
+      .filter((field) => field.type === "email")
+      .map((field) => args.data[field.name]?.trim())
+      .find(Boolean)
     await ctx.scheduler.runAfter(0, internal.notifications.enquiryEmail, {
       enquiryId,
+      replyTo,
     })
     return { ok: true }
   },

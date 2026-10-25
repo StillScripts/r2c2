@@ -92,7 +92,7 @@ describe("enquiry intake", () => {
     ])
     const [{ _id: enquiryId }] = await stored(t)
     expect(await scheduled(t)).toEqual([
-      ["notifications:enquiryEmail", { enquiryId }],
+      ["notifications:enquiryEmail", { enquiryId, replyTo: "ada@example.com" }],
     ])
   })
 

@@ -71,7 +71,9 @@ Resend component, which handles retries and Resend's rate limits.
   the environment at send time rather than at module load.
 - Without `EMAIL_FROM` the notification logs a warning and sends nothing, like route
   syncs without Cloudflare credentials.
-- `isEmail` is now exported from `enquiries.ts` and shared with intake's field check.
+- Reply-To comes from `receive`, not from a field named `email`. Intake takes the first
+  of the form's `type="email"` fields, which it has already validated, and passes it to
+  the scheduled notification, so forms that call the field `your_email` work too.
 - The tests spy on `Resend.prototype.sendEmail`. They check the idempotency key, not
   the component's dedupe itself, which the component owns.
 
