@@ -72,9 +72,7 @@ Skills here are usually adapted from others and renamed to short verb-first name
 
 ## Convex skills
 
-Convex's agent files are vendor-managed, like `convex/_generated` ([ADR-014](docs/decisions/ADR-014-let-convex-manage-its-agent-files.md)). `npx convex ai-files install` in `packages/backend` writes its guidelines (`convex/_generated/ai/guidelines.md`), its skills (in both `.agents/skills/` and `.claude/skills/`), a `skills-lock.json`, and the Convex sections of `AGENTS.md` and `CLAUDE.md`. Never edit these by hand; refresh them with `npx convex ai-files update` and commit the result. Read `guidelines.md` before changing Convex code.
-
-The `convex@claude-plugins-official` plugin is enabled in `.claude/settings.json`.
+Convex's agent files in `packages/backend` are vendor-managed, like `convex/_generated` ([ADR-014](docs/decisions/ADR-014-let-convex-manage-its-agent-files.md)). Never edit them by hand; refresh them with `npx convex ai-files update` there and commit the result.
 
 # Task Tracking
 
