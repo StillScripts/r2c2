@@ -18,6 +18,9 @@ import {
   type Release,
 } from "@workspace/html"
 import { v } from "convex/values"
+// Imported here so Convex installs tailwindcss as an external package: imports from
+// @workspace/html don't count, and loadTheme reads tailwindcss/index.css at runtime
+import "tailwindcss"
 import { ELEMENTS_JS } from "../elements.gen"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"

@@ -45,7 +45,9 @@ always record (SPEC §6).
 `preview:preview` is a Node action that compiles a draft's Tailwind with the site's theme
 and runs the house rules, exactly as publish will. `convex.json` keeps `tailwindcss`
 external (installed from this package's dependencies) so it can read its own stylesheet
-at runtime.
+at runtime. Convex only installs an external package that a file in this package
+imports, not one imported from `@workspace/html`, so `preview.ts` and `publish.ts`
+import `tailwindcss` themselves.
 
 ## Publish and rollback
 
