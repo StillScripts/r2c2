@@ -77,7 +77,16 @@ the restore mutation the UI needs.
   the same way.
 - The History route is `pages/$pageId_.history.tsx`, so it isn't nested inside the
   editor's route.
-- History lists the newest 100 snapshots, the page size of `draftHistory`.
+- History lists the newest 100 snapshots, the page size of `draftHistory`, without
+  their drafts. The selected snapshot's draft comes from a separate `pages:snapshot`
+  query, so saving doesn't resend every draft to the History page.
+- `draftHistory` returns typed snapshots (`ts`, `reason`, `actor`, `draftHtml`), and
+  `draftAt` finds one snapshot by time, so restoring works for any snapshot, not only
+  the newest 100.
+- `saveDraft` and `restoreDraft` share `writeDraft`, so restores keep the size limit and
+  the title rule.
+- `pages:versions` reads the newest 100 through a `by_page_published` index. The History
+  page works out which version is live from the page, so a save doesn't re-run it.
 - Clicking through the UI needs a Convex deployment, which the agent session can't
   reach, so it's checked by `vp check`, the build and the backend tests only.
 

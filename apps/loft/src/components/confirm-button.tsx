@@ -10,7 +10,7 @@ import {
   AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
-import { useState, type ComponentProps, type ReactNode } from "react"
+import type { ComponentProps, ReactNode } from "react"
 
 type ConfirmButtonProps = Omit<ComponentProps<typeof Button>, "onClick"> & {
   title: string
@@ -27,9 +27,8 @@ export function ConfirmButton({
   onConfirm,
   ...button
 }: ConfirmButtonProps) {
-  const [open, setOpen] = useState(false)
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog>
       <AlertDialogTrigger render={<Button {...button} />} />
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -38,12 +37,7 @@ export function ConfirmButton({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => {
-              setOpen(false)
-              onConfirm()
-            }}
-          >
+          <AlertDialogAction onClick={onConfirm}>
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

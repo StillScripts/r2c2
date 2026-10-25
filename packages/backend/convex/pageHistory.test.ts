@@ -51,7 +51,7 @@ async function site() {
 }
 
 describe("pages.versions", () => {
-  test("lists versions newest first, with their author and the live one", async () => {
+  test("lists versions newest first, with their author", async () => {
     vi.useFakeTimers()
     const { siteId, ann, pageId, markLive } = await site()
     const first = await markLive("h1")
@@ -59,16 +59,8 @@ describe("pages.versions", () => {
     const second = await markLive("h2", "system")
 
     expect(await ann.query(api.pages.versions, { siteId, pageId })).toEqual([
-      expect.objectContaining({
-        _id: second,
-        publishedBy: "System",
-        isLive: true,
-      }),
-      expect.objectContaining({
-        _id: first,
-        publishedBy: "Ann",
-        isLive: false,
-      }),
+      expect.objectContaining({ _id: second, publishedBy: "System" }),
+      expect.objectContaining({ _id: first, publishedBy: "Ann" }),
     ])
   })
 
@@ -82,50 +74,58 @@ describe("pages.versions", () => {
   })
 })
 
-describe("pages.history", () => {
-  test("lists snapshots with their reason, author and draft", async () => {
+describe("pages.history and pages.snapshot", () => {
+  test("list snapshots with their reason and author, and return one's draft", async () => {
     const { siteId, ann, pageId, save } = await site()
     await save("<p>one</p>")
-    expect(await ann.query(api.pages.history, { siteId, pageId })).toEqual([
-      expect.objectContaining({
-        reason: "save",
-        author: "Ann",
-        draftHtml: "<p>one</p>",
-      }),
+    const history = await ann.query(api.pages.history, { siteId, pageId })
+    expect(history).toEqual([
+      expect.objectContaining({ reason: "save", author: "Ann" }),
     ])
+    expect(
+      await ann.query(api.pages.snapshot, {
+        siteId,
+        pageId,
+        ts: history[0]!.ts,
+      })
+    ).toBe("<p>one</p>")
+  })
+
+  test("refuse a snapshot that doesn't exist", async () => {
+    const { siteId, ann, pageId } = await site()
+    await expect(
+      ann.query(api.pages.snapshot, { siteId, pageId, ts: 1 })
+    ).rejects.toEqual(errorCode("not_found"))
   })
 })
 
 describe("pages.restoreDraft", () => {
   test("puts a snapshot back and records the draft it replaced", async () => {
     const { siteId, ann, pageId, save } = await site()
+    const two = "<html><head><title>Two</title></head></html>"
     await save("<p>one</p>")
-    const [snapshot] = await ann.query(api.pages.history, { siteId, pageId })
-    await save("<html><head><title>Two</title></head></html>")
+    const [one] = await ann.query(api.pages.history, { siteId, pageId })
+    await save(two)
 
-    await ann.mutation(api.pages.restoreDraft, {
-      siteId,
-      pageId,
-      ts: snapshot!.ts,
-    })
+    await ann.mutation(api.pages.restoreDraft, { siteId, pageId, ts: one!.ts })
     expect(await ann.query(api.pages.get, { siteId, pageId })).toMatchObject({
       draftHtml: "<p>one</p>",
       title: "Two",
     })
-    const history = await ann.query(api.pages.history, { siteId, pageId })
-    expect(history[0]).toMatchObject({
-      reason: "restore",
-      draftHtml: "<html><head><title>Two</title></head></html>",
-    })
+    const [replaced] = await ann.query(api.pages.history, { siteId, pageId })
+    expect(replaced).toMatchObject({ reason: "restore" })
+    expect(
+      await ann.query(api.pages.snapshot, { siteId, pageId, ts: replaced!.ts })
+    ).toBe(two)
 
     // The restore can itself be undone
     await ann.mutation(api.pages.restoreDraft, {
       siteId,
       pageId,
-      ts: history[0]!.ts,
+      ts: replaced!.ts,
     })
     expect((await ann.query(api.pages.get, { siteId, pageId })).draftHtml).toBe(
-      "<html><head><title>Two</title></head></html>"
+      two
     )
   })
 

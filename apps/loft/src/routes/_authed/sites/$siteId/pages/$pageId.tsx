@@ -37,6 +37,13 @@ function PageEditor() {
   const unsaved = draft !== page.draftHtml
   const failedPublish = publish.data?.ok === false ? publish.data : undefined
   const error = saveDraft.error ?? publish.error
+  const alert = error
+    ? errorMessage(error)
+    : failedPublish && "Fix the errors below to publish."
+  const status = unsaved
+    ? "Unsaved changes"
+    : publish.data?.ok && "Published. It's live within a minute."
+  const issues = failedPublish ?? preview
 
   function save() {
     if (unsaved && !saveDraft.isPending) {
@@ -89,22 +96,12 @@ function PageEditor() {
           </h1>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          {error ? (
+          {alert ? (
             <span role="alert" className="text-destructive">
-              {errorMessage(error)}
+              {alert}
             </span>
-          ) : failedPublish ? (
-            <span role="alert" className="text-destructive">
-              Fix the errors below to publish.
-            </span>
-          ) : unsaved ? (
-            <span className="text-muted-foreground">Unsaved changes</span>
           ) : (
-            publish.data?.ok && (
-              <span className="text-muted-foreground">
-                Published. It's live within a minute.
-              </span>
-            )
+            status && <span className="text-muted-foreground">{status}</span>
           )}
           <Button
             variant="outline"
@@ -142,7 +139,7 @@ function PageEditor() {
             spellCheck={false}
             className="min-h-0 flex-1 resize-none rounded-2xl border bg-transparent p-3 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
           />
-          <Issues {...(failedPublish ?? preview)} />
+          <Issues errors={issues?.errors} warnings={issues?.warnings} />
         </div>
         <PreviewFrame preview={preview} fallback={page.draftHtml} />
       </div>

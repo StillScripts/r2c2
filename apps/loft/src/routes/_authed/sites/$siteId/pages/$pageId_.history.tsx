@@ -1,14 +1,20 @@
 import { useConvexAction, useConvexMutation } from "@convex-dev/react-query"
-import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
+import type { FunctionReturnType } from "convex/server"
 import { useState } from "react"
 import { ConfirmButton } from "@/components/confirm-button"
 import { PreviewFrame, usePreview } from "@/components/page-preview"
 import { errorMessage } from "@/lib/errors"
 import { parsePageParams } from "@/lib/params"
-import { historyQuery, pageQuery, versionsQuery } from "@/lib/queries"
+import {
+  historyQuery,
+  pageQuery,
+  snapshotQuery,
+  versionsQuery,
+} from "@/lib/queries"
 
 export const Route = createFileRoute(
   "/_authed/sites/$siteId/pages/$pageId_/history"
@@ -29,7 +35,9 @@ const when = (time: number) =>
     timeStyle: "short",
   })
 
-const REASONS: Record<string, string> = {
+type Reason = FunctionReturnType<typeof api.pages.history>[number]["reason"]
+
+const REASONS: Record<Reason, string> = {
   save: "Saved",
   publish: "Published",
   restore: "Before a restore",
@@ -57,7 +65,11 @@ function PageHistory() {
           </span>
         </h1>
       </div>
-      <Versions siteId={siteId} pageId={pageId} />
+      <Versions
+        siteId={siteId}
+        pageId={pageId}
+        liveVersionId={page.liveVersionId}
+      />
       <DraftHistory siteId={siteId} pageId={pageId} />
     </main>
   )
@@ -65,7 +77,11 @@ function PageHistory() {
 
 type PageProps = { siteId: Id<"sites">; pageId: Id<"pages"> }
 
-function Versions({ siteId, pageId }: PageProps) {
+function Versions({
+  siteId,
+  pageId,
+  liveVersionId,
+}: PageProps & { liveVersionId?: Id<"pageVersions"> }) {
   const { data: versions } = useSuspenseQuery(versionsQuery(siteId, pageId))
   const rollback = useMutation({
     mutationFn: useConvexAction(api.publish.rollback),
@@ -97,7 +113,7 @@ function Versions({ siteId, pageId }: PageProps) {
                   by {version.publishedBy}
                 </span>
               </span>
-              {version.isLive ? (
+              {version._id === liveVersionId ? (
                 <span className="text-sm text-muted-foreground">Live</span>
               ) : (
                 <ConfirmButton
@@ -126,8 +142,11 @@ function DraftHistory({ siteId, pageId }: PageProps) {
   const navigate = useNavigate()
   const { data: snapshots } = useSuspenseQuery(historyQuery(siteId, pageId))
   const [selected, setSelected] = useState(snapshots[0]?.ts)
-  const snapshot = snapshots.find((s) => s.ts === selected)
-  const preview = usePreview(siteId, snapshot?.draftHtml ?? "")
+  const { data: html = "" } = useQuery({
+    ...snapshotQuery(siteId, pageId, selected ?? 0),
+    enabled: selected !== undefined,
+  })
+  const preview = usePreview(siteId, html)
   const restore = useMutation({
     mutationFn: useConvexMutation(api.pages.restoreDraft),
     onSuccess: () =>
@@ -165,7 +184,7 @@ function DraftHistory({ siteId, pageId }: PageProps) {
                 >
                   {when(s.ts)}
                   <span className="block text-sm text-muted-foreground">
-                    {REASONS[s.reason] ?? s.reason} by {s.author}
+                    {REASONS[s.reason]} by {s.author}
                   </span>
                 </button>
                 {s.ts === selected && (
@@ -187,10 +206,7 @@ function DraftHistory({ siteId, pageId }: PageProps) {
             ))}
           </ul>
           <div className="h-[32rem]">
-            <PreviewFrame
-              preview={preview}
-              fallback={snapshot?.draftHtml ?? ""}
-            />
+            <PreviewFrame preview={preview} fallback={html} />
           </div>
         </div>
       )}

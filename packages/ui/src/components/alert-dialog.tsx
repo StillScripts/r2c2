@@ -89,8 +89,14 @@ function AlertDialogDescription({
   )
 }
 
-function AlertDialogAction(props: React.ComponentProps<typeof Button>) {
-  return <Button data-slot="alert-dialog-action" {...props} />
+function AlertDialogAction(props: AlertDialogPrimitive.Close.Props) {
+  return (
+    <AlertDialogPrimitive.Close
+      data-slot="alert-dialog-action"
+      render={<Button />}
+      {...props}
+    />
+  )
 }
 
 function AlertDialogCancel(props: AlertDialogPrimitive.Close.Props) {

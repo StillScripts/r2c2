@@ -168,12 +168,8 @@ describe("publishing.markLive", () => {
     })
     await t.mutation(internal.publishing.markLive, release())
 
-    const snapshots = await t.run(
-      async (ctx) => (await draftHistory(ctx, pageId)).page
-    )
-    expect(
-      snapshots.map((s) => [s.attribution.reason, s.doc.draftHtml])
-    ).toEqual([
+    const snapshots = await t.run((ctx) => draftHistory(ctx, pageId))
+    expect(snapshots.map((s) => [s.reason, s.draftHtml])).toEqual([
       ["publish", "<p>draft</p>"],
       ["save", "<p>draft</p>"],
     ])
