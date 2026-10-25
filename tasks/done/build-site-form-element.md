@@ -1,6 +1,7 @@
 ---
 title: T18 Build the `<site-form>` element
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/build-site-form-element.md
 ---
 
