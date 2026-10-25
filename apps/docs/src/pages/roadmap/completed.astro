@@ -1,7 +1,7 @@
 ---
 import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro"
 import TaskCard from "../../components/TaskCard.astro"
-import { formatDate, tasksIn, type Task } from "../../tasks"
+import { formatDate, tasksIn } from "../../tasks"
 
 const done = (await tasksIn("done")).sort(
   (a, b) => (b.data.completed?.getTime() ?? 0) - (a.data.completed?.getTime() ?? 0)
@@ -27,7 +27,7 @@ const headings = [...days.keys()].map((day) => ({ depth: 2, slug: day, text: day
     >.
   </p>
   {
-    [...days].map(([day, tasks]: [string, Task[]]) => (
+    [...days].map(([day, tasks]) => (
       <section class="day">
         <h2 id={day}>
           {day} <span class="count">{tasks.length}</span>

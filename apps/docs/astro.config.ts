@@ -1,6 +1,6 @@
 import { defineConfig } from "astro/config"
 import starlight from "@astrojs/starlight"
-import { syncContent } from "./src/sync-content"
+import { githubUrl, syncContent } from "./src/sync-content"
 
 export default defineConfig({
   integrations: [
@@ -12,11 +12,11 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/StillScripts/r2c2",
+          href: githubUrl,
         },
       ],
       editLink: {
-        baseUrl: "https://github.com/StillScripts/r2c2/edit/master/apps/docs/",
+        baseUrl: `${githubUrl}/edit/master/apps/docs/`,
       },
       customCss: ["@fontsource-variable/inter", "./src/styles/custom.css"],
       sidebar: [

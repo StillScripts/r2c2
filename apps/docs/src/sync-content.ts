@@ -5,7 +5,7 @@ import type { AstroIntegration } from "astro"
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url))
 const contentDir = fileURLToPath(new URL("./content/", import.meta.url))
-const githubUrl = "https://github.com/StillScripts/r2c2"
+export const githubUrl = "https://github.com/StillScripts/r2c2"
 
 const sources = ["docs/plans", "docs/decisions", "tasks"]
 
@@ -32,15 +32,17 @@ function rewriteLinks(markdown: string, repoPath: string) {
   )
 }
 
-const quoteValues = (fields: string) =>
-  fields.replace(
-    /^([\w-]+): (.*: .*)$/gm,
-    (_, key: string, value: string) => `${key}: ${JSON.stringify(value)}`
-  )
+const normaliseFields = (fields: string) =>
+  fields
+    .replace(
+      /^([\w-]+): (.*: .*)$/gm,
+      (_, key: string, value: string) => `${key}: ${JSON.stringify(value)}`
+    )
+    .replace(/^plan: (.+)$/m, (_, plan: string) => `plan: ${routeFor(plan)}`)
 
 function withFrontmatter(markdown: string, repoPath: string) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---\n?/)
-  const fields = match ? quoteValues(match[1]) : ""
+  const fields = match ? normaliseFields(match[1]) : ""
   let body = match ? markdown.slice(match[0].length) : markdown
 
   const heading = body.match(/^\s*# (.+)\n/)
@@ -55,26 +57,33 @@ function withFrontmatter(markdown: string, repoPath: string) {
   return `---\n${lines.join("\n")}\n---\n${body}`
 }
 
-async function markdownFiles(dir: string): Promise<string[]> {
+const toPosix = (file: string) => file.split(path.sep).join("/")
+
+const outputOf = (repoPath: string) => path.join(contentDir, repoPath)
+
+async function markdownFiles(source: string) {
+  const dir = path.join(repoRoot, source)
   const entries = await readdir(dir, { withFileTypes: true, recursive: true })
   return entries
     .filter((e) => e.isFile() && e.name.endsWith(".md"))
-    .map((e) => path.relative(dir, path.join(e.parentPath, e.name)))
+    .map((e) =>
+      toPosix(path.relative(repoRoot, path.join(e.parentPath, e.name)))
+    )
+}
+
+async function copyFile(repoPath: string) {
+  const markdown = await readFile(path.join(repoRoot, repoPath), "utf8")
+  const out = outputOf(repoPath)
+  await mkdir(path.dirname(out), { recursive: true })
+  await writeFile(
+    out,
+    withFrontmatter(rewriteLinks(markdown, repoPath), repoPath)
+  )
 }
 
 async function syncSource(source: string) {
-  const target = path.join(contentDir, source)
-  await rm(target, { recursive: true, force: true })
-  for (const file of await markdownFiles(path.join(repoRoot, source))) {
-    const repoPath = path.posix.join(source, file.split(path.sep).join("/"))
-    const markdown = await readFile(path.join(repoRoot, repoPath), "utf8")
-    const out = path.join(target, file)
-    await mkdir(path.dirname(out), { recursive: true })
-    await writeFile(
-      out,
-      withFrontmatter(rewriteLinks(markdown, repoPath), repoPath)
-    )
-  }
+  await rm(outputOf(source), { recursive: true, force: true })
+  await Promise.all((await markdownFiles(source)).map(copyFile))
 }
 
 export function syncContent(): AstroIntegration {
@@ -87,11 +96,13 @@ export function syncContent(): AstroIntegration {
       },
       "astro:server:setup": ({ server }) => {
         server.watcher.add(sources.map((s) => path.join(repoRoot, s)))
-        server.watcher.on("all", (_, file) => {
-          const source = sources.find((s) =>
-            file.startsWith(path.join(repoRoot, s) + path.sep)
-          )
-          if (source) void syncSource(source)
+        server.watcher.on("all", (event, file) => {
+          const repoPath = toPosix(path.relative(repoRoot, file))
+          const watched = sources.some((s) => repoPath.startsWith(`${s}/`))
+          if (!watched || !repoPath.endsWith(".md")) return
+          void (event === "unlink"
+            ? rm(outputOf(repoPath), { force: true })
+            : copyFile(repoPath))
         })
       },
     },

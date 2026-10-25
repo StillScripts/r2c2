@@ -12,9 +12,6 @@ export const statusOf = (task: Task) => task.id.split("/")[0]
 
 export const slugOf = (task: Task) => task.id.split("/").at(-1)
 
-export const planRoute = (plan: string) =>
-  `/plans/${plan.replace(/^docs\/plans\/|\.md$/g, "")}/`
-
 export const formatDate = (date: Date) => date.toISOString().slice(0, 10)
 
 export async function tasksIn(status: string) {
