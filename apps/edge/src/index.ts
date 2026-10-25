@@ -6,7 +6,6 @@ import {
   type RouteEntry,
   routeEntrySchema,
   routeKey,
-  stripTrackingParams,
 } from "@workspace/core"
 import { builtInPage, notFound, withoutBody } from "./responses"
 
@@ -29,18 +28,14 @@ async function route(
   env: Cloudflare.Env,
   ctx: ExecutionContext
 ) {
-  const original = new URL(request.url)
-  const url = stripTrackingParams(original)
-  const path = normalisePath(url.pathname)
-  if (!path) return notFound()
-
+  const url = new URL(request.url)
   const entry = await lookup(env.ROUTES, normaliseHost(url))
   if (!entry) return notFound()
   if ("redirect" in entry) {
     return new Response(null, {
       status: 301,
       headers: {
-        location: redirectLocation(entry.redirect, original),
+        location: redirectLocation(entry.redirect, url),
         "cache-control": "public, max-age=3600",
       },
     })
@@ -51,7 +46,11 @@ async function route(
     })
   }
 
+  const path = normalisePath(url.pathname)
+  if (!path) return notFound()
+
   url.pathname = path
+  url.search = ""
   return ctx.exports
     .Renderer({ props: { siteId: entry.site } })
     .fetch(new Request(url, request))

@@ -51,17 +51,6 @@ describe("renderer pages", () => {
     expect(response.headers.get("cache-tag")).toBe(`site-${siteId}`)
     expect(response.headers.get("etag")).toBe(`"${object!.etag}"`)
   })
-
-  it("answers a matching if-none-match with 304", async () => {
-    const siteId = site()
-    await putPage(siteId)
-    const response = await request(siteId, "/", {
-      headers: { "if-none-match": '"v1"' },
-    })
-
-    expect(response.status).toBe(304)
-    expect(response.headers.get("etag")).toBe('"v1"')
-  })
 })
 
 describe("renderer not found", () => {

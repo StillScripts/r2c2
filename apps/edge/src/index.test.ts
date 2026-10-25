@@ -68,6 +68,12 @@ describe("gateway", () => {
     expect(response.headers.get("cache-control")).toBe("public, max-age=3600")
   })
 
+  it("redirects paths the renderer would reject", async () => {
+    await route("www.bad.test", { redirect: "https://bad.test" })
+    const response = await get("https://www.bad.test/a/../b")
+    expect(response.status).toBe(301)
+  })
+
   it("shows the holding page for a coming-soon site", async () => {
     await route("soon.test", { site: "site_s", status: "coming-soon" })
     await env.SITES.put(liveKey("site_s", "/"), "<p>Unreleased</p>")

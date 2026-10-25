@@ -22,7 +22,8 @@ const HASHED_NAME = new RegExp(`^([0-9a-f]{${HASH_LENGTH}})\\.([a-z0-9]+)$`)
 /** Split a `<hash>.<ext>` file name, or return null if it isn't one we serve. */
 export function parseAssetName(name: string) {
   const [, hash, ext] = name.match(HASHED_NAME) ?? []
-  const contentType = ext && ASSET_CONTENT_TYPES[ext]
+  const contentType =
+    ext && Object.hasOwn(ASSET_CONTENT_TYPES, ext) && ASSET_CONTENT_TYPES[ext]
   return hash && ext && contentType ? { hash, ext, contentType } : null
 }
 

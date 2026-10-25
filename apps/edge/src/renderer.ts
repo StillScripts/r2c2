@@ -13,7 +13,7 @@ import {
   parseAssetName,
   siteTag,
 } from "@workspace/core"
-import { builtInPage, notFound, withoutBody } from "./responses"
+import { builtInPage, notFound } from "./responses"
 
 type RendererProps = { siteId: string }
 
@@ -41,7 +41,7 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
           : null
       )
     }
-    return this.#page(pathname, request.headers.get("if-none-match"))
+    return this.#page(pathname)
   }
 
   async #asset(asset: { key: string; contentType: string } | null) {
@@ -52,7 +52,7 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
     })
   }
 
-  async #page(path: string, ifNoneMatch: string | null) {
+  async #page(path: string) {
     const siteId = this.#siteId
     const object = await this.env.SITES.get(liveKey(siteId, path))
     if (!object) return this.#notFound()
@@ -61,9 +61,6 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
       object.customMetadata ?? {}
     const headers = pageHeaders({ siteId, pageId: pageId ?? "", hash })
     if (!pageId) headers["cache-tag"] = siteTag(siteId)
-    if (ifNoneMatch === headers.etag) {
-      return withoutBody(object, { status: 304, headers })
-    }
     return new Response(object.body, { headers })
   }
 
