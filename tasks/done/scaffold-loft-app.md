@@ -1,6 +1,7 @@
 ---
 title: T14 Connect the Loft to Convex and sign-in
 created: 2026-10-24
+completed: 2026-10-25
 plan: docs/plans/scaffold-loft-app.md
 ---
 
