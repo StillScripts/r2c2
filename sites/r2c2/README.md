@@ -9,7 +9,7 @@ The page uses system fonts and no images until sites can upload media. The conta
 
 ## Loading it into the Loft
 
-With the Convex dev deployment running and seeded, load the theme and every `*.html` page as drafts (`index.html` is `/`, `about.html` would be `/about`):
+With the Convex dev deployment running and seeded, load the theme and every `*.html` page as drafts (`index.html` is `/`, `about.html` would be `/about`). Each import shows up in the page's history as "Imported":
 
 ```bash
 vp run --filter @workspace/backend seed

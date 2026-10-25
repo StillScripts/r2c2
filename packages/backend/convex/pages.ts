@@ -6,7 +6,7 @@ import {
 } from "@workspace/core"
 import { v } from "convex/values"
 import { audit, ownDoc, siteMutation, siteQuery } from "./access"
-import type { Doc } from "./_generated/dataModel"
+import type { Doc, Id } from "./_generated/dataModel"
 import type { MutationCtx, QueryCtx } from "./_generated/server"
 import { authComponent } from "./auth"
 import { fail } from "./errors"
@@ -49,17 +49,25 @@ export const list = siteQuery({
   },
 })
 
+/** The site's page at `rawPath` once it's normalised, or null if there's none yet. */
+export async function pageAt(
+  ctx: QueryCtx,
+  siteId: Id<"sites">,
+  rawPath: string
+) {
+  const path = parsePagePath(rawPath)
+  if (!path) throw fail("invalid_path")
+  const page = await ctx.db
+    .query("pages")
+    .withIndex("by_site_path", (q) => q.eq("siteId", siteId).eq("path", path))
+    .unique()
+  return { path, page }
+}
+
 export const create = siteMutation({
   args: { path: v.string(), title: v.string() },
   handler: async (ctx, args) => {
-    const path = parsePagePath(args.path)
-    if (!path) throw fail("invalid_path")
-    const taken = await ctx.db
-      .query("pages")
-      .withIndex("by_site_path", (q) =>
-        q.eq("siteId", ctx.site._id).eq("path", path)
-      )
-      .unique()
+    const { path, page: taken } = await pageAt(ctx, ctx.site._id, args.path)
     if (taken) throw fail("path_taken")
 
     const title = args.title.trim() || path

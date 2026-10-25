@@ -1,37 +1,34 @@
 import { readdir, readFile } from "node:fs/promises"
 import { describe, expect, it } from "vite-plus/test"
 import { checkPage } from "./check"
-import { buildRelease } from "./release"
 import { loadTheme } from "./theme"
 
 const SITES = new URL("../../../sites/", import.meta.url)
 
-const sites = (await readdir(SITES, { withFileTypes: true }))
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-
 const read = (site: string, file: string) =>
   readFile(new URL(`${site}/${file}`, SITES), "utf8")
 
-describe.each(sites)("sites/%s", async (site) => {
-  const theme = await loadTheme(await read(site, "theme.css"))
-  const html = await read(site, "index.html")
+const sites = await Promise.all(
+  (await readdir(SITES, { withFileTypes: true }))
+    .filter((entry) => entry.isDirectory())
+    .map(async ({ name }) => ({
+      name,
+      theme: await loadTheme(await read(name, "theme.css")),
+      pages: (await readdir(new URL(`${name}/`, SITES))).filter((file) =>
+        file.endsWith(".html")
+      ),
+    }))
+)
 
-  it("passes the house rules without warnings", async () => {
-    const { errors, warnings } = await checkPage(html, theme)
+describe.each(sites)("sites/$name", ({ name, theme, pages }) => {
+  it.each(pages)("%s passes the house rules without warnings", async (file) => {
+    const { errors, warnings } = await checkPage(await read(name, file), theme)
     expect({ errors, warnings }).toEqual({ errors: [], warnings: [] })
   })
+})
 
-  it("publishes with a contact form", async () => {
-    const release = await buildRelease(html, {
-      theme,
-      canonicalUrl: "https://r2c2.example/",
-      sitekey: "1x00000000000000000000AA",
-      elementsUrl: "/_elements/site.js",
-      cssUrl: (hash) => `/assets/${hash}.css`,
-    })
-    expect(release.ok && release.forms.map((form) => form.name)).toEqual([
-      "contact",
-    ])
-  })
+it("the r2c2 home page takes enquiries through its contact form", async () => {
+  const theme = sites.find((site) => site.name === "r2c2")!.theme
+  const { forms } = await checkPage(await read("r2c2", "index.html"), theme)
+  expect(forms.map((form) => form.name)).toEqual(["contact"])
 })

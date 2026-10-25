@@ -14,7 +14,7 @@ Rebuild the homepage design (a Claude design export, kept out of the repo) as th
   - Theme: the design's colours, radii, type scale and page width as `@theme` tokens. Base styles for the body and links. Component classes (`section`, `btn` and its variants, `card`, `prose`, plus a few small ones the design repeats, such as eyebrow labels and chips).
   - Homepage: every section of the design, in the same order and copy, using only theme tokens and component classes. A new contact section goes before the footer, with name, email and message, and a "Contact" nav link.
   - Allowlist: add `code`, `pre`, `sub` and `sup` to the allowed tags. The design uses them, and they're harmless.
-  - Import: a `seed:importSite` internal mutation that sets the site's theme and creates or updates each page's draft, recorded in history as a save by `system`. A `vp run --filter @workspace/backend site:import` script reads `sites/r2c2/` and calls it with `convex run`.
+  - Import: a `seed:importSite` internal mutation that sets the site's theme and creates or updates each page's draft, recorded in history as an import (a new `import` draft reason, always snapshotted). A `vp run --filter @workspace/backend site:import` script reads `sites/r2c2/` and calls it with `convex run`, once for the theme and once per page to stay under the command-line argument limit.
 - Out:
   - Self-hosted fonts and images. The theme uses system font stacks, and the page has no images until media uploads exist.
   - Publishing to production (T23) and the docs site.

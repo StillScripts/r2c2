@@ -44,16 +44,23 @@
   --text-card: 1.1875rem;
   --text-mark: 1.75rem;
   --text-tile: 3.5rem;
+  --text-tile--line-height: 1;
+
+  --text-display: clamp(2.75rem, 6.4vw, 5.25rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.035em;
+  --text-title: clamp(2.125rem, 4vw, 3.25rem);
+  --text-title--line-height: 1.02;
+  --text-title--letter-spacing: -0.03em;
+  --text-heading: clamp(1.75rem, 3vw, 2.375rem);
+  --text-heading--line-height: 1.1;
+  --text-heading--letter-spacing: -0.025em;
 
   --container-page: 78rem;
 }
 
 @layer base {
-  html {
-    background: var(--color-paper);
-  }
   body {
-    margin: 0;
     background: var(--color-paper);
     color: var(--color-ink);
     font-family: var(--font-sans);
@@ -80,7 +87,6 @@
     white-space: nowrap;
   }
   pre {
-    margin: 0;
     font-family: var(--font-mono);
   }
 }
@@ -91,44 +97,20 @@
   padding-inline: 1.5rem;
 }
 
-@utility prose {
-  max-width: 34em;
+@utility headline {
+  font-weight: 800;
+  font-stretch: 112%;
+  text-wrap: balance;
 }
 
-@utility wordmark {
+@utility mark {
   font-weight: 800;
   font-stretch: 125%;
-  letter-spacing: -0.02em;
-}
-
-@utility display {
-  margin: 0;
-  font-weight: 800;
-  font-stretch: 112%;
-  font-size: clamp(2.75rem, 6.4vw, 5.25rem);
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-  text-wrap: balance;
-}
-
-@utility title {
-  margin: 0;
-  font-weight: 800;
-  font-stretch: 112%;
-  font-size: clamp(2.125rem, 4vw, 3.25rem);
-  line-height: 1.02;
   letter-spacing: -0.03em;
-  text-wrap: balance;
 }
 
-@utility heading {
-  margin: 0;
-  font-weight: 800;
-  font-stretch: 112%;
-  font-size: clamp(1.75rem, 3vw, 2.375rem);
-  line-height: 1.1;
-  letter-spacing: -0.025em;
-  text-wrap: balance;
+@utility prose {
+  max-width: 34em;
 }
 
 @utility eyebrow {
@@ -160,7 +142,6 @@
   gap: 0.625rem;
   min-height: 3.25rem;
   padding: 0.9375rem 1.375rem;
-  box-sizing: border-box;
   border: 1.5px solid var(--color-ink);
   border-radius: var(--radius-md);
   color: var(--color-ink);
@@ -168,7 +149,6 @@
   font-size: 1rem;
   text-decoration: none;
   &:hover {
-    color: var(--color-ink);
     background: var(--color-white);
   }
 }
@@ -178,7 +158,6 @@
   background: var(--color-brand);
   color: var(--color-white);
   &:hover {
-    color: var(--color-white);
     background: var(--color-brand-deep);
     border-color: var(--color-brand-deep);
   }
@@ -189,7 +168,6 @@
   background: var(--color-white);
   color: var(--color-ink);
   &:hover {
-    color: var(--color-ink);
     background: var(--color-brand-soft);
   }
 }
@@ -198,7 +176,6 @@
   border-color: var(--color-white);
   color: var(--color-white);
   &:hover {
-    color: var(--color-white);
     background: var(--color-brand-deep);
   }
 }
@@ -231,7 +208,6 @@
 
 @utility field {
   width: 100%;
-  box-sizing: border-box;
   min-height: 3rem;
   padding: 0.75rem 0.875rem;
   font: inherit;
@@ -262,23 +238,9 @@
 }
 
 @utility part {
-  display: flex;
-  flex-direction: column;
   gap: 0.375rem;
   min-height: 10.5rem;
   padding: 1rem;
-  box-sizing: border-box;
-  background: var(--color-white);
-  border: 1.5px solid var(--color-ink);
-  border-radius: var(--radius-sm);
-}
-
-@utility part-mark {
-  font-weight: 800;
-  font-stretch: 125%;
-  font-size: var(--text-tile);
-  line-height: 1;
-  letter-spacing: -0.03em;
 }
 
 @utility part-text {
@@ -304,12 +266,6 @@
   flex-direction: column;
   gap: 0.75rem;
   padding: 1.75rem 1.75rem 0.5rem 0;
-}
-
-@utility step-number {
-  font-family: var(--font-mono);
-  font-size: 0.875rem;
-  color: var(--color-brand);
 }
 
 @utility card-title {
@@ -430,15 +386,6 @@
   gap: 0.375rem;
   padding-left: 1.125rem;
   border-left: 2px solid var(--color-ink);
-}
-
-@utility stat-value {
-  font-weight: 800;
-  font-stretch: 125%;
-  font-size: 3rem;
-  line-height: 1;
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
 }
 
 @utility cta {

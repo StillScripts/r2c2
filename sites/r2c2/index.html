@@ -16,7 +16,7 @@
         aria-label="Main"
       >
         <a href="#top" class="flex items-baseline gap-2.5 no-underline">
-          <span class="wordmark text-2xl">R<sub>2</sub>C<sub>2</sub></span>
+          <span class="mark text-2xl">R<sub>2</sub>C<sub>2</sub></span>
           <span class="note">open-source web architecture</span>
         </a>
         <div class="flex flex-wrap items-center gap-2">
@@ -46,7 +46,9 @@
       >
         <div class="flex min-w-0 grow-999 basis-130 flex-col gap-7">
           <p class="eyebrow">React + R2 · Convex + Cloudflare</p>
-          <h1 class="display">Websites that are just HTML again.</h1>
+          <h1 class="headline text-display">
+            Websites that are just HTML again.
+          </h1>
           <p class="prose text-lead text-xl leading-normal">
             R2C2 runs hundreds of websites from one Cloudflare Worker. Pages are
             written in the R2C2 Loft, frozen to plain HTML in R2, and served
@@ -71,40 +73,40 @@
         >
           <div class="flex flex-col gap-3">
             <div class="part-label">
-              <span class="wordmark text-mark">R<sub>2</sub></span>
+              <span class="mark text-mark">R<sub>2</sub></span>
               <span class="note">React + R2</span>
             </div>
-            <div class="part">
+            <div class="tile part">
               <span class="note">Loft</span>
-              <span class="part-mark">Re</span>
+              <span class="mark text-tile">Re</span>
               <strong>React</strong>
               <span class="part-text"
                 >Where sites are written and published</span
               >
             </div>
-            <div class="part">
+            <div class="tile part">
               <span class="note">Storage</span>
-              <span class="part-mark text-brand">R2</span>
+              <span class="mark text-tile text-brand">R2</span>
               <strong>R2</strong>
               <span class="part-text">Where every published page lives</span>
             </div>
           </div>
           <div class="flex flex-col gap-3 pt-10">
             <div class="part-label">
-              <span class="wordmark text-mark">C<sub>2</sub></span>
+              <span class="mark text-mark">C<sub>2</sub></span>
               <span class="note">Convex + Cloudflare</span>
             </div>
-            <div class="part">
+            <div class="tile part">
               <span class="note">Database</span>
-              <span class="part-mark">Cx</span>
+              <span class="mark text-tile">Cx</span>
               <strong>Convex</strong>
               <span class="part-text"
                 >Sites, drafts, versions and publishing</span
               >
             </div>
-            <div class="part bg-ink text-paper">
+            <div class="tile part bg-ink text-paper">
               <span class="note text-night-muted">Edge</span>
-              <span class="part-mark">Cf</span>
+              <span class="mark text-tile">Cf</span>
               <strong>Cloudflare</strong>
               <span class="part-text text-night-muted"
                 >Domains, certificates, cache and serving</span
@@ -118,7 +120,7 @@
         <div class="section flex flex-wrap items-center gap-14 py-22">
           <div class="flex min-w-0 grow basis-95 flex-col gap-5">
             <p class="eyebrow text-brand-glow">Customer number one</p>
-            <h2 id="proof-heading" class="title">
+            <h2 id="proof-heading" class="headline text-title">
               You're reading an R2C2 site right now.
             </h2>
             <p class="prose text-night-soft text-lg">
@@ -154,13 +156,13 @@ etag: "3f9a1c"</pre>
       >
         <div class="flex max-w-3xl flex-col gap-3.5">
           <p class="eyebrow">How it works</p>
-          <h2 id="how-heading" class="title">
+          <h2 id="how-heading" class="headline text-title">
             Write it once. Freeze it. Serve it everywhere.
           </h2>
         </div>
         <ol class="border-ink grid border-t-2 md:grid-cols-3">
           <li class="step">
-            <span class="step-number">01 · Write</span>
+            <span class="text-brand font-mono text-sm">01 · Write</span>
             <h3 class="text-2xl font-bold tracking-tight">
               Edit the real page
             </h3>
@@ -171,7 +173,7 @@ etag: "3f9a1c"</pre>
             </p>
           </li>
           <li class="step">
-            <span class="step-number">02 · Publish</span>
+            <span class="text-brand font-mono text-sm">02 · Publish</span>
             <h3 class="text-2xl font-bold tracking-tight">Freeze a version</h3>
             <p class="text-slate">
               Publishing cleans the HTML, compiles its Tailwind in about 20 ms
@@ -180,7 +182,7 @@ etag: "3f9a1c"</pre>
             </p>
           </li>
           <li class="step">
-            <span class="step-number">03 · Serve</span>
+            <span class="text-brand font-mono text-sm">03 · Serve</span>
             <h3 class="text-2xl font-bold tracking-tight">
               Answer from the edge
             </h3>
@@ -193,7 +195,9 @@ etag: "3f9a1c"</pre>
       </section>
 
       <section class="section pb-26" aria-labelledby="ideas-heading">
-        <h2 id="ideas-heading" class="heading mb-8">The ideas it's built on</h2>
+        <h2 id="ideas-heading" class="headline text-heading mb-8">
+          The ideas it's built on
+        </h2>
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div class="card">
             <h3 class="card-title">Generate when editing, not when visiting</h3>
@@ -238,7 +242,7 @@ etag: "3f9a1c"</pre>
           >
             <div class="flex min-w-0 grow basis-130 flex-col gap-3.5">
               <p class="eyebrow">The Loft</p>
-              <h2 id="loft-heading" class="title">
+              <h2 id="loft-heading" class="headline text-title">
                 A quiet place to get things done.
               </h2>
             </div>
@@ -382,7 +386,7 @@ etag: "3f9a1c"</pre>
                 >planned</span
               >
             </div>
-            <h2 id="mcp-heading" class="title">
+            <h2 id="mcp-heading" class="headline text-title">
               Run your website from the AI you already use.
             </h2>
             <p class="text-night-soft max-w-xl text-lg">
@@ -462,7 +466,7 @@ etag: "3f9a1c"</pre>
       >
         <div class="flex max-w-3xl flex-col gap-3.5">
           <p class="eyebrow">Forms, bookings and payments</p>
-          <h2 id="forms-heading" class="title">
+          <h2 id="forms-heading" class="headline text-title">
             Static pages that still take enquiries, bookings and payments.
           </h2>
           <p class="text-slate text-lg">
@@ -545,30 +549,30 @@ etag: "3f9a1c"</pre>
         aria-labelledby="cost-heading"
       >
         <div class="section flex flex-col gap-10 py-20">
-          <h2 id="cost-heading" class="heading max-w-2xl">
+          <h2 id="cost-heading" class="headline text-heading max-w-2xl">
             Cheap enough that a free website is a realistic offer.
           </h2>
           <dl class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <div class="stat">
-              <dt class="stat-value">≈ $5</dt>
+              <dt class="mark text-5xl tabular-nums">≈ $5</dt>
               <dd class="card-text">
                 a month to serve 100 sites with 2 million page views
               </dd>
             </div>
             <div class="stat">
-              <dt class="stat-value">1 · 1 · 1</dt>
+              <dt class="mark text-5xl tabular-nums">1 · 1 · 1</dt>
               <dd class="card-text">
                 Worker, bucket and routing table for every site
               </dd>
             </div>
             <div class="stat">
-              <dt class="stat-value">~20 ms</dt>
+              <dt class="mark text-5xl tabular-nums">~20 ms</dt>
               <dd class="card-text">
                 to compile a page's Tailwind when it's published
               </dd>
             </div>
             <div class="stat">
-              <dt class="stat-value">0</dt>
+              <dt class="mark text-5xl tabular-nums">0</dt>
               <dd class="card-text">
                 servers, load balancers or certificates to manage
               </dd>
@@ -589,7 +593,7 @@ etag: "3f9a1c"</pre>
       >
         <div class="flex max-w-3xl flex-col gap-3.5">
           <p class="eyebrow">Architecture</p>
-          <h2 id="arch-heading" class="title">
+          <h2 id="arch-heading" class="headline text-title">
             The whole request path fits on one line.
           </h2>
         </div>
@@ -637,7 +641,7 @@ etag: "3f9a1c"</pre>
       <section class="section pb-26" aria-labelledby="cta-heading">
         <div class="cta">
           <div class="flex min-w-0 grow basis-105 flex-col gap-4">
-            <h2 id="cta-heading" class="title">
+            <h2 id="cta-heading" class="headline text-title">
               Read the code. Fork it. Run your own sites.
             </h2>
             <p class="prose text-lg">
@@ -666,7 +670,7 @@ etag: "3f9a1c"</pre>
         <div class="section flex flex-wrap gap-14 py-26">
           <div class="flex min-w-0 grow basis-95 flex-col gap-3.5">
             <p class="eyebrow">Contact</p>
-            <h2 id="contact-heading" class="title">Say hello.</h2>
+            <h2 id="contact-heading" class="headline text-title">Say hello.</h2>
             <p class="prose text-slate text-lg">
               Questions about R2C2, or thinking of running your own sites on it?
               Send a message. This form is a <code>&lt;site-form&gt;</code>, so

@@ -58,7 +58,7 @@ test("importSite loads the theme and drafts into the seed site", async () => {
       ),
     }
   })
-  const history = [{ reason: "save", actor: "system" }]
+  const history = [{ reason: "import", actor: "system" }]
   expect(imported).toEqual({
     theme: "@theme { --color-ink: #000; }",
     pages: [
