@@ -3,32 +3,20 @@ import {
   normaliseHost,
   normalisePath,
   redirectLocation,
-  type RouteEntry,
-  routeEntrySchema,
-  routeKey,
+  FORMS_PREFIX,
 } from "@workspace/core"
+import { handleForm } from "./forms"
+import { lookup } from "./lookup"
 import { builtInPage, notFound, withoutBody } from "./responses"
 
 export { Renderer } from "./renderer"
 
-async function lookup(
-  routes: KVNamespace,
-  host: string
-): Promise<RouteEntry | null> {
-  const value = await routes.get(routeKey(host), "json")
-  if (value === null) return null
-  const parsed = routeEntrySchema.safeParse(value)
-  if (parsed.success) return parsed.data
-  console.error(`Malformed route entry for ${host}`)
-  return null
-}
-
 async function route(
   request: Request,
+  url: URL,
   env: Cloudflare.Env,
   ctx: ExecutionContext
 ) {
-  const url = new URL(request.url)
   const entry = await lookup(env.ROUTES, normaliseHost(url))
   if (!entry) return notFound()
   if ("redirect" in entry) {
@@ -58,13 +46,17 @@ async function route(
 
 export default {
   async fetch(request, env, ctx) {
+    const url = new URL(request.url)
+    if (url.pathname.startsWith(FORMS_PREFIX)) {
+      return handleForm(request, env, url)
+    }
     if (request.method !== "GET" && request.method !== "HEAD") {
       return new Response(null, {
         status: 405,
         headers: { allow: "GET, HEAD" },
       })
     }
-    const response = await route(request, env, ctx)
+    const response = await route(request, url, env, ctx)
     return request.method === "HEAD"
       ? withoutBody(response, response)
       : response
