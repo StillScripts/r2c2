@@ -13,39 +13,16 @@ import {
   parseAssetName,
   siteTag,
 } from "@workspace/core"
-
-const FALLBACK_404 =
-  '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Page not found</title></head><body><h1>Page not found</h1></body></html>'
+import { builtInPage, notFound, withoutBody } from "./responses"
 
 type RendererProps = { siteId: string }
-
-const withoutBody = async (
-  source: { body: ReadableStream | null },
-  init: ResponseInit
-) => {
-  await source.body?.cancel()
-  return new Response(null, init)
-}
 
 export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
   get #siteId() {
     return this.ctx.props.siteId
   }
 
-  async fetch(request: Request) {
-    if (request.method !== "GET" && request.method !== "HEAD") {
-      return new Response(null, {
-        status: 405,
-        headers: { allow: "GET, HEAD" },
-      })
-    }
-    const response = await this.#route(request)
-    return request.method === "HEAD"
-      ? withoutBody(response, response)
-      : response
-  }
-
-  #route(request: Request) {
+  fetch(request: Request) {
     const { pathname } = new URL(request.url)
     if (pathname.startsWith(ASSETS_PREFIX)) {
       const asset = parseAssetName(pathname.slice(ASSETS_PREFIX.length))
@@ -69,7 +46,7 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
 
   async #asset(asset: { key: string; contentType: string } | null) {
     const object = asset && (await this.env.SITES.get(asset.key))
-    if (!asset || !object) return new Response("Not found", { status: 404 })
+    if (!asset || !object) return notFound()
     return new Response(object.body, {
       headers: assetHeaders(asset.contentType),
     })
@@ -92,7 +69,7 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
 
   async #notFound() {
     const object = await this.env.SITES.get(notFoundKey(this.#siteId))
-    return new Response(object?.body ?? FALLBACK_404, {
+    return new Response(object?.body ?? builtInPage("Page not found"), {
       status: 404,
       headers: notFoundHeaders(this.#siteId),
     })

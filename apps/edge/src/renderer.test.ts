@@ -17,13 +17,15 @@ const metadata: LivePageMetadata = { pageId: "p_home", hash: "v1" }
 
 let sites = 0
 /** A fresh site per test, so neither R2 nor Workers Cache leaks between tests. */
-const site = () => `site-${++sites}.test`
+const site = () => `site_${++sites}`
 
 const putPage = (siteId: string, path = "/") =>
   env.SITES.put(liveKey(siteId, path), page, { customMetadata: metadata })
 
 const request = (siteId: string, path: string, init?: RequestInit) =>
-  exports.default.fetch(`https://${siteId}${path}`, init)
+  exports
+    .Renderer({ props: { siteId } })
+    .fetch(`https://site.test${path}`, init)
 
 const headersOf = (response: Response) =>
   Object.fromEntries(response.headers.entries())
@@ -32,7 +34,7 @@ describe("renderer pages", () => {
   it("serves a live page with the page headers", async () => {
     const siteId = site()
     await putPage(siteId, "/about")
-    const response = await request(siteId, "/about/")
+    const response = await request(siteId, "/about")
 
     expect(response.status).toBe(200)
     expect(await response.text()).toBe(page)
@@ -59,20 +61,6 @@ describe("renderer pages", () => {
 
     expect(response.status).toBe(304)
     expect(response.headers.get("etag")).toBe('"v1"')
-  })
-
-  it("serves HEAD without a body and refuses other methods", async () => {
-    const siteId = site()
-    await putPage(siteId)
-
-    const head = await request(siteId, "/", { method: "HEAD" })
-    expect(head.status).toBe(200)
-    expect(head.headers.get("etag")).toBe('"v1"')
-    expect(await head.text()).toBe("")
-
-    const post = await request(siteId, "/", { method: "POST" })
-    expect(post.status).toBe(405)
-    expect(post.headers.get("allow")).toBe("GET, HEAD")
   })
 })
 

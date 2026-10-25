@@ -3,6 +3,7 @@ import {
   API_HEADERS,
   ASSET_HEADERS,
   assetHeaders,
+  comingSoonHeaders,
   CSP,
   notFoundHeaders,
   pageHeaders,
@@ -50,6 +51,15 @@ describe("response headers", () => {
       ...ASSET_HEADERS,
       "content-type": "image/webp",
       "x-content-type-options": "nosniff",
+    })
+  })
+
+  it("hides coming-soon pages from search engines", () => {
+    expect(comingSoonHeaders("s_r2c2")).toMatchObject({
+      "cache-control": "public, max-age=0, s-maxage=60",
+      "cache-tag": "site-s_r2c2",
+      "content-security-policy": CSP,
+      "x-robots-tag": "noindex",
     })
   })
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vite-plus/test"
-import { routeEntries, routeEntrySchema } from "./routing"
+import { redirectLocation, routeEntries, routeEntrySchema } from "./routing"
 
 describe("routeEntrySchema", () => {
   it.each([
@@ -14,6 +14,7 @@ describe("routeEntrySchema", () => {
     { site: "s_r2c2", status: "draft" },
     { site: "", status: "live" },
     { redirect: "not a url" },
+    { redirect: "https://r2c2.dev/about" },
     {},
   ])("rejects %j", (entry) => {
     expect(routeEntrySchema.safeParse(entry).success).toBe(false)
@@ -58,5 +59,24 @@ describe("routeEntries", () => {
       ["r2c2.dev", null],
       ["www.r2c2.dev", null],
     ])
+  })
+})
+
+describe("redirectLocation", () => {
+  it("keeps the path and query on the target origin", () => {
+    expect(
+      redirectLocation(
+        "https://a.test",
+        new URL("https://www.a.test/About?x=1")
+      )
+    ).toBe("https://a.test/About?x=1")
+  })
+
+  it("never leaves the target origin for a protocol-relative path", () => {
+    const location = redirectLocation(
+      "https://a.test",
+      new URL("https://www.a.test//evil.test/x")
+    )
+    expect(new URL(location).host).toBe("a.test")
   })
 })
