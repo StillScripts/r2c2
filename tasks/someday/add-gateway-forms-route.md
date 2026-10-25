@@ -7,6 +7,7 @@ Take form posts at the edge and forward them to Convex.
 
 - `POST /_api/forms/:form`: size limit, rate limit, Turnstile, site from hostname, zod validation, sign, forward to Convex
 - HTML form posts get a 303 back to the page with `?sent=<form>`
+- Form-encoded posts without a Turnstile token are accepted only when the `website` honeypot is empty, at a lower rate limit, with `_source` optional ([T18 plan](../../docs/plans/build-site-form-element.md))
 
 Done when an end-to-end test submits the form on a local site and the enquiry lands in the Loft inbox.
 
