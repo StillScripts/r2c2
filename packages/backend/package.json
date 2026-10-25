@@ -19,6 +19,7 @@
     "@convex-dev/better-auth": "catalog:",
     "@convex-dev/r2": "catalog:",
     "@convex-dev/rate-limiter": "catalog:",
+    "@convex-dev/resend": "catalog:",
     "@convex-dev/table-history": "catalog:",
     "better-auth": "catalog:",
     "convex": "catalog:",

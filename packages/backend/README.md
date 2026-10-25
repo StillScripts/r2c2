@@ -71,6 +71,21 @@ regenerate and commit it:
 vp run --filter @workspace/backend elements
 ```
 
+## Enquiry emails
+
+Each stored enquiry schedules `notifications:enquiryEmail`, which emails the site's
+owners through `@convex-dev/resend` (one email per enquiry, with Reply-To set to the
+visitor's email when it's valid). Set the sender and key on the deployment:
+
+```bash
+npx convex env set RESEND_API_KEY …
+npx convex env set EMAIL_FROM "R2C2 <onboarding@resend.dev>"
+```
+
+Test mode is on unless `RESEND_TEST_MODE` is `false`: every notification goes to Resend's
+test inbox, `delivered@resend.dev`, and names the owners it was meant for. Without
+`EMAIL_FROM` the notification logs a warning and sends nothing.
+
 ## Storage and routing secrets
 
 Each deployment writes to its own R2 bucket and `ROUTES` KV namespace, because site IDs

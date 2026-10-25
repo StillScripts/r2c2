@@ -49,21 +49,31 @@ Resend component, which handles retries and Resend's rate limits.
 
 ## Action items
 
-- [ ] Pin `@convex-dev/resend` in the catalog, add it to `packages/backend`, register it
+- [x] Pin `@convex-dev/resend` in the catalog, add it to `packages/backend`, register it
       in `convex.config.ts` and `test/setup.ts`, and add it to `_generated/api.d.ts`.
-- [ ] Add `convex/notifications.ts`: the `resend` client, `enquiryEmail`, and a pure
+- [x] Add `convex/notifications.ts`: the `resend` client, `enquiryEmail`, and a pure
       `enquiryEmailText(site, enquiry)` for the subject and body.
-- [ ] Schedule `enquiryEmail` from `enquiries:receive` after the insert.
-- [ ] Tests:
+- [x] Schedule `enquiryEmail` from `enquiries:receive` after the insert.
+- [x] Tests:
   - a stored enquiry schedules one notification;
   - a duplicate or a refused post schedules none;
   - the notification enqueues one email to the owners (or to the test inbox in test
     mode), with `Reply-To` from a valid `email` field and none from an invalid one;
   - running it twice for one enquiry enqueues once;
   - the body lists the fields and source.
-- [ ] Document `EMAIL_FROM` and `RESEND_TEST_MODE` in SPEC §8, the backend `.env.example`
+- [x] Document `EMAIL_FROM` and `RESEND_TEST_MODE` in SPEC §8, the backend `.env.example`
       and README.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Run `vp check`, `vp test` and `vp run build`.
+
+## As built
+
+- `notifications.ts` creates the Resend client inside the mutation, so test mode follows
+  the environment at send time rather than at module load.
+- Without `EMAIL_FROM` the notification logs a warning and sends nothing, like route
+  syncs without Cloudflare credentials.
+- `isEmail` is now exported from `enquiries.ts` and shared with intake's field check.
+- The tests spy on `Resend.prototype.sendEmail`. They check the idempotency key, not
+  the component's dedupe itself, which the component owns.
 
 ## Open questions
 

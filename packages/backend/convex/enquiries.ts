@@ -16,6 +16,8 @@ import { enquiryIntake } from "./validators"
 const DEDUPE_WINDOW_MS = 10 * MINUTE
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+export const isEmail = (value: string) => EMAIL.test(value.trim())
+
 const rateLimiter = new RateLimiter(components.rateLimiter, {
   enquiry: { kind: "token bucket", rate: 20, period: MINUTE, capacity: 40 },
 })
@@ -46,7 +48,7 @@ function fieldErrors(
     if (maxLength !== undefined && value.length > maxLength) {
       add(name, `Too long (max ${maxLength}).`)
     }
-    if (type === "email" && !EMAIL.test(value.trim())) {
+    if (type === "email" && !isEmail(value)) {
       add(name, "Enter a valid email.")
     }
   }
@@ -91,7 +93,7 @@ export const receive = internalMutation({
     const { ok } = await rateLimiter.limit(ctx, "enquiry", { key: site._id })
     if (!ok) return { ok: false, reason: "rate_limited" }
 
-    await ctx.db.insert("enquiries", {
+    const enquiryId = await ctx.db.insert("enquiries", {
       siteId: site._id,
       form: args.form,
       data: args.data,
@@ -99,6 +101,10 @@ export const receive = internalMutation({
       status: "new",
       createdAt: now,
       bodyHash: args.bodyHash,
+    })
+    // Scheduled, so a failure to enqueue the email can never lose the enquiry
+    await ctx.scheduler.runAfter(0, internal.notifications.enquiryEmail, {
+      enquiryId,
     })
     return { ok: true }
   },

@@ -13,7 +13,7 @@ import {
 } from "vite-plus/test"
 import type { FormField } from "@workspace/html"
 import type { Id } from "../convex/_generated/dataModel"
-import { addSite, setup } from "../test/setup"
+import { addSite, scheduled, setup } from "../test/setup"
 
 type T = ReturnType<typeof setup>
 
@@ -90,6 +90,10 @@ describe("enquiry intake", () => {
         bodyHash: expect.stringMatching(/^[0-9a-f]{64}$/),
       }),
     ])
+    const [{ _id: enquiryId }] = await stored(t)
+    expect(await scheduled(t)).toEqual([
+      ["notifications:enquiryEmail", { enquiryId }],
+    ])
   })
 
   test("stores a no-JS post without a source", async () => {
@@ -107,6 +111,7 @@ describe("enquiry intake", () => {
     const response = await post(t, enquiry(valid), { siteId, ...options })
     expect(response.status).toBe(401)
     expect(await stored(t)).toEqual([])
+    expect(await scheduled(t)).toEqual([])
   })
 
   test("refuses unsigned and tampered requests", async () => {
@@ -206,6 +211,7 @@ describe("enquiry intake", () => {
     expect((await post(t, enquiry(valid), { siteId })).status).toBe(201)
     expect((await post(t, enquiry(reordered), { siteId })).status).toBe(201)
     expect(await stored(t)).toHaveLength(1)
+    expect(await scheduled(t)).toHaveLength(1)
 
     await t.run(async (ctx) => {
       const [row] = await ctx.db.query("enquiries").collect()
