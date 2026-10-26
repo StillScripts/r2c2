@@ -183,6 +183,8 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 | `memberships`  | userId (`identity.subject`), siteId, role (`owner` \| `editor`)                       | by_user_site, by_site  |
 | `auditLog`     | siteId, actor, action, target, at                                                     | by_site_at             |
 
+Every site has `<slug>.<SITES_DOMAIN>` (e.g. `acme-dental.lofty.page`) as a domain from the moment it's created: primary until the owner adds a custom primary, then a redirect to it ([ADR-015](docs/decisions/ADR-015-give-each-site-a-lofty-page-address.md)).
+
 Indexes on site-owned tables start with `siteId`. Every function that touches site data goes through a `siteQuery` / `siteMutation` helper (convex-helpers custom functions) that loads the site and checks membership; a site the caller isn't a member of is `not_found`, the same as a missing one. Any other document ID a function takes is loaded through `ownDoc()`, which refuses documents from another site.
 
 **Draft history.** The official `@convex-dev/table-history` component is attached to `pages` as `pageHistory`. It's in beta, so call it only through one helper, `recordDraft()`, which keeps it easy to swap.
@@ -215,6 +217,7 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | Convex | `BETTER_AUTH_SECRET`, `SITE_URL`                                                                                               | Loft auth                     |
 | Convex | `TURNSTILE_SITE_KEY`                                                                                                           | `sitekey` on published forms  |
 | Convex | `EMAIL_FROM`, `RESEND_TEST_MODE` (on unless `false`)                                                                           | enquiry emails                |
+| Convex | `SITES_DOMAIN` (`lofty.page`; `localhost` when unset)                                                                          | each site's own address       |
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
 | Loft   | `VITE_CONVEX_URL`, `CONVEX_SITE_URL`                                                                                           | backend                       |
 

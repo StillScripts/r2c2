@@ -1,7 +1,73 @@
+import { isSiteSlug } from "@workspace/core"
 import { v } from "convex/values"
-import { audit, siteMutation, siteQuery } from "./access"
+import {
+  internalMutation,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server"
+import { audit, siteMutation, siteQuery, writeAudit } from "./access"
+import { siteAddress } from "./domains"
 import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
+
+/** The site with this slug, or null. */
+export const findSite = (ctx: QueryCtx, slug: string) =>
+  ctx.db
+    .query("sites")
+    .withIndex("by_slug", (q) => q.eq("slug", slug))
+    .unique()
+
+/** Create a coming-soon site with its own address as primary domain and an empty home page, then sync its routes. */
+export async function createSite(
+  ctx: MutationCtx,
+  { name, slug, theme = "" }: { name: string; slug: string; theme?: string }
+) {
+  if (!isSiteSlug(slug)) {
+    throw new Error(
+      `"${slug}" isn't a site slug: use lowercase letters, numbers and hyphens, at most 63, and not a reserved name like "www".`
+    )
+  }
+  if (await findSite(ctx, slug)) {
+    throw new Error(`A site with slug "${slug}" already exists`)
+  }
+
+  const siteId = await ctx.db.insert("sites", {
+    name,
+    slug,
+    status: "coming-soon",
+    theme,
+  })
+  await ctx.db.insert("domains", {
+    siteId,
+    hostname: siteAddress(slug),
+    kind: "primary",
+    status: "active",
+  })
+  await ctx.db.insert("pages", {
+    siteId,
+    path: "/",
+    title: name,
+    draftHtml: "",
+  })
+  await writeAudit(ctx, {
+    siteId,
+    actor: "system",
+    action: "site.create",
+    target: siteId,
+  })
+  await scheduleRouteSync(ctx, { _id: siteId })
+  return siteId
+}
+
+/**
+ * Create a site at `<slug>.<SITES_DOMAIN>`, until the Loft can. Run from the CLI, then add
+ * its owner with `staff:create`:
+ * `vp exec convex run sites:create '{"name": "Acme Dental", "slug": "acme-dental"}'`
+ */
+export const create = internalMutation({
+  args: { name: v.string(), slug: v.string() },
+  handler: (ctx, args) => createSite(ctx, args),
+})
 
 /** The site, with the caller's role on it so the Loft can show owner-only controls. */
 export const get = siteQuery({

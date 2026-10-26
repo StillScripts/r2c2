@@ -1,16 +1,13 @@
 import { v } from "convex/values"
 import type { Doc, Id } from "./_generated/dataModel"
-import {
-  internalMutation,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server"
+import { internalMutation, type MutationCtx } from "./_generated/server"
 import { enquiryHash } from "./enquiries"
 import { fail } from "./errors"
 import { writeAudit } from "./access"
 import { draftHistory, recordDraft } from "./history"
 import { pageAt, writeDraft } from "./pages"
 import { scheduleRouteSync } from "./routes"
+import { createSite, findSite } from "./sites"
 
 /** The slug of the site the seed creates, and the default for `staff:create`. */
 export const SEED_SLUG = "r2c2"
@@ -22,13 +19,6 @@ const THEME = `@theme {
   --font-sans: "Inter Variable", sans-serif;
   --radius-card: 0.75rem;
 }`
-
-/** The site with this slug, or null. */
-export const findSite = (ctx: QueryCtx, slug: string) =>
-  ctx.db
-    .query("sites")
-    .withIndex("by_slug", (q) => q.eq("slug", slug))
-    .unique()
 
 /** Give the seed site one enquiry to show in the inbox, unless it already has some. */
 async function seedEnquiry(ctx: MutationCtx, siteId: Id<"sites">) {
@@ -57,38 +47,17 @@ async function seedEnquiry(ctx: MutationCtx, siteId: Id<"sites">) {
   })
 }
 
-async function createSite(ctx: MutationCtx) {
-  const siteId = await ctx.db.insert("sites", {
-    name: "R2C2",
-    slug: SEED_SLUG,
-    status: "coming-soon",
-    theme: THEME,
-  })
-  for (const [hostname, kind] of [
-    ["r2c2.localhost", "primary"],
-    ["www.r2c2.localhost", "redirect"],
-  ] as const) {
-    await ctx.db.insert("domains", { siteId, hostname, kind, status: "active" })
-  }
-  await ctx.db.insert("pages", {
-    siteId,
-    path: "/",
-    title: "R2C2",
-    draftHtml: "",
-  })
-  return siteId
-}
-
-/** Create the r2c2 site, its local domains, an empty home page and a sample enquiry, then sync its routes. Safe to rerun. */
+/** Create the r2c2 site, at r2c2.<SITES_DOMAIN>, with a sample enquiry. Safe to rerun, and a rerun syncs its routes again. */
 export default internalMutation({
   args: {},
   handler: async (ctx) => {
-    const site = (await findSite(ctx, SEED_SLUG)) ?? {
-      _id: await createSite(ctx),
-    }
-    await seedEnquiry(ctx, site._id)
-    await scheduleRouteSync(ctx, site)
-    return site._id
+    const existing = await findSite(ctx, SEED_SLUG)
+    const siteId =
+      existing?._id ??
+      (await createSite(ctx, { name: "R2C2", slug: SEED_SLUG, theme: THEME }))
+    await seedEnquiry(ctx, siteId)
+    if (existing) await scheduleRouteSync(ctx, existing)
+    return siteId
   },
 })
 

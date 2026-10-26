@@ -5,11 +5,30 @@ imports its API from `@workspace/backend/api`.
 
 ```bash
 vp run --filter @workspace/backend dev   # push functions and watch for changes
-vp run --filter @workspace/backend seed  # create the r2c2 site (safe to rerun)
+vp run --filter @workspace/backend seed  # create the r2c2 site at r2c2.localhost (safe to rerun)
 vp run --filter @workspace/backend site:import  # load sites/r2c2 into it as drafts
 vp run --filter @workspace/backend r2:check  # write, read and delete a test object in R2
 vp test                                  # includes the convex-test suites
 ```
+
+## Sites and their addresses
+
+Every site gets `<slug>.<SITES_DOMAIN>` as its primary domain when it's created
+([ADR-015](../../docs/decisions/ADR-015-give-each-site-a-lofty-page-address.md)).
+`SITES_DOMAIN` is `lofty.page` in production; dev leaves it unset and gets `localhost`, so
+sites open at `http://<slug>.localhost:8787` on the local edge. Until the Loft can create
+sites, create one from the CLI, then add its owner with `staff:create`:
+
+```bash
+npx convex env set SITES_DOMAIN lofty.page   # production only
+vp exec convex run sites:create '{"name": "Acme Dental", "slug": "acme-dental"}'
+```
+
+A slug is one DNS label and can't be a reserved name like `www` or `app`
+(`RESERVED_SLUGS` in `@workspace/core`). The address stays with the site: owners can't
+remove it or add other hostnames under the sites domain. Adding a custom primary domain
+turns the address into a redirect to it, and removing that primary makes the address
+primary again.
 
 ## Staff sign-in
 

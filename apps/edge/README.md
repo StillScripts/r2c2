@@ -24,8 +24,8 @@ With the seed site imported and published, open <http://r2c2.localhost:8787>, or
 curl -H "Host: r2c2.localhost" http://localhost:8787/
 ```
 
-Redirects (`www.r2c2.localhost`, for one) point at `https://` on the default port, which
-nothing listens on locally; check them with `curl -i`.
+Redirects (a domain added with `domains:add` as `redirect`) point at `https://` on the
+default port, which nothing listens on locally; check them with `curl -i`.
 
 KV is eventually consistent and the Worker caches pages
 ([ADR-011](../../docs/decisions/ADR-011-workers-cache-without-purge.md)), so a domain
