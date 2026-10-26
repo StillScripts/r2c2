@@ -22,21 +22,20 @@
     },
   ],
   "env": {
-    // `vp run dev` uses this: the bucket and namespace the Convex dev deployment writes to.
-    // The top-level bindings stay local, so tests never touch Cloudflare.
+    // Used by `vp run dev`; the top-level bindings stay local for tests. Wrangler doesn't
+    // inherit bindings into an environment, so the rate limits are repeated here.
     "dev": {
       "r2_buckets": [
         { "binding": "SITES", "bucket_name": "r2c2-dev", "remote": true },
       ],
       "kv_namespaces": [
+        // R2C2_ROUTES_DEV: must match the dev deployment's CLOUDFLARE_KV_NAMESPACE_ID
         {
           "binding": "ROUTES",
-          // R2C2_ROUTES_DEV
           "id": "ec300175747f4b76b1a8ae58117f933f",
           "remote": true,
         },
       ],
-      // Bindings aren't inherited from the top level, so the limits are repeated
       "ratelimits": [
         {
           "name": "FORMS_LIMIT",
