@@ -68,6 +68,35 @@ test("importSite loads the theme and drafts into the seed site", async () => {
   })
 })
 
+test("importSite snapshots a page's edited draft before replacing it, and audits", async () => {
+  const t = setup()
+  const siteId = await t.mutation(internal.seed.default, {})
+  const theme = "@theme { --color-ink: #000; }"
+  const pages = [{ path: "/", html: page("Imported") }]
+  await t.mutation(internal.seed.importSite, { theme, pages })
+  await t.run(async (ctx) => {
+    const home = (await ctx.db.query("pages").first())!
+    await ctx.db.patch("pages", home._id, { draftHtml: page("Edited") })
+  })
+  await t.mutation(internal.seed.importSite, { pages })
+  // The draft is already in history now, so this import only records its own snapshot
+  await t.mutation(internal.seed.importSite, { pages })
+
+  const { drafts, audit } = await t.run(async (ctx) => {
+    const home = (await ctx.db.query("pages").first())!
+    return {
+      drafts: (await draftHistory(ctx, home._id)).map(
+        ({ draftHtml }) => draftHtml.match(/<title>(.*)<\/title>/)?.[1]
+      ),
+      audit: (await ctx.db.query("auditLog").collect())
+        .filter((entry) => entry.siteId === siteId)
+        .map(({ action }) => action),
+    }
+  })
+  expect(drafts).toEqual(["Imported", "Imported", "Edited", "Imported"])
+  expect(audit).toContain("site.theme")
+})
+
 test("importSite refuses an unknown site or a bad path", async () => {
   const t = setup()
   await t.mutation(internal.seed.default, {})

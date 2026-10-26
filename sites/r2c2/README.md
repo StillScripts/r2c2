@@ -16,4 +16,4 @@ vp run --filter @workspace/backend seed
 vp run --filter @workspace/backend site:import
 ```
 
-Then publish the home page from the Loft. Importing again overwrites the drafts, not what's live.
+Then publish the home page from the Loft. Importing again overwrites the drafts, not what's live. Any draft edits not yet in history get a snapshot first, so you can restore them. The script checks that the theme compiles and that every page fits before it writes anything.

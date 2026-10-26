@@ -1,5 +1,5 @@
 import { v } from "convex/values"
-import type { Id } from "./_generated/dataModel"
+import type { Doc, Id } from "./_generated/dataModel"
 import {
   internalMutation,
   type MutationCtx,
@@ -7,7 +7,8 @@ import {
 } from "./_generated/server"
 import { enquiryHash } from "./enquiries"
 import { fail } from "./errors"
-import { recordDraft } from "./history"
+import { writeAudit } from "./access"
+import { draftHistory, recordDraft } from "./history"
 import { pageAt, writeDraft } from "./pages"
 import { scheduleRouteSync } from "./routes"
 
@@ -101,6 +102,14 @@ async function emptyPage(ctx: MutationCtx, siteId: Id<"sites">, path: string) {
   return (await ctx.db.get("pages", pageId))!
 }
 
+/** Snapshot a page's draft before an import replaces it, unless history already has it. */
+async function keepDraft(ctx: MutationCtx, page: Doc<"pages">) {
+  if (!page.draftHtml) return
+  const [last] = await draftHistory(ctx, page._id, 1)
+  if (last?.draftHtml === page.draftHtml) return
+  await recordDraft(ctx, page, { reason: "import", actor: "system" })
+}
+
 /** Load a site's theme and/or page drafts from `sites/<slug>/`, creating pages that don't exist yet. Publishing stays a Loft step. */
 export const importSite = internalMutation({
   args: {
@@ -111,10 +120,17 @@ export const importSite = internalMutation({
   handler: async (ctx, { slug = SEED_SLUG, theme, pages }) => {
     const site = await findSite(ctx, slug)
     if (!site) throw fail("not_found")
-    if (theme !== undefined) await ctx.db.patch("sites", site._id, { theme })
+    const log = (action: string, target: string) =>
+      writeAudit(ctx, { siteId: site._id, actor: "system", action, target })
+    if (theme !== undefined) {
+      await ctx.db.patch("sites", site._id, { theme })
+      await log("site.theme", site._id)
+    }
 
     for (const { path: rawPath, html } of pages) {
       const { path, page } = await pageAt(ctx, site._id, rawPath)
+      if (page) await keepDraft(ctx, page)
+      else await log("page.create", path)
       const target = page ?? (await emptyPage(ctx, site._id, path))
       const saved = await writeDraft(ctx, target, html)
       await recordDraft(ctx, saved, { reason: "import", actor: "system" })
