@@ -1,6 +1,7 @@
 ---
 title: Give every site a lofty.page address
 created: 2026-10-26
+completed: 2026-10-26
 ---
 
 Every site gets `<slug>.lofty.page` as its primary domain when it's created, so it can be published and viewed before it has a custom domain. When the owner adds a custom primary domain, the lofty.page address becomes a redirect to it; removing the custom primary makes the lofty.page address primary again. Owners can't add or remove hostnames under the sites domain themselves.
