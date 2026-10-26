@@ -4,7 +4,9 @@ import { literals } from "convex-helpers/validators"
 import { type Infer, type ObjectType, v } from "convex/values"
 
 export const siteStatus = literals("live", "coming-soon")
-export const domainKind = literals("primary", "redirect")
+/** The kinds an owner can add; `address` is created with the site (ADR-015). */
+export const customDomainKind = literals("primary", "redirect")
+export const domainKind = literals("primary", "redirect", "address")
 export const domainStatus = literals("pending", "active")
 export const enquiryStatus = literals("new", "handled")
 export const role = literals("owner", "editor")

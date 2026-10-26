@@ -26,9 +26,9 @@ vp exec convex run sites:create '{"name": "Acme Dental", "slug": "acme-dental"}'
 
 A slug is one DNS label and can't be a reserved name like `www` or `app`
 (`RESERVED_SLUGS` in `@workspace/core`). The address stays with the site: owners can't
-remove it or add other hostnames under the sites domain. Adding a custom primary domain
-turns the address into a redirect to it, and removing that primary makes the address
-primary again.
+remove it or add other hostnames under the sites domain. It's a domain of kind `address`: it
+serves the site until a custom primary is active, then redirects to it
+(`primaryDomain` in `@workspace/core`).
 
 ## Staff sign-in
 

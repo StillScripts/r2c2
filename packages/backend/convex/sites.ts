@@ -40,7 +40,7 @@ export async function createSite(
   await ctx.db.insert("domains", {
     siteId,
     hostname: siteAddress(slug),
-    kind: "primary",
+    kind: "address",
     status: "active",
   })
   await ctx.db.insert("pages", {

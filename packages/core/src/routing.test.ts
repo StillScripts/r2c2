@@ -22,7 +22,10 @@ describe("routeEntrySchema", () => {
 })
 
 const site = { id: "site1", status: "live" as const }
-const active = (hostname: string, kind: "primary" | "redirect") => ({
+const active = (
+  hostname: string,
+  kind: "primary" | "redirect" | "address"
+) => ({
   hostname,
   kind,
   status: "active" as const,
@@ -58,6 +61,44 @@ describe("routeEntries", () => {
     ).toEqual([
       ["r2c2.dev", null],
       ["www.r2c2.dev", null],
+    ])
+  })
+})
+
+describe("routeEntries with a site address", () => {
+  it("serves the site on its address until it has a custom primary", () => {
+    expect(
+      routeEntries(site, [
+        active("a.lofty.page", "address"),
+        active("www.a.dev", "redirect"),
+      ])
+    ).toEqual([
+      ["a.lofty.page", { site: "site1", status: "live" }],
+      ["www.a.dev", { redirect: "https://a.lofty.page" }],
+    ])
+  })
+
+  it("redirects the address to an active custom primary", () => {
+    expect(
+      routeEntries(site, [
+        active("a.lofty.page", "address"),
+        active("a.dev", "primary"),
+      ])
+    ).toEqual([
+      ["a.lofty.page", { redirect: "https://a.dev" }],
+      ["a.dev", { site: "site1", status: "live" }],
+    ])
+  })
+
+  it("keeps serving the address while the custom primary is pending", () => {
+    expect(
+      routeEntries(site, [
+        active("a.lofty.page", "address"),
+        { ...active("a.dev", "primary"), status: "pending" },
+      ])
+    ).toEqual([
+      ["a.lofty.page", { site: "site1", status: "live" }],
+      ["a.dev", null],
     ])
   })
 })

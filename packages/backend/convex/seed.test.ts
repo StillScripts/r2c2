@@ -21,7 +21,7 @@ test("the seed creates the r2c2 site once", async () => {
   ])
   expect(counts).toEqual({
     sites: 1,
-    domains: ["primary"],
+    domains: ["address"],
     pages: ["/"],
     enquiries: 1,
   })

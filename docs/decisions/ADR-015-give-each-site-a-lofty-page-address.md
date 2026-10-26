@@ -16,11 +16,11 @@ The edge already routes purely by hostname (`host:<hostname>` in KV, SPEC §4), 
 
 ## Decision
 
-Every site gets `<slug>.<SITES_DOMAIN>` as its primary domain when it is created. `SITES_DOMAIN` is a Convex environment variable: `lofty.page` in production and `localhost` (the default) in dev, where `<slug>.localhost` already resolves to the local edge.
+Every site gets `<slug>.<SITES_DOMAIN>` as its address when it is created. `SITES_DOMAIN` is a Convex environment variable: `lofty.page` in production and `localhost` (the default) in dev, where `<slug>.localhost` already resolves to the local edge.
 
 - A slug is one DNS label (lowercase letters, digits and inner hyphens, at most 63 characters) and not a reserved name such as `www`, `app` or `api`, so the address is always one level below the sites domain.
 - The address stays with the site for its whole life. Owners can't remove it, and can't add any hostname at or below the sites domain, so no site can take another's address.
-- Adding a custom primary domain turns the address into a redirect to it. Removing that custom primary makes the address primary again.
+- The address is stored as a domain of kind `address` and never changes. `primaryDomain` in `@workspace/core` decides where a site is served: its active custom primary if it has one, otherwise its address. Every other hostname, the address included, redirects there. A pending custom primary leaves the site on its address until the custom domain is active.
 - `sites:create` (an internal mutation run from the CLI, like `staff:create`) creates sites until the Loft can.
 
 ## Alternatives Considered

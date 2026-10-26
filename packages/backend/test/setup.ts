@@ -41,6 +41,13 @@ export async function addSite(
   })
 }
 
+/** Add a member to an existing site. */
+export const addMember = (
+  t: ReturnType<typeof setup>,
+  siteId: Id<"sites">,
+  member: { userId: string; role: Role }
+) => t.run((ctx) => ctx.db.insert("memberships", { siteId, ...member }))
+
 /** Matches a ConvexError thrown with `fail(code)`. */
 export const errorCode = (code: string) =>
   expect.objectContaining({ data: { code } })

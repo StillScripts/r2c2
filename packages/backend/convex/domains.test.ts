@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 import { api, internal } from "./_generated/api"
-import { addSite, errorCode, scheduled, setup } from "../test/setup"
+import { addMember, addSite, errorCode, scheduled, setup } from "../test/setup"
 
 async function ownedSite() {
   const t = setup()
@@ -111,28 +111,9 @@ describe("domains", () => {
     ])
   })
 
-  test("won't remove a primary that redirects still point at", async () => {
-    const { siteId, ann } = await ownedSite()
-    const primary = await ann.mutation(api.domains.add, {
-      siteId,
-      hostname: "a.dev",
-      kind: "primary",
-    })
-    await ann.mutation(api.domains.add, {
-      siteId,
-      hostname: "www.a.dev",
-      kind: "redirect",
-    })
-    await expect(
-      ann.mutation(api.domains.remove, { siteId, domainId: primary })
-    ).rejects.toEqual(errorCode("primary_has_redirects"))
-  })
-
   test("editors can't change domains and non-members can't see them", async () => {
     const { t, siteId } = await ownedSite()
-    await t.run((ctx) =>
-      ctx.db.insert("memberships", { userId: "eve", siteId, role: "editor" })
-    )
+    await addMember(t, siteId, { userId: "eve", role: "editor" })
     await expect(
       t.withIdentity({ subject: "eve" }).mutation(api.domains.add, {
         siteId,
@@ -155,7 +136,7 @@ describe("domains", () => {
     ])
   })
 
-  test("a custom primary turns the site's address into a redirect to it", async () => {
+  test("a custom primary sits beside the site's address", async () => {
     const { ann, siteId, kinds } = await siteWithAddress()
     await ann.mutation(api.domains.add, {
       siteId,
@@ -163,12 +144,12 @@ describe("domains", () => {
       kind: "primary",
     })
     expect(await kinds()).toEqual({
-      "a.localhost": "redirect",
+      "a.localhost": "address",
       "a.dev": "primary",
     })
   })
 
-  test("removing the custom primary makes the site's address primary again", async () => {
+  test("the custom primary can be removed, leaving the address", async () => {
     const { ann, siteId, kinds } = await siteWithAddress()
     const custom = await ann.mutation(api.domains.add, {
       siteId,
@@ -182,7 +163,7 @@ describe("domains", () => {
     })
     await ann.mutation(api.domains.remove, { siteId, domainId: custom })
     expect(await kinds()).toEqual({
-      "a.localhost": "primary",
+      "a.localhost": "address",
       "www.a.dev": "redirect",
     })
   })

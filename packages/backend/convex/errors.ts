@@ -9,7 +9,6 @@ export type ErrorCode =
   | "reserved_hostname"
   | "hostname_taken"
   | "primary_exists"
-  | "primary_has_redirects"
   | "site_address"
   | "invalid_path"
   | "path_taken"

@@ -29,7 +29,7 @@ describe("sites:create", () => {
     expect(state.domains).toEqual([
       expect.objectContaining({
         hostname: "acme-dental.lofty.page",
-        kind: "primary",
+        kind: "address",
         status: "active",
       }),
     ])
