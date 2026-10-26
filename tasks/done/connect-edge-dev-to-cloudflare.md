@@ -1,6 +1,7 @@
 ---
 title: Connect the local edge to the dev bucket and namespace
 created: 2026-10-25
+completed: 2026-10-26
 ---
 
 `wrangler dev` gives the edge Worker simulated, empty KV and R2, so it never sees what the Convex dev deployment writes to `r2c2-dev` and `R2C2_ROUTES_DEV`. Until it does, a local request to `r2c2.localhost` finds no route.
