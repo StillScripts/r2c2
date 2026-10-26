@@ -11,6 +11,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server"
 import { authComponent } from "./auth"
 import { fail } from "./errors"
 import { draftAt, draftHistory, recordDraft } from "./history"
+import { assertUnclaimed } from "./publishing"
 
 const escapeText = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -98,6 +99,7 @@ export const saveDraft = siteMutation({
   args: { pageId: v.id("pages"), draftHtml: v.string() },
   handler: async (ctx, { pageId, draftHtml }) => {
     const page = await ownDoc(ctx, "pages", pageId)
+    await assertUnclaimed(ctx, pageId)
     const saved = await writeDraft(ctx, page, draftHtml)
     await recordDraft(ctx, saved, { reason: "save", actor: ctx.userId })
   },
@@ -181,6 +183,7 @@ export const restoreDraft = siteMutation({
   args: { pageId: v.id("pages"), ts: v.number() },
   handler: async (ctx, { pageId, ts }) => {
     const page = await ownDoc(ctx, "pages", pageId)
+    await assertUnclaimed(ctx, pageId)
     const snapshot = await draftAt(ctx, pageId, ts)
     if (!snapshot) throw fail("not_found")
 

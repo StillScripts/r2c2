@@ -15,6 +15,7 @@ const MESSAGES: Messages = {
   page_too_large: `The page is over ${MAX_PAGE_BYTES / 1024} KB.`,
   form_conflict: ({ form }) =>
     `Another live page has a form named "${form}" with different fields. Make them match, or rename one.`,
+  page_busy: "This page is being published. Try again in a moment.",
 }
 
 /** A readable message for an error from a Convex function. */

@@ -1,10 +1,9 @@
 import { primaryDomain } from "@workspace/core"
 import type { FormDefinition } from "@workspace/html"
 import { v } from "convex/values"
-import type { Id } from "./_generated/dataModel"
+import type { Doc, Id } from "./_generated/dataModel"
 import {
   internalMutation,
-  internalQuery,
   type MutationCtx,
   type QueryCtx,
 } from "./_generated/server"
@@ -98,24 +97,80 @@ async function ownVersion(
   return version
 }
 
-/** The page and the forms on the site's other live pages, loaded as the signed-in member. */
-async function pageContext(
-  ctx: QueryCtx,
+/** How long a publish or rollback holds its page before another may take it over. */
+export const CLAIM_MS = 2 * 60 * 1000
+
+const claimOf = (ctx: QueryCtx, pageId: Id<"pages">) =>
+  ctx.db
+    .query("pageClaims")
+    .withIndex("by_page", (q) => q.eq("pageId", pageId))
+    .unique()
+
+const isActive = (claim: Doc<"pageClaims">) => claim.expiresAt > Date.now()
+
+/** Refuse a change to the page's draft while a publish or rollback holds it. */
+export async function assertUnclaimed(ctx: QueryCtx, pageId: Id<"pages">) {
+  const claim = await claimOf(ctx, pageId)
+  if (claim && isActive(claim)) throw fail("page_busy")
+}
+
+/** Claim the page as the signed-in member, so no other publish, rollback or save runs on it. */
+async function claimPage(
+  ctx: MutationCtx,
   siteId: Id<"sites">,
   pageId: Id<"pages">
 ) {
   const { site, userId } = await loadSite(ctx, siteId)
   const page = await ownPage(ctx, siteId, pageId)
-  const otherForms = (await livePages(ctx, siteId))
-    .filter((live) => live.pageId !== pageId)
-    .flatMap((live) => live.version.forms)
-  return { site, userId, page, otherForms }
+  const held = await claimOf(ctx, pageId)
+  if (held) {
+    if (isActive(held)) throw fail("page_busy")
+    await ctx.db.delete("pageClaims", held._id)
+  }
+  const claimId = await ctx.db.insert("pageClaims", {
+    siteId,
+    pageId,
+    expiresAt: Date.now() + CLAIM_MS,
+    forms: [],
+  })
+  return { claimId, site, userId, page }
 }
 
-export const publishContext = internalQuery({
+/**
+ * Record the forms a claim will put live, refusing any defined differently on another
+ * live page or another page's claim.
+ */
+async function holdClaimForms(
+  ctx: MutationCtx,
+  claimId: Id<"pageClaims">,
+  forms: FormDefinition[]
+) {
+  const claim = await ctx.db.get("pageClaims", claimId)
+  if (!claim || !isActive(claim)) throw fail("page_busy")
+  const claims = await ctx.db
+    .query("pageClaims")
+    .withIndex("by_site", (q) => q.eq("siteId", claim.siteId))
+    .collect()
+  const others = [
+    ...(await livePages(ctx, claim.siteId)).map(({ pageId, version }) => ({
+      pageId,
+      forms: version.forms,
+    })),
+    ...claims.filter(isActive),
+  ].filter((other) => other.pageId !== claim.pageId)
+  const clash = formClash(
+    forms,
+    others.flatMap((other) => other.forms)
+  )
+  if (clash) throw fail("form_conflict", { form: clash })
+  await ctx.db.patch("pageClaims", claimId, { forms })
+}
+
+/** Claim a page to publish it, returning what the build needs. */
+export const claimPublish = internalMutation({
   args: { siteId: v.id("sites"), pageId: v.id("pages") },
   handler: async (ctx, { siteId, pageId }) => {
-    const { site, page, ...rest } = await pageContext(ctx, siteId, pageId)
+    const { site, page, ...rest } = await claimPage(ctx, siteId, pageId)
     const primary = primaryDomain(await domainsOf(ctx, siteId))
     return {
       ...rest,
@@ -128,15 +183,33 @@ export const publishContext = internalQuery({
   },
 })
 
-export const rollbackContext = internalQuery({
+export const holdForms = internalMutation({
+  args: { claimId: v.id("pageClaims"), forms: v.array(formDefinition) },
+  handler: (ctx, { claimId, forms }) => holdClaimForms(ctx, claimId, forms),
+})
+
+/** Claim a page to put one of its versions back live. */
+export const claimRollback = internalMutation({
   args: {
     siteId: v.id("sites"),
     pageId: v.id("pages"),
     versionId: v.id("pageVersions"),
   },
   handler: async (ctx, { siteId, pageId, versionId }) => {
-    const { site: _, ...context } = await pageContext(ctx, siteId, pageId)
-    return { ...context, version: await ownVersion(ctx, pageId, versionId) }
+    const { claimId, userId, page } = await claimPage(ctx, siteId, pageId)
+    const version = await ownVersion(ctx, pageId, versionId)
+    await holdClaimForms(ctx, claimId, version.forms)
+    return { claimId, userId, page, version }
+  },
+})
+
+/** Let the page go once its publish or rollback has finished or failed. */
+export const release = internalMutation({
+  args: { claimId: v.id("pageClaims") },
+  handler: async (ctx, { claimId }) => {
+    if (await ctx.db.get("pageClaims", claimId)) {
+      await ctx.db.delete("pageClaims", claimId)
+    }
   },
 })
 

@@ -2,7 +2,7 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { draftHistory } from "./history"
-import { formClash } from "./publishing"
+import { CLAIM_MS, formClash } from "./publishing"
 import { addSite, errorCode, setup } from "../test/setup"
 
 const contact = (...names: string[]) => ({
@@ -55,25 +55,36 @@ describe("formClash", () => {
   })
 })
 
-describe("publishing.context", () => {
+const formConflict = (form: string) =>
+  expect.objectContaining({ data: { code: "form_conflict", form } })
+
+describe("publishing.claimPublish", () => {
   test("refuses outsiders and signed-out callers", async () => {
     const { t, siteId, pageId } = await site()
     await expect(
       t
         .withIdentity({ subject: "eve" })
-        .query(internal.publishing.publishContext, { siteId, pageId })
+        .mutation(internal.publishing.claimPublish, { siteId, pageId })
     ).rejects.toEqual(errorCode("not_found"))
     await expect(
-      t.query(internal.publishing.publishContext, { siteId, pageId })
+      t.mutation(internal.publishing.claimPublish, { siteId, pageId })
     ).rejects.toEqual(errorCode("unauthenticated"))
   })
 
   test("builds the canonical URL from the primary domain", async () => {
     const { t, siteId, ed, addPage } = await site()
     const pageId = await addPage("/about")
-    const context = () =>
-      ed.query(internal.publishing.publishContext, { siteId, pageId })
-    expect((await context()).canonicalUrl).toBeUndefined()
+    const claim = async () => {
+      const context = await ed.mutation(internal.publishing.claimPublish, {
+        siteId,
+        pageId,
+      })
+      await t.mutation(internal.publishing.release, {
+        claimId: context.claimId,
+      })
+      return context
+    }
+    expect((await claim()).canonicalUrl).toBeUndefined()
 
     await t.run((ctx) =>
       ctx.db.insert("domains", {
@@ -83,31 +94,112 @@ describe("publishing.context", () => {
         status: "active",
       })
     )
-    expect(await context()).toMatchObject({
+    expect(await claim()).toMatchObject({
       userId: "ed",
       canonicalUrl: "https://a.dev/about",
     })
   })
 
-  test("lists the forms on other live pages", async () => {
-    const { t, siteId, ed, pageId, addPage, release } = await site()
-    const other = await addPage("/contact")
-    await t.mutation(
-      internal.publishing.markLive,
-      release({ pageId: other, forms: [contact("email")] })
-    )
-    await t.mutation(
-      internal.publishing.markLive,
-      release({ forms: [{ ...contact("phone"), name: "call-back" }] })
-    )
+  test("refuses a second publish or rollback until the first lets go or expires", async () => {
+    vi.useFakeTimers()
+    const { t, siteId, ed, pageId, release } = await site()
+    const versionId = await t.mutation(internal.publishing.markLive, release())
+    const claim = () =>
+      ed.mutation(internal.publishing.claimPublish, { siteId, pageId })
 
-    const context = await ed.query(internal.publishing.publishContext, {
+    const { claimId } = await claim()
+    await expect(claim()).rejects.toEqual(errorCode("page_busy"))
+    await expect(
+      ed.mutation(internal.publishing.claimRollback, {
+        siteId,
+        pageId,
+        versionId,
+      })
+    ).rejects.toEqual(errorCode("page_busy"))
+
+    await t.mutation(internal.publishing.release, { claimId })
+    await claim()
+    vi.advanceTimersByTime(CLAIM_MS + 1000)
+    await claim()
+    expect(
+      await t.run((ctx) => ctx.db.query("pageClaims").collect())
+    ).toHaveLength(1)
+    vi.useRealTimers()
+  })
+
+  test("refuses saves and restores while the page is claimed", async () => {
+    const { t, siteId, ed, pageId } = await site()
+    const { claimId } = await ed.mutation(internal.publishing.claimPublish, {
       siteId,
       pageId,
     })
-    expect(context.otherForms).toEqual([contact("email")])
+    await expect(
+      ed.mutation(api.pages.saveDraft, { siteId, pageId, draftHtml: "<p/>" })
+    ).rejects.toEqual(errorCode("page_busy"))
+    await expect(
+      ed.mutation(api.pages.restoreDraft, { siteId, pageId, ts: 0 })
+    ).rejects.toEqual(errorCode("page_busy"))
+
+    await t.mutation(internal.publishing.release, { claimId })
+    await ed.mutation(api.pages.saveDraft, {
+      siteId,
+      pageId,
+      draftHtml: "<p/>",
+    })
+  })
+})
+
+describe("publishing.holdForms", () => {
+  async function claimed() {
+    const fixture = await site()
+    const { siteId, ed, addPage } = fixture
+    const claim = async (pageId: Id<"pages">) =>
+      (
+        await ed.mutation(internal.publishing.claimPublish, {
+          siteId,
+          pageId,
+        })
+      ).claimId
+    const hold = (claimId: Id<"pageClaims">, forms = [contact("email")]) =>
+      fixture.t.mutation(internal.publishing.holdForms, { claimId, forms })
+    return { ...fixture, other: await addPage("/contact"), claim, hold }
+  }
+
+  test("refuses a form defined differently on another live page", async () => {
+    const { t, pageId, other, release, claim, hold } = await claimed()
+    await t.mutation(
+      internal.publishing.markLive,
+      release({ pageId: other, forms: [contact("phone")] })
+    )
+    await expect(hold(await claim(pageId))).rejects.toEqual(
+      formConflict("contact")
+    )
   })
 
+  test("refuses a form defined differently on another page's claim", async () => {
+    vi.useFakeTimers()
+    const { pageId, other, claim, hold } = await claimed()
+    await hold(await claim(other), [contact("phone")])
+    const claimId = await claim(pageId)
+    await expect(hold(claimId)).rejects.toEqual(formConflict("contact"))
+
+    vi.advanceTimersByTime(CLAIM_MS + 1000)
+    await expect(hold(claimId)).rejects.toEqual(errorCode("page_busy"))
+    await hold(await claim(pageId))
+    vi.useRealTimers()
+  })
+
+  test("ignores the page's own live forms", async () => {
+    const { t, pageId, release, claim, hold } = await claimed()
+    await t.mutation(
+      internal.publishing.markLive,
+      release({ forms: [contact("phone")] })
+    )
+    await hold(await claim(pageId))
+  })
+})
+
+describe("publishing.claimRollback", () => {
   test("refuses another page's version", async () => {
     const { t, siteId, ed, pageId, addPage, release } = await site()
     const other = await addPage("/b")
@@ -116,7 +208,7 @@ describe("publishing.context", () => {
       release({ pageId: other })
     )
     await expect(
-      ed.query(internal.publishing.rollbackContext, {
+      ed.mutation(internal.publishing.claimRollback, {
         siteId,
         pageId,
         versionId,
