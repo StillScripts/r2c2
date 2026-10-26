@@ -21,4 +21,34 @@
       "simple": { "limit": 3, "period": 60 },
     },
   ],
+  "env": {
+    // `vp run dev` uses this: the bucket and namespace the Convex dev deployment writes to.
+    // The top-level bindings stay local, so tests never touch Cloudflare.
+    "dev": {
+      "r2_buckets": [
+        { "binding": "SITES", "bucket_name": "r2c2-dev", "remote": true },
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "ROUTES",
+          // R2C2_ROUTES_DEV
+          "id": "ec300175747f4b76b1a8ae58117f933f",
+          "remote": true,
+        },
+      ],
+      // Bindings aren't inherited from the top level, so the limits are repeated
+      "ratelimits": [
+        {
+          "name": "FORMS_LIMIT",
+          "namespace_id": "1001",
+          "simple": { "limit": 10, "period": 60 },
+        },
+        {
+          "name": "FORMS_NOJS_LIMIT",
+          "namespace_id": "1002",
+          "simple": { "limit": 3, "period": 60 },
+        },
+      ],
+    },
+  },
 }
