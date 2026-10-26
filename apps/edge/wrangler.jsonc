@@ -21,4 +21,33 @@
       "simple": { "limit": 3, "period": 60 },
     },
   ],
+  "env": {
+    // Used by `vp run dev`; the top-level bindings stay local for tests. Wrangler doesn't
+    // inherit bindings into an environment, so the rate limits are repeated here.
+    "dev": {
+      "r2_buckets": [
+        { "binding": "SITES", "bucket_name": "r2c2-dev", "remote": true },
+      ],
+      "kv_namespaces": [
+        // R2C2_ROUTES_DEV: must match the dev deployment's CLOUDFLARE_KV_NAMESPACE_ID
+        {
+          "binding": "ROUTES",
+          "id": "ec300175747f4b76b1a8ae58117f933f",
+          "remote": true,
+        },
+      ],
+      "ratelimits": [
+        {
+          "name": "FORMS_LIMIT",
+          "namespace_id": "1001",
+          "simple": { "limit": 10, "period": 60 },
+        },
+        {
+          "name": "FORMS_NOJS_LIMIT",
+          "namespace_id": "1002",
+          "simple": { "limit": 3, "period": 60 },
+        },
+      ],
+    },
+  },
 }

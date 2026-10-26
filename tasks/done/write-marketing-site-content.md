@@ -1,6 +1,7 @@
 ---
 title: T22 Write the marketing site content
 created: 2026-10-24
+completed: 2026-10-26
 plan: docs/plans/write-marketing-site-content.md
 ---
 

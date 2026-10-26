@@ -12,7 +12,7 @@ Copy `.env.example` to `.env.local` and fill in your Convex dev deployment's two
 - `CONVEX_SITE_URL`, the `.convex.site` URL the Loft's server calls for sign-in
 
 ```bash
-vp run dev   # from the repo root, on http://localhost:3000
+vp run dev   # from the repo root: the Loft on http://localhost:3000, the edge and convex dev
 ```
 
 The deployment's `SITE_URL` must be the Loft's origin, `http://localhost:3000` in dev, or
