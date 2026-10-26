@@ -1,6 +1,7 @@
 ---
 title: T22 Write the marketing site content
 created: 2026-10-24
+plan: docs/plans/write-marketing-site-content.md
 ---
 
 Build the R2C2 marketing site as the first site on R2C2.

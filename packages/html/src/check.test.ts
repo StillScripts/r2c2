@@ -25,6 +25,12 @@ describe("checkPage", () => {
     })
   })
 
+  it("allows code, preformatted text and sub and superscripts", async () => {
+    const body = `<h1>R<sub>2</sub>C<sup>2</sup></h1>
+<p>Add <code>&lt;site-form&gt;</code> to a page.</p><pre>HTTP/2 200</pre>`
+    expect((await check(body)).errors).toEqual([])
+  })
+
   it.each([
     ["allowed-tags", "<iframe></iframe>", "<iframe> isn't allowed."],
     ["allowed-tags", "<svg></svg>", "<svg> isn't allowed."],

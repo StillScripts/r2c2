@@ -9,7 +9,7 @@ import {
 } from "./_generated/server"
 import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
-import { SEED_SLUG } from "./seed"
+import { findSite, SEED_SLUG } from "./seed"
 import { role, type Role } from "./validators"
 
 /**
@@ -63,13 +63,7 @@ function signUp(
 
 export const siteBySlug = internalQuery({
   args: { slug: v.string() },
-  handler: async (ctx, { slug }) => {
-    const site = await ctx.db
-      .query("sites")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .unique()
-    return site?._id ?? null
-  },
+  handler: async (ctx, { slug }) => (await findSite(ctx, slug))?._id ?? null,
 })
 
 /** Add a user to a site: owner if it has no members yet, otherwise `role` (editor by default). */

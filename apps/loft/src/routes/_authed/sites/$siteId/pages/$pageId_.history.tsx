@@ -37,6 +37,7 @@ const REASONS: Record<Reason, string> = {
   publish: "Published",
   restore: "Before a restore",
   "ai-edit": "AI edit",
+  import: "Imported",
 }
 
 function PageHistory() {

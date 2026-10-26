@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>R2C2: websites that are just HTML again</title>
+    <meta
+      name="description"
+      content="R2C2 is an open-source architecture that runs hundreds of websites from one Cloudflare Worker. Pages are written in the R2C2 Loft, frozen to plain HTML in R2 and served from the edge."
+    />
+  </head>
+  <body>
+    <header class="border-line border-b">
+      <nav
+        class="section flex flex-wrap items-center justify-between gap-4 py-4.5"
+        aria-label="Main"
+      >
+        <a href="#top" class="flex items-baseline gap-2.5 no-underline">
+          <span class="mark text-2xl">R<sub>2</sub>C<sub>2</sub></span>
+          <span class="note">open-source web architecture</span>
+        </a>
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="#how" class="nav-link">How it works</a>
+          <a href="#loft" class="nav-link">Loft</a>
+          <a href="#mcp" class="nav-link">MCP</a>
+          <a href="#architecture" class="nav-link">Architecture</a>
+          <a href="#contact" class="nav-link">Contact</a>
+          <a
+            href="https://github.com/StillScripts/r2c2/tree/master/docs"
+            class="nav-link"
+            >Docs</a
+          >
+          <a
+            href="https://github.com/StillScripts/r2c2"
+            class="btn btn-small text-small"
+            >GitHub</a
+          >
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section
+        id="top"
+        class="section flex flex-wrap items-center gap-16 pt-22 pb-24"
+      >
+        <div class="flex min-w-0 grow-999 basis-130 flex-col gap-7">
+          <p class="eyebrow">React + R2 · Convex + Cloudflare</p>
+          <h1 class="headline text-display">
+            Websites that are just HTML again.
+          </h1>
+          <p class="prose text-lead text-xl leading-normal">
+            R2C2 runs hundreds of websites from one Cloudflare Worker. Pages are
+            written in the R2C2 Loft, frozen to plain HTML in R2, and served
+            from the edge, so a visit almost never runs any code.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <a
+              href="https://github.com/StillScripts/r2c2"
+              class="btn btn-primary"
+              >View the code on GitHub</a
+            >
+            <a href="#how" class="btn">See how it works</a>
+          </div>
+          <p class="note text-mono">
+            A public starter to read and fork, not a package to install.
+          </p>
+        </div>
+
+        <div
+          class="grid min-w-0 grow basis-100 grid-cols-2 gap-4"
+          aria-label="The four parts of R2C2"
+        >
+          <div class="flex flex-col gap-3">
+            <div class="part-label">
+              <span class="mark text-mark">R<sub>2</sub></span>
+              <span class="note">React + R2</span>
+            </div>
+            <div class="tile part">
+              <span class="note">Loft</span>
+              <span class="mark text-tile">Re</span>
+              <strong>React</strong>
+              <span class="part-text"
+                >Where sites are written and published</span
+              >
+            </div>
+            <div class="tile part">
+              <span class="note">Storage</span>
+              <span class="mark text-tile text-brand">R2</span>
+              <strong>R2</strong>
+              <span class="part-text">Where every published page lives</span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-3 pt-10">
+            <div class="part-label">
+              <span class="mark text-mark">C<sub>2</sub></span>
+              <span class="note">Convex + Cloudflare</span>
+            </div>
+            <div class="tile part">
+              <span class="note">Database</span>
+              <span class="mark text-tile">Cx</span>
+              <strong>Convex</strong>
+              <span class="part-text"
+                >Sites, drafts, versions and publishing</span
+              >
+            </div>
+            <div class="tile part bg-ink text-paper">
+              <span class="note text-night-muted">Edge</span>
+              <span class="mark text-tile">Cf</span>
+              <strong>Cloudflare</strong>
+              <span class="part-text text-night-muted"
+                >Domains, certificates, cache and serving</span
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-ink text-night-text" aria-labelledby="proof-heading">
+        <div class="section flex flex-wrap items-center gap-14 py-22">
+          <div class="flex min-w-0 grow basis-95 flex-col gap-5">
+            <p class="eyebrow text-brand-glow">Customer number one</p>
+            <h2 id="proof-heading" class="headline text-title">
+              You're reading an R2C2 site right now.
+            </h2>
+            <p class="prose text-night-soft text-lg">
+              This page was written in the R2C2 Loft, published to R2 as plain
+              HTML, and served by the same Worker that serves every other R2C2
+              site. The architecture is its own first customer.
+            </p>
+          </div>
+          <figure class="flex min-w-0 grow basis-110 flex-col gap-2.5">
+            <figcaption class="note text-night-muted">
+              Example response for this page
+            </figcaption>
+            <pre class="terminal">
+HTTP/2 200
+content-type: text/html; charset=utf-8
+<span class="text-mint">cf-cache-status: HIT</span>
+cache-control: public, max-age=0, s-maxage=60,
+  stale-while-revalidate=86400
+cache-tag: site-r2c2,page-home
+etag: "3f9a1c"</pre>
+            <p class="text-night-muted text-sm">
+              A cache hit means the page came back without our code running at
+              all.
+            </p>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        id="how"
+        class="section flex flex-col gap-12 pt-26 pb-22"
+        aria-labelledby="how-heading"
+      >
+        <div class="flex max-w-3xl flex-col gap-3.5">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-heading" class="headline text-title">
+            Write it once. Freeze it. Serve it everywhere.
+          </h2>
+        </div>
+        <ol class="border-ink grid border-t-2 md:grid-cols-3">
+          <li class="step">
+            <span class="text-brand font-mono text-sm">01 · Write</span>
+            <h3 class="text-2xl font-bold tracking-tight">
+              Edit the real page
+            </h3>
+            <p class="text-slate">
+              AI and people edit the actual HTML in the Loft, one element at a
+              time. There is no block schema between what you write and what
+              visitors get.
+            </p>
+          </li>
+          <li class="step">
+            <span class="text-brand font-mono text-sm">02 · Publish</span>
+            <h3 class="text-2xl font-bold tracking-tight">Freeze a version</h3>
+            <p class="text-slate">
+              Publishing cleans the HTML, compiles its Tailwind in about 20 ms
+              and saves an unchangeable version to R2. The edge picks it up
+              within a minute.
+            </p>
+          </li>
+          <li class="step">
+            <span class="text-brand font-mono text-sm">03 · Serve</span>
+            <h3 class="text-2xl font-bold tracking-tight">
+              Answer from the edge
+            </h3>
+            <p class="text-slate">
+              The domain picks the site, the cache returns the page, and the
+              renderer only runs after a publish or when a cached copy expires.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section pb-26" aria-labelledby="ideas-heading">
+        <h2 id="ideas-heading" class="headline text-heading mb-8">
+          The ideas it's built on
+        </h2>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="card">
+            <h3 class="card-title">Generate when editing, not when visiting</h3>
+            <p class="card-text">
+              AI writes pages in the Loft. Visitors get the frozen result, so
+              every visitor and every search engine sees the same approved page.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">HTML with holes</h3>
+            <p class="card-text">
+              Live data like opening hours or stock lists comes from a few
+              custom tags, such as <code>&lt;site-hours&gt;</code>, filled in at
+              the edge.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">Every publish is a version</h3>
+            <p class="card-text">
+              Old versions stay in R2. Rolling back is pointing the page at an
+              older file, with no rebuild.
+            </p>
+          </div>
+          <div class="card">
+            <h3 class="card-title">No servers to run</h3>
+            <p class="card-text">
+              One Worker, one bucket and one routing table serve every site.
+              Cloudflare handles domains and certificates.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="loft"
+        class="border-line border-y bg-white"
+        aria-labelledby="loft-heading"
+      >
+        <div class="section flex flex-col gap-12 py-26">
+          <div
+            class="flex flex-wrap items-end justify-between gap-x-16 gap-y-6"
+          >
+            <div class="flex min-w-0 grow basis-130 flex-col gap-3.5">
+              <p class="eyebrow">The Loft</p>
+              <h2 id="loft-heading" class="headline text-title">
+                A quiet place to get things done.
+              </h2>
+            </div>
+            <p class="text-slate min-w-0 grow basis-90 text-lg">
+              The Loft is where you shape your sites. Say what you want, see it,
+              and publish when it's right. It's simple, clean and free of
+              distraction, with every site, page, version and enquiry in one
+              calm place.
+            </p>
+          </div>
+
+          <figure class="flex flex-col gap-3">
+            <div class="window">
+              <div class="window-bar">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="note ml-2">loft · Harbour Dental · /about</span>
+              </div>
+              <div class="flex flex-wrap">
+                <div class="sidebar">
+                  <div class="flex flex-col gap-1">
+                    <span
+                      class="note text-2xs px-2 pb-1 tracking-widest uppercase"
+                      >Sites</span
+                    >
+                    <span
+                      class="menu-item bg-brand-soft text-brand-deep font-semibold"
+                      >Harbour Dental</span
+                    >
+                    <span class="menu-item">Fernwood Yoga</span>
+                    <span class="menu-item">Northside Plumbing</span>
+                    <span class="menu-item text-muted">+ 97 more</span>
+                  </div>
+                  <div class="border-line flex flex-col gap-1 border-t pt-3.5">
+                    <span class="menu-item font-semibold">Pages</span>
+                    <span class="menu-item flex justify-between gap-2"
+                      >Enquiries <span class="badge">3</span></span
+                    >
+                    <span class="menu-item">Bookings</span>
+                    <span class="menu-item">Domains</span>
+                    <span class="menu-item">Versions</span>
+                  </div>
+                </div>
+                <div class="flex min-w-0 grow-999 basis-105 flex-col gap-4 p-5">
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-3"
+                  >
+                    <div class="flex flex-wrap items-center gap-2.5">
+                      <strong class="text-base">About page</strong>
+                      <span class="note">draft · live is v14</span>
+                    </div>
+                    <div class="flex gap-2">
+                      <span class="btn btn-small bg-white">Preview</span>
+                      <span class="btn btn-small btn-primary">Publish v15</span>
+                    </div>
+                  </div>
+                  <div class="card gap-3 p-7">
+                    <span class="note text-2xs text-brand">h1 selected</span>
+                    <span class="selected-headline"
+                      >Gentle care, close to home</span
+                    >
+                    <span class="skeleton mt-2.5"></span>
+                    <span class="skeleton w-3/4"></span>
+                  </div>
+                  <div class="card gap-2.5 px-4 py-3.5">
+                    <span class="text-small"
+                      >Make this headline warmer and mention Saturday
+                      hours</span
+                    >
+                    <span class="text-mono flex flex-col font-mono leading-7">
+                      <span class="text-red">− Gentle care, close to home</span>
+                      <span class="text-green"
+                        >+ Gentle care, now open Saturdays</span
+                      >
+                    </span>
+                    <span class="flex flex-wrap gap-2">
+                      <span class="btn btn-small bg-ink text-white"
+                        >Apply edit</span
+                      >
+                      <span
+                        class="btn btn-small border-line bg-white font-normal"
+                        >Try again</span
+                      >
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <figcaption class="note">
+              Loft concept with example sites. The edit changes one element, and
+              you see it before it lands.
+            </figcaption>
+          </figure>
+
+          <div class="grid gap-7 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="flex flex-col gap-2">
+              <h3 class="card-title">Edit with AI, one element at a time</h3>
+              <p class="card-text">
+                Select any part of a page and ask for a change. You review the
+                exact edit before it's applied.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h3 class="card-title">Every publish is kept</h3>
+              <p class="card-text">
+                Preview a draft, publish in one click, and roll back to any
+                earlier version straight away.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h3 class="card-title">Domains without the DNS headaches</h3>
+              <p class="card-text">
+                Add a client's domain, send them one DNS record, and
+                certificates are issued for you.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <h3 class="card-title">
+                Everything a site collects, in one inbox
+              </h3>
+              <p class="card-text">
+                Enquiries, bookings and orders arrive here, with where each
+                visitor came from.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="mcp"
+        class="bg-ink text-night-text"
+        aria-labelledby="mcp-heading"
+      >
+        <div class="section flex flex-wrap items-center gap-14 py-26">
+          <div class="flex min-w-0 grow basis-110 flex-col gap-5">
+            <div class="flex flex-wrap items-center gap-3">
+              <p class="eyebrow text-brand-glow">Model Context Protocol</p>
+              <span class="chip border-night-pill bg-ink text-night-soft border"
+                >planned</span
+              >
+            </div>
+            <h2 id="mcp-heading" class="headline text-title">
+              Run your website from the AI you already use.
+            </h2>
+            <p class="text-night-soft max-w-xl text-lg">
+              Every R2C2 site gets an MCP server. Connect Claude, ChatGPT or any
+              MCP client, and manage your site in the same conversation you use
+              for the rest of your business. The AI drafts, shows you a private
+              preview, and publishes only when you say so.
+            </p>
+            <dl class="border-night-line flex flex-col gap-4 border-t pt-5">
+              <div class="flex flex-col gap-1">
+                <dt class="font-bold">Drafts on a private link</dt>
+                <dd class="text-small text-night-muted">
+                  Every draft gets an unlisted preview on your own domain. It
+                  expires, and search engines are told not to index it.
+                </dd>
+              </div>
+              <div class="flex flex-col gap-1">
+                <dt class="font-bold">The same rules as the Loft</dt>
+                <dd class="text-small text-night-muted">
+                  The AI gets the same permissions, checks and version history
+                  as the Loft, so anything it changes can be rolled back.
+                </dd>
+              </div>
+              <div class="flex flex-col gap-1">
+                <dt class="font-bold">Publishing is your call</dt>
+                <dd class="text-small text-night-muted">
+                  Publishing is its own step, marked as a change to the live
+                  site, so your assistant asks you before it happens.
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          <figure class="flex min-w-0 grow basis-110 flex-col gap-3">
+            <div class="chat">
+              <p class="bubble">
+                Add our new Saturday hours to the homepage. Show me before it
+                goes live.
+              </p>
+              <p class="note text-night-muted flex flex-col gap-1.5">
+                <span>r2c2 · get_page home</span>
+                <span>r2c2 · edit_element #hours</span>
+                <span>r2c2 · preview_draft</span>
+              </p>
+              <p class="text-small">
+                I've added "Saturday 9am to 1pm" under your opening hours.
+                Here's the draft:
+              </p>
+              <p class="preview-card">
+                <strong class="text-small">Draft preview · Home</strong>
+                <span class="note text-night-muted wrap-anywhere"
+                  >harbourdental.com.au/_draft/k7Qx…/ · not indexed · expires in
+                  24 h</span
+                >
+              </p>
+              <p class="bubble">Looks good. Publish it.</p>
+              <p class="flex flex-col gap-1.5">
+                <span class="note text-mint"
+                  >r2c2 · publish_draft approved by you</span
+                >
+                <span class="text-small"
+                  >Published as version 16. You can roll back any time.</span
+                >
+              </p>
+            </div>
+            <figcaption class="note text-night-muted">
+              Concept conversation with an example site, in any MCP client.
+            </figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        id="forms"
+        class="section flex flex-col gap-11 py-26"
+        aria-labelledby="forms-heading"
+      >
+        <div class="flex max-w-3xl flex-col gap-3.5">
+          <p class="eyebrow">Forms, bookings and payments</p>
+          <h2 id="forms-heading" class="headline text-title">
+            Static pages that still take enquiries, bookings and payments.
+          </h2>
+          <p class="text-slate text-lg">
+            The interactive parts of a page are small tags like
+            <code>&lt;site-form&gt;</code>,
+            <code>&lt;site-booking&gt;</code> and <code>&lt;site-buy&gt;</code>.
+            They send to <code>/_api</code> on the site's own domain, never
+            straight to the database.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3.5">
+          <div class="flex flex-wrap items-stretch gap-2.5">
+            <div class="tile grow basis-50">
+              <strong>Form on the page</strong>
+              <span class="note">POST /_api/forms/contact</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile border-brand grow-2 basis-80">
+              <strong>Gateway Worker</strong>
+              <span class="note leading-relaxed"
+                >bot check · rate limit · site from domain · checks the fields ·
+                signs the request</span
+              >
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile bg-ink text-paper grow basis-55">
+              <strong>Convex</strong>
+              <span class="note text-night-muted leading-relaxed"
+                >verifies the signature · internal functions only</span
+              >
+            </div>
+          </div>
+          <p class="text-slate max-w-3xl">
+            Spam stops at the edge before it costs anything. The site always
+            comes from the domain, so a request can't claim to be another
+            business. Convex only accepts calls signed by the Worker, and checks
+            every field again.
+          </p>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-3">
+          <div class="card">
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="card-title">Enquiries</h3>
+              <span class="chip bg-brand-soft text-brand-deep">first</span>
+            </div>
+            <p class="card-text">
+              A real estate appraisal request lands in the Loft inbox and the
+              agent's email within seconds, tagged with the ad or search that
+              brought the visitor.
+            </p>
+          </div>
+          <div class="card">
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="card-title">Bookings</h3>
+              <span class="chip">planned</span>
+            </div>
+            <p class="card-text">
+              A massage centre shows live open slots. Bookings are
+              transactional, so two people can never take the same time.
+            </p>
+          </div>
+          <div class="card">
+            <div class="flex items-baseline justify-between gap-2">
+              <h3 class="card-title">Payments</h3>
+              <span class="chip">planned</span>
+            </div>
+            <p class="card-text">
+              A small shop checks out through Stripe's hosted checkout, so card
+              details never touch R2C2. Stripe's signed webhooks confirm each
+              order.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="border-line border-y bg-white"
+        aria-labelledby="cost-heading"
+      >
+        <div class="section flex flex-col gap-10 py-20">
+          <h2 id="cost-heading" class="headline text-heading max-w-2xl">
+            Cheap enough that a free website is a realistic offer.
+          </h2>
+          <dl class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="stat">
+              <dt class="mark text-5xl tabular-nums">≈ $5</dt>
+              <dd class="card-text">
+                a month to serve 100 sites with 2 million page views
+              </dd>
+            </div>
+            <div class="stat">
+              <dt class="mark text-5xl tabular-nums">1 · 1 · 1</dt>
+              <dd class="card-text">
+                Worker, bucket and routing table for every site
+              </dd>
+            </div>
+            <div class="stat">
+              <dt class="mark text-5xl tabular-nums">~20 ms</dt>
+              <dd class="card-text">
+                to compile a page's Tailwind when it's published
+              </dd>
+            </div>
+            <div class="stat">
+              <dt class="mark text-5xl tabular-nums">0</dt>
+              <dd class="card-text">
+                servers, load balancers or certificates to manage
+              </dd>
+            </div>
+          </dl>
+          <p class="note">
+            Estimate at Cloudflare list prices in October 2026, in US dollars.
+            Excludes the Cloudflare zone plan, image resizing and the Convex
+            backend.
+          </p>
+        </div>
+      </section>
+
+      <section
+        id="architecture"
+        class="section flex flex-col gap-10 py-26"
+        aria-labelledby="arch-heading"
+      >
+        <div class="flex max-w-3xl flex-col gap-3.5">
+          <p class="eyebrow">Architecture</p>
+          <h2 id="arch-heading" class="headline text-title">
+            The whole request path fits on one line.
+          </h2>
+        </div>
+        <div class="flex flex-col gap-3.5">
+          <div class="flex flex-wrap items-stretch gap-2.5">
+            <div class="tile grow basis-38">
+              <strong>Visitor</strong>
+              <span class="note">any client domain</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile grow basis-38">
+              <strong>Cloudflare edge</strong>
+              <span class="note">TLS per domain</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile grow basis-38">
+              <strong>Gateway</strong>
+              <span class="note">domain → site</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile border-brand grow basis-38">
+              <strong>Workers Cache</strong>
+              <span class="note text-green">hit: done here</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile grow basis-38">
+              <strong>Renderer</strong>
+              <span class="note">on a miss only</span>
+            </div>
+            <span class="arrow" aria-hidden="true">→</span>
+            <div class="tile bg-ink text-paper grow basis-38">
+              <strong>R2</strong>
+              <span class="note text-night-muted">live HTML file</span>
+            </div>
+          </div>
+          <p class="text-slate max-w-2xl">
+            Publishing runs the other way: the Loft writes a new version to R2,
+            and the edge picks it up when its cached copy expires, within a
+            minute. Convex holds the drafts and history; it is never in the path
+            that serves a visitor.
+          </p>
+        </div>
+      </section>
+
+      <section class="section pb-26" aria-labelledby="cta-heading">
+        <div class="cta">
+          <div class="flex min-w-0 grow basis-105 flex-col gap-4">
+            <h2 id="cta-heading" class="headline text-title">
+              Read the code. Fork it. Run your own sites.
+            </h2>
+            <p class="prose text-lg">
+              R2C2 is a public starter, built in the open. Clone it to learn how
+              it works, or use it to host your own sites.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <a href="https://github.com/StillScripts/r2c2" class="btn btn-light"
+              >Open the repository</a
+            >
+            <a
+              href="https://github.com/StillScripts/r2c2/tree/master/docs"
+              class="btn btn-on-brand"
+              >Read the docs</a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="contact"
+        class="border-line border-t bg-white"
+        aria-labelledby="contact-heading"
+      >
+        <div class="section flex flex-wrap gap-14 py-26">
+          <div class="flex min-w-0 grow basis-95 flex-col gap-3.5">
+            <p class="eyebrow">Contact</p>
+            <h2 id="contact-heading" class="headline text-title">Say hello.</h2>
+            <p class="prose text-slate text-lg">
+              Questions about R2C2, or thinking of running your own sites on it?
+              Send a message. This form is a <code>&lt;site-form&gt;</code>, so
+              it lands in the Loft inbox like any other enquiry.
+            </p>
+          </div>
+          <site-form name="contact" class="min-w-0 grow basis-110">
+            <form
+              method="post"
+              action="/_api/forms/contact"
+              class="flex flex-col gap-5"
+            >
+              <div class="flex flex-col gap-2">
+                <label for="contact-name" class="font-semibold">Name</label>
+                <input
+                  id="contact-name"
+                  name="name"
+                  type="text"
+                  required
+                  maxlength="200"
+                  autocomplete="name"
+                  class="field"
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="contact-email" class="font-semibold">Email</label>
+                <input
+                  id="contact-email"
+                  name="email"
+                  type="email"
+                  required
+                  maxlength="200"
+                  autocomplete="email"
+                  class="field"
+                />
+              </div>
+              <div class="flex flex-col gap-2">
+                <label for="contact-message" class="font-semibold"
+                  >Message</label
+                >
+                <textarea
+                  id="contact-message"
+                  name="message"
+                  required
+                  maxlength="5000"
+                  rows="6"
+                  class="field"
+                ></textarea>
+              </div>
+              <div>
+                <button type="submit" class="btn btn-primary">
+                  Send message
+                </button>
+              </div>
+            </form>
+          </site-form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="border-line border-t">
+      <div
+        class="section flex flex-wrap justify-between gap-4 pt-8 pb-10 text-sm text-muted"
+      >
+        <p>
+          Built by
+          <a href="https://github.com/StillScripts" class="font-semibold"
+            >StillScripts</a
+          >. Served by R2C2.
+        </p>
+        <p>
+          An independent project, not affiliated with Cloudflare, Convex or
+          Meta.
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>

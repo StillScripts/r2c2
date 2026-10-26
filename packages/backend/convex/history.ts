@@ -5,7 +5,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server"
 
 export const SNAPSHOT_INTERVAL_MS = 5 * 60 * 1000
 
-export type DraftReason = "save" | "ai-edit" | "publish" | "restore"
+export type DraftReason = "save" | "ai-edit" | "publish" | "restore" | "import"
 
 /** Draft snapshots of `pages`. Beta, so only `recordDraft` and `draftHistory` touch it (SPEC §6). */
 const pageHistory = new TableHistory<DataModel, "pages">(components.pageHistory)
