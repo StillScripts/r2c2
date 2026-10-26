@@ -11,10 +11,11 @@ Sign in to Cloudflare once, then copy `.env.example` to `.env` and fill it in
 
 ```bash
 vp exec wrangler login
-vp run --filter edge dev   # on http://localhost:8787
+vp run dev                # from the repo root, with the Loft and convex dev
+vp run --filter edge dev  # the edge alone, on http://localhost:8787
 ```
 
-This runs `wrangler dev --env dev` with remote bindings: `SITES` is the `r2c2-dev`
+The edge runs `wrangler dev --env dev` with remote bindings: `SITES` is the `r2c2-dev`
 bucket and `ROUTES` is `R2C2_ROUTES_DEV`, which the Convex dev deployment writes to (see
 [Storage and routing secrets](../../packages/backend/README.md#storage-and-routing-secrets)).
 With the seed site imported and published, open <http://r2c2.localhost:8787>, or:

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp run --filter loft dev",
+    "dev": "vp run --parallel --log labeled --filter loft --filter edge --filter @workspace/backend dev",
     "build": "vp run -r build",
     "prepare": "vp config && vp run --filter docs sync"
   },
