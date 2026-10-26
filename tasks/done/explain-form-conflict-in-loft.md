@@ -1,6 +1,7 @@
 ---
 title: Explain form conflicts when publishing in the Loft
 created: 2026-10-26
+completed: 2026-10-26
 ---
 
 Publishing a page whose `<site-form>` has the same name as a form on another live page, but different fields, throws `form_conflict` with `{ form }`. Publish and rollback both do this. The Loft has no message for it in `apps/loft/src/lib/errors.ts`, so staff see "Something went wrong. Please try again." with no hint how to fix it.
