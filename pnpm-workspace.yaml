@@ -8,6 +8,7 @@ catalog:
   "@cloudflare/vitest-plugin": 1.4.7
   "@convex-dev/better-auth": 0.12.5
   "@convex-dev/react-query": 0.1.0
+  "@convex-dev/resend": 0.2.10
   "@convex-dev/table-history": 0.1.6
   "@convex-dev/r2": 0.10.4
   "@convex-dev/rate-limiter": 0.4.2
@@ -62,3 +63,9 @@ peerDependencyRules:
 allowBuilds:
   esbuild: true
   workerd: true
+
+permissions:
+  "@tanstack/react-router":
+    skills: true
+  "@tanstack/react-start":
+    skills: true

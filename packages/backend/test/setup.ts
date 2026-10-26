@@ -1,5 +1,6 @@
 import betterAuth from "@convex-dev/better-auth/test"
 import rateLimiter from "@convex-dev/rate-limiter/test"
+import resend from "@convex-dev/resend/test"
 import { convexTest } from "convex-test"
 import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
@@ -17,6 +18,7 @@ export const setup = () => {
   const t = convexTest(schema, modules)
   betterAuth.register(t)
   rateLimiter.register(t)
+  resend.register(t)
   t.registerComponent("pageHistory", historySchema, historyModules)
   return t
 }

@@ -79,7 +79,7 @@ export const receive = internalMutation({
     const errors = form
       ? fieldErrors(form.fields, args.data)
       : { form: ["Unknown form."] }
-    if (Object.keys(errors).length)
+    if (!form || Object.keys(errors).length)
       return { ok: false, reason: "invalid", errors }
 
     const now = Date.now()
@@ -97,7 +97,7 @@ export const receive = internalMutation({
     const { ok } = await rateLimiter.limit(ctx, "enquiry", { key: site._id })
     if (!ok) return { ok: false, reason: "rate_limited" }
 
-    await ctx.db.insert("enquiries", {
+    const enquiryId = await ctx.db.insert("enquiries", {
       siteId: site._id,
       form: args.form,
       data: args.data,
@@ -105,6 +105,16 @@ export const receive = internalMutation({
       status: "new",
       createdAt: now,
       bodyHash: args.bodyHash,
+    })
+    // The form's first email field, already validated above, becomes the Reply-To
+    const replyTo = form.fields
+      .filter((field) => field.type === "email")
+      .map((field) => args.data[field.name]?.trim())
+      .find(Boolean)
+    // Scheduled, so a failure to enqueue the email can never lose the enquiry
+    await ctx.scheduler.runAfter(0, internal.notifications.enquiryEmail, {
+      enquiryId,
+      replyTo,
     })
     return { ok: true }
   },

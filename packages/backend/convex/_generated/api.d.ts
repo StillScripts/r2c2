@@ -15,6 +15,7 @@ import type * as enquiries from "../enquiries.js";
 import type * as errors from "../errors.js";
 import type * as history from "../history.js";
 import type * as http from "../http.js";
+import type * as notifications from "../notifications.js";
 import type * as pages from "../pages.js";
 import type * as preview from "../preview.js";
 import type * as publish from "../publish.js";
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   errors: typeof errors;
   history: typeof history;
   http: typeof http;
+  notifications: typeof notifications;
   pages: typeof pages;
   preview: typeof preview;
   publish: typeof publish;
@@ -82,5 +84,6 @@ export declare const components: {
   betterAuth: import("@convex-dev/better-auth/_generated/component.js").ComponentApi<"betterAuth">;
   r2: import("@convex-dev/r2/_generated/component.js").ComponentApi<"r2">;
   rateLimiter: import("@convex-dev/rate-limiter/_generated/component.js").ComponentApi<"rateLimiter">;
+  resend: import("@convex-dev/resend/_generated/component.js").ComponentApi<"resend">;
   pageHistory: import("@convex-dev/table-history/_generated/component.js").ComponentApi<"pageHistory">;
 };
