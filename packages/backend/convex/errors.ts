@@ -14,6 +14,17 @@ export type ErrorCode =
   | "page_too_large"
   | "form_conflict"
 
-/** A ConvexError the Loft can switch on, with optional details such as `{ form }`. */
-export const fail = (code: ErrorCode, details?: Record<string, string>) =>
-  new ConvexError({ code, ...details })
+/** The details a code carries alongside it, for the Loft's messages. */
+export type ErrorDetails = {
+  form_conflict: { form: string }
+}
+
+type DetailsArg<C extends ErrorCode> = C extends keyof ErrorDetails
+  ? [details: ErrorDetails[C]]
+  : []
+
+/** A ConvexError the Loft can switch on, with the code's details such as `{ form }`. */
+export const fail = <C extends ErrorCode>(
+  code: C,
+  ...[details]: DetailsArg<C>
+) => new ConvexError({ code, ...details })

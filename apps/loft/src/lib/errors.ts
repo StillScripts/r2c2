@@ -1,12 +1,14 @@
-import type { ErrorCode } from "@workspace/backend/errors"
+import type { ErrorCode, ErrorDetails } from "@workspace/backend/errors"
 import { MAX_PAGE_BYTES } from "@workspace/core"
 import { ConvexError } from "convex/values"
 
-type Details = Partial<Record<string, string>>
+type Messages = {
+  [C in ErrorCode]?: C extends keyof ErrorDetails
+    ? (details: ErrorDetails[C]) => string
+    : string
+}
 
-const MESSAGES: Partial<
-  Record<ErrorCode, string | ((details: Details) => string)>
-> = {
+const MESSAGES: Messages = {
   invalid_path:
     "Use / or lowercase words joined by hyphens, like /about or /services/cleaning.",
   path_taken: "This site already has a page at that path.",
@@ -17,11 +19,12 @@ const MESSAGES: Partial<
 
 /** A readable message for an error from a Convex function. */
 export function errorMessage(error: unknown) {
-  const { code, ...details } =
+  const data =
     error instanceof ConvexError
-      ? (error.data as { code?: ErrorCode } & Details)
-      : {}
-  const message = code && MESSAGES[code]
-  if (typeof message === "function") return message(details)
+      ? (error.data as { code?: ErrorCode })
+      : undefined
+  const message = data?.code && MESSAGES[data.code]
+  // `fail` gives each code its own details, so the data fits the code's message
+  if (typeof message === "function") return message(data as never)
   return message ?? "Something went wrong. Please try again."
 }
