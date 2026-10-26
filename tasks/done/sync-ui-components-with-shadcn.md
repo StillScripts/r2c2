@@ -1,6 +1,7 @@
 ---
 title: Sync hand-written UI components with the shadcn registry
 created: 2026-10-25
+completed: 2026-10-27
 ---
 
 `Input`, `Label` and `AlertDialog` in `packages/ui/src/components/` were written by hand in agent sessions, because the shadcn registry (`ui.shadcn.com`) was blocked there. They copy `Button`'s `base-rhea` style but may differ from what the registry ships.
