@@ -114,11 +114,41 @@ export async function assertUnclaimed(ctx: QueryCtx, pageId: Id<"pages">) {
   if (claim && isActive(claim)) throw fail("page_busy")
 }
 
-/** Claim the page as the signed-in member, so no other publish, rollback or save runs on it. */
+/**
+ * Refuse forms defined differently on another live page or another page's claim, so
+ * two pages publishing at once can't both put a clashing form in R2.
+ */
+async function checkForms(
+  ctx: QueryCtx,
+  siteId: Id<"sites">,
+  pageId: Id<"pages">,
+  forms: FormDefinition[]
+) {
+  const claims = await ctx.db
+    .query("pageClaims")
+    .withIndex("by_site", (q) => q.eq("siteId", siteId))
+    .collect()
+  const others = [
+    ...(await livePages(ctx, siteId))
+      .filter((live) => live.pageId !== pageId)
+      .flatMap((live) => live.version.forms),
+    ...claims
+      .filter((claim) => claim.pageId !== pageId && isActive(claim))
+      .flatMap((claim) => claim.forms),
+  ]
+  const clash = formClash(forms, others)
+  if (clash) throw fail("form_conflict", { form: clash })
+}
+
+/**
+ * Claim the page as the signed-in member, so no other publish, rollback or save runs on
+ * it, holding `forms` for it.
+ */
 async function claimPage(
   ctx: MutationCtx,
   siteId: Id<"sites">,
-  pageId: Id<"pages">
+  pageId: Id<"pages">,
+  forms: FormDefinition[] = []
 ) {
   const { site, userId } = await loadSite(ctx, siteId)
   const page = await ownPage(ctx, siteId, pageId)
@@ -127,43 +157,14 @@ async function claimPage(
     if (isActive(held)) throw fail("page_busy")
     await ctx.db.delete("pageClaims", held._id)
   }
+  await checkForms(ctx, siteId, pageId, forms)
   const claimId = await ctx.db.insert("pageClaims", {
     siteId,
     pageId,
     expiresAt: Date.now() + CLAIM_MS,
-    forms: [],
+    forms,
   })
   return { claimId, site, userId, page }
-}
-
-/**
- * Record the forms a claim will put live, refusing any defined differently on another
- * live page or another page's claim.
- */
-async function holdClaimForms(
-  ctx: MutationCtx,
-  claimId: Id<"pageClaims">,
-  forms: FormDefinition[]
-) {
-  const claim = await ctx.db.get("pageClaims", claimId)
-  if (!claim || !isActive(claim)) throw fail("page_busy")
-  const claims = await ctx.db
-    .query("pageClaims")
-    .withIndex("by_site", (q) => q.eq("siteId", claim.siteId))
-    .collect()
-  const others = [
-    ...(await livePages(ctx, claim.siteId)).map(({ pageId, version }) => ({
-      pageId,
-      forms: version.forms,
-    })),
-    ...claims.filter(isActive),
-  ].filter((other) => other.pageId !== claim.pageId)
-  const clash = formClash(
-    forms,
-    others.flatMap((other) => other.forms)
-  )
-  if (clash) throw fail("form_conflict", { form: clash })
-  await ctx.db.patch("pageClaims", claimId, { forms })
 }
 
 /** Claim a page to publish it, returning what the build needs. */
@@ -183,9 +184,15 @@ export const claimPublish = internalMutation({
   },
 })
 
+/** Hold the forms a claimed publish will put live, once its build has found them. */
 export const holdForms = internalMutation({
   args: { claimId: v.id("pageClaims"), forms: v.array(formDefinition) },
-  handler: (ctx, { claimId, forms }) => holdClaimForms(ctx, claimId, forms),
+  handler: async (ctx, { claimId, forms }) => {
+    const claim = await ctx.db.get("pageClaims", claimId)
+    if (!claim || !isActive(claim)) throw fail("page_busy")
+    await checkForms(ctx, claim.siteId, claim.pageId, forms)
+    await ctx.db.patch("pageClaims", claimId, { forms })
+  },
 })
 
 /** Claim a page to put one of its versions back live. */
@@ -196,9 +203,13 @@ export const claimRollback = internalMutation({
     versionId: v.id("pageVersions"),
   },
   handler: async (ctx, { siteId, pageId, versionId }) => {
-    const { claimId, userId, page } = await claimPage(ctx, siteId, pageId)
     const version = await ownVersion(ctx, pageId, versionId)
-    await holdClaimForms(ctx, claimId, version.forms)
+    const { claimId, userId, page } = await claimPage(
+      ctx,
+      siteId,
+      pageId,
+      version.forms
+    )
     return { claimId, userId, page, version }
   },
 })

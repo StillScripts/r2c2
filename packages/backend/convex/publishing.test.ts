@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from "vite-plus/test"
+import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { api, internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { draftHistory } from "./history"
@@ -43,6 +43,10 @@ async function site() {
   return { t, siteId, ed, pageId, addPage, release, page, registry }
 }
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe("formClash", () => {
   test("finds a form with the same name and different fields", () => {
     expect(formClash([contact("email")], [contact("phone")])).toBe("contact")
@@ -54,9 +58,6 @@ describe("formClash", () => {
     ).toBeUndefined()
   })
 })
-
-const formConflict = (form: string) =>
-  expect.objectContaining({ data: { code: "form_conflict", form } })
 
 describe("publishing.claimPublish", () => {
   test("refuses outsiders and signed-out callers", async () => {
@@ -124,28 +125,25 @@ describe("publishing.claimPublish", () => {
     expect(
       await t.run((ctx) => ctx.db.query("pageClaims").collect())
     ).toHaveLength(1)
-    vi.useRealTimers()
   })
 
   test("refuses saves and restores while the page is claimed", async () => {
     const { t, siteId, ed, pageId } = await site()
+    const save = () =>
+      ed.mutation(api.pages.saveDraft, { siteId, pageId, draftHtml: "<p/>" })
+    await save()
+    const [{ ts }] = await t.run((ctx) => draftHistory(ctx, pageId))
     const { claimId } = await ed.mutation(internal.publishing.claimPublish, {
       siteId,
       pageId,
     })
+    await expect(save()).rejects.toEqual(errorCode("page_busy"))
     await expect(
-      ed.mutation(api.pages.saveDraft, { siteId, pageId, draftHtml: "<p/>" })
-    ).rejects.toEqual(errorCode("page_busy"))
-    await expect(
-      ed.mutation(api.pages.restoreDraft, { siteId, pageId, ts: 0 })
+      ed.mutation(api.pages.restoreDraft, { siteId, pageId, ts })
     ).rejects.toEqual(errorCode("page_busy"))
 
     await t.mutation(internal.publishing.release, { claimId })
-    await ed.mutation(api.pages.saveDraft, {
-      siteId,
-      pageId,
-      draftHtml: "<p/>",
-    })
+    await save()
   })
 })
 
@@ -172,7 +170,7 @@ describe("publishing.holdForms", () => {
       release({ pageId: other, forms: [contact("phone")] })
     )
     await expect(hold(await claim(pageId))).rejects.toEqual(
-      formConflict("contact")
+      errorCode("form_conflict", { form: "contact" })
     )
   })
 
@@ -181,12 +179,13 @@ describe("publishing.holdForms", () => {
     const { pageId, other, claim, hold } = await claimed()
     await hold(await claim(other), [contact("phone")])
     const claimId = await claim(pageId)
-    await expect(hold(claimId)).rejects.toEqual(formConflict("contact"))
+    await expect(hold(claimId)).rejects.toEqual(
+      errorCode("form_conflict", { form: "contact" })
+    )
 
     vi.advanceTimersByTime(CLAIM_MS + 1000)
     await expect(hold(claimId)).rejects.toEqual(errorCode("page_busy"))
     await hold(await claim(pageId))
-    vi.useRealTimers()
   })
 
   test("ignores the page's own live forms", async () => {
@@ -292,7 +291,6 @@ describe("publishing.markLive", () => {
       publishedBy: "ann",
       publishedAt: Date.now(),
     })
-    vi.useRealTimers()
   })
 
   test("removes forms no longer on a live page", async () => {
@@ -317,11 +315,7 @@ describe("publishing.markLive", () => {
         internal.publishing.markLive,
         release({ forms: [contact("phone")] })
       )
-    ).rejects.toEqual(
-      expect.objectContaining({
-        data: { code: "form_conflict", form: "contact" },
-      })
-    )
+    ).rejects.toEqual(errorCode("form_conflict", { form: "contact" }))
   })
 })
 
@@ -386,10 +380,6 @@ describe("publishing.markRolledBack", () => {
         versionId: first,
         actor: "ed",
       })
-    ).rejects.toEqual(
-      expect.objectContaining({
-        data: { code: "form_conflict", form: "contact" },
-      })
-    )
+    ).rejects.toEqual(errorCode("form_conflict", { form: "contact" }))
   })
 })

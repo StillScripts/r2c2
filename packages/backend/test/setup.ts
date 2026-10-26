@@ -48,9 +48,9 @@ export const addMember = (
   member: { userId: string; role: Role }
 ) => t.run((ctx) => ctx.db.insert("memberships", { siteId, ...member }))
 
-/** Matches a ConvexError thrown with `fail(code)`. */
-export const errorCode = (code: string) =>
-  expect.objectContaining({ data: { code } })
+/** Matches a ConvexError thrown with `fail(code, details)`. */
+export const errorCode = (code: string, details?: object) =>
+  expect.objectContaining({ data: { code, ...details } })
 
 /** Queued scheduled functions, oldest first. */
 export const scheduledJobs = (t: ReturnType<typeof setup>) =>

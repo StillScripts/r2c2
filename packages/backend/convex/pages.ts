@@ -83,13 +83,17 @@ export const create = siteMutation({
   },
 })
 
-/** Check a new draft and patch it in, keeping `title` in step with its `<title>`. */
+/**
+ * Check a new draft and patch it in, keeping `title` in step with its `<title>`. Refused
+ * while a publish or rollback holds the page.
+ */
 export async function writeDraft(
   ctx: MutationCtx,
   page: Doc<"pages">,
   draftHtml: string
 ) {
   if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
+  await assertUnclaimed(ctx, page._id)
   const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
   await ctx.db.patch("pages", page._id, patch)
   return { ...page, ...patch }
@@ -99,7 +103,6 @@ export const saveDraft = siteMutation({
   args: { pageId: v.id("pages"), draftHtml: v.string() },
   handler: async (ctx, { pageId, draftHtml }) => {
     const page = await ownDoc(ctx, "pages", pageId)
-    await assertUnclaimed(ctx, pageId)
     const saved = await writeDraft(ctx, page, draftHtml)
     await recordDraft(ctx, saved, { reason: "save", actor: ctx.userId })
   },
@@ -183,7 +186,6 @@ export const restoreDraft = siteMutation({
   args: { pageId: v.id("pages"), ts: v.number() },
   handler: async (ctx, { pageId, ts }) => {
     const page = await ownDoc(ctx, "pages", pageId)
-    await assertUnclaimed(ctx, pageId)
     const snapshot = await draftAt(ctx, pageId, ts)
     if (!snapshot) throw fail("not_found")
 
