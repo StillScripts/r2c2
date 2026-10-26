@@ -3,9 +3,10 @@ import { audit, siteMutation, siteQuery } from "./access"
 import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
 
+/** The site, with the caller's role on it so the Loft can show owner-only controls. */
 export const get = siteQuery({
   args: {},
-  handler: (ctx) => ctx.site,
+  handler: (ctx) => ({ ...ctx.site, role: ctx.membership.role }),
 })
 
 export const rename = siteMutation({

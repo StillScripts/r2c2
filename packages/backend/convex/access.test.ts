@@ -22,6 +22,7 @@ describe("site access", () => {
 
     expect(await ann.query(api.sites.get, { siteId: a })).toMatchObject({
       slug: "a",
+      role: "editor",
     })
     await expect(ann.query(api.sites.get, { siteId: b })).rejects.toEqual(
       errorCode("not_found")

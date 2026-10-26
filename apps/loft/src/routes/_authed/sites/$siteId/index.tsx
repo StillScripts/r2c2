@@ -2,12 +2,13 @@ import { useConvexMutation } from "@convex-dev/react-query"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
-import type { Id } from "@workspace/backend/dataModel"
+import type { Doc, Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import type { FunctionArgs } from "convex/server"
 import type { FormEvent } from "react"
+import { ConfirmButton } from "@/components/confirm-button"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
 import { newEnquiriesQuery, pagesQuery, siteQuery } from "@/lib/queries"
@@ -50,6 +51,12 @@ function SitePages() {
           </Link>
         </div>
       </div>
+      <SiteStatus
+        siteId={siteId}
+        status={site.status}
+        isOwner={site.role === "owner"}
+        homeIsLive={pages.some((page) => page.path === "/" && page.isLive)}
+      />
       {pages.length === 0 ? (
         <p className="text-muted-foreground">This site has no pages yet.</p>
       ) : (
@@ -77,6 +84,78 @@ function SitePages() {
       )}
       <NewPageForm siteId={siteId} />
     </main>
+  )
+}
+
+const STATUS_COPY = {
+  live: {
+    heading: "Live",
+    hint: "Visitors see your published pages.",
+    action: "Switch to Coming soon",
+    confirm: "Switch to Coming soon?",
+    next: "coming-soon",
+  },
+  "coming-soon": {
+    heading: "Coming soon",
+    hint: "Visitors see a holding page on every path.",
+    action: "Go live",
+    confirm: "Take this site live?",
+    next: "live",
+  },
+} as const
+
+function SiteStatus({
+  siteId,
+  status,
+  isOwner,
+  homeIsLive,
+}: {
+  siteId: Id<"sites">
+  status: Doc<"sites">["status"]
+  isOwner: boolean
+  homeIsLive: boolean
+}) {
+  const change = useMutation({
+    mutationFn: useConvexMutation(api.sites.setStatus),
+  })
+  const copy = STATUS_COPY[status]
+
+  return (
+    <section className="flex flex-col gap-3 rounded-3xl border p-6">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col">
+          <h2 className="font-medium">{copy.heading}</h2>
+          <p className="text-sm text-muted-foreground">{copy.hint}</p>
+        </div>
+        {isOwner && (
+          <ConfirmButton
+            variant={status === "live" ? "outline" : "default"}
+            disabled={change.isPending}
+            title={copy.confirm}
+            description={
+              status === "live" ? (
+                "Every page will show the holding page instead, within about a minute."
+              ) : (
+                <>
+                  {!homeIsLive &&
+                    "The home page (/) isn't published yet, so visitors to it will see a not-found page. "}
+                  Visitors will see your published pages within about a minute.
+                </>
+              )
+            }
+            confirmLabel={copy.action}
+            onConfirm={() => change.mutate({ siteId, status: copy.next })}
+          >
+            {change.isPending ? "Saving…" : copy.action}
+          </ConfirmButton>
+        )}
+      </div>
+      {change.error && (
+        <p role="alert" className="text-sm text-destructive">
+          {errorMessage(change.error)}
+        </p>
+      )}
+    </section>
   )
 }
 
