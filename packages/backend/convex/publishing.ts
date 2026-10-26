@@ -1,3 +1,4 @@
+import { primaryDomain } from "@workspace/core"
 import type { FormDefinition } from "@workspace/html"
 import { v } from "convex/values"
 import type { Id } from "./_generated/dataModel"
@@ -115,9 +116,7 @@ export const publishContext = internalQuery({
   args: { siteId: v.id("sites"), pageId: v.id("pages") },
   handler: async (ctx, { siteId, pageId }) => {
     const { site, page, ...rest } = await pageContext(ctx, siteId, pageId)
-    const primary = (await domainsOf(ctx, siteId)).find(
-      (domain) => domain.kind === "primary" && domain.status === "active"
-    )
+    const primary = primaryDomain(await domainsOf(ctx, siteId))
     return {
       ...rest,
       page,

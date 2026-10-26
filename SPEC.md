@@ -172,16 +172,18 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 
 ## 6. Data model (Convex, milestone 1)
 
-| Table          | Key fields                                                                            | Indexes                |
-| -------------- | ------------------------------------------------------------------------------------- | ---------------------- |
-| `sites`        | name, slug, status, theme (Tailwind `@theme` tokens and `@utility` component classes) | by_slug                |
-| `domains`      | siteId, hostname, kind (`primary` \| `redirect`), status (`pending` \| `active`)      | by_hostname, by_site   |
-| `pages`        | siteId, path, title, draftHtml, liveVersionId                                         | by_site_path           |
-| `pageVersions` | siteId, pageId, hash, cssHash, forms, publishedBy, publishedAt                        | by_page                |
-| `forms`        | siteId, name, fields (name, type, required, maxLength)                                | by_site_name           |
-| `enquiries`    | siteId, form, data, source, status (`new` \| `handled`), createdAt                    | by_site_status_created |
-| `memberships`  | userId (`identity.subject`), siteId, role (`owner` \| `editor`)                       | by_user_site, by_site  |
-| `auditLog`     | siteId, actor, action, target, at                                                     | by_site_at             |
+| Table          | Key fields                                                                                    | Indexes                |
+| -------------- | --------------------------------------------------------------------------------------------- | ---------------------- |
+| `sites`        | name, slug, status, theme (Tailwind `@theme` tokens and `@utility` component classes)         | by_slug                |
+| `domains`      | siteId, hostname, kind (`primary` \| `redirect` \| `address`), status (`pending` \| `active`) | by_hostname, by_site   |
+| `pages`        | siteId, path, title, draftHtml, liveVersionId                                                 | by_site_path           |
+| `pageVersions` | siteId, pageId, hash, cssHash, forms, publishedBy, publishedAt                                | by_page                |
+| `forms`        | siteId, name, fields (name, type, required, maxLength)                                        | by_site_name           |
+| `enquiries`    | siteId, form, data, source, status (`new` \| `handled`), createdAt                            | by_site_status_created |
+| `memberships`  | userId (`identity.subject`), siteId, role (`owner` \| `editor`)                               | by_user_site, by_site  |
+| `auditLog`     | siteId, actor, action, target, at                                                             | by_site_at             |
+
+Every site has `<slug>.<SITES_DOMAIN>` (e.g. `acme-dental.lofty.page`) as a domain of kind `address` from the moment it's created. It serves the site until a custom primary is active, then redirects to it ([ADR-015](docs/decisions/ADR-015-give-each-site-a-lofty-page-address.md)).
 
 Indexes on site-owned tables start with `siteId`. Every function that touches site data goes through a `siteQuery` / `siteMutation` helper (convex-helpers custom functions) that loads the site and checks membership; a site the caller isn't a member of is `not_found`, the same as a missing one. Any other document ID a function takes is loaded through `ownDoc()`, which refuses documents from another site.
 
@@ -215,6 +217,7 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | Convex | `BETTER_AUTH_SECRET`, `SITE_URL`                                                                                               | Loft auth                     |
 | Convex | `TURNSTILE_SITE_KEY`                                                                                                           | `sitekey` on published forms  |
 | Convex | `EMAIL_FROM`, `RESEND_TEST_MODE` (on unless `false`)                                                                           | enquiry emails                |
+| Convex | `SITES_DOMAIN` (`lofty.page`; `localhost` when unset)                                                                          | each site's own address       |
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
 | Loft   | `VITE_CONVEX_URL`, `CONVEX_SITE_URL`                                                                                           | backend                       |
 

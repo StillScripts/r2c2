@@ -9,7 +9,8 @@ import {
 } from "./_generated/server"
 import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
-import { findSite, SEED_SLUG } from "./seed"
+import { SEED_SLUG } from "./seed"
+import { findSite } from "./sites"
 import { role, type Role } from "./validators"
 
 /**
