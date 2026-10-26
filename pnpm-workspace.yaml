@@ -63,3 +63,9 @@ peerDependencyRules:
 allowBuilds:
   esbuild: true
   workerd: true
+
+permissions:
+  "@tanstack/react-router":
+    skills: true
+  "@tanstack/react-start":
+    skills: true
