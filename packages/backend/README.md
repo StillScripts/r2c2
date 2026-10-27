@@ -30,6 +30,16 @@ remove it or add other hostnames under the sites domain. It's a domain of kind `
 serves the site until a custom primary is active, then redirects to it
 (`primaryDomain` in `@workspace/core`).
 
+The marketing site is served at `lofty.page` itself, inside the sites domain. Only the CLI
+can attach hostnames there, with `domains:attach`. It runs the same checks as `domains:add`
+apart from the sites-domain rule:
+
+```bash
+vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "lofty.page", "kind": "primary"}'
+vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "www.lofty.page", "kind": "redirect"}'
+vp run --filter @workspace/backend site:import -- r2c2 --prod  # import into production
+```
+
 ## Staff sign-in
 
 Better Auth runs inside Convex (`convex/auth.ts`), with email and password and public

@@ -1,9 +1,13 @@
 ---
 title: T23 Deploy to production
 created: 2026-10-24
+completed: 2026-10-27
+plan: docs/plans/deploy-to-production.md
 ---
 
 Take milestone 1 to production on Cloudflare and Convex.
+
+Shipped the repo side in #42: the Loft built for Workers, the edge's production env and routes, `domains:attach`, and a deploy workflow after CI ([ADR-016](../../docs/decisions/ADR-016-deploy-production-from-github-actions.md)). The `r2c2-sites` bucket and `R2C2_ROUTES_PROD` namespace exist. The owner runs the rest after merge with the runbook in [`docs/deploy.md`](../../docs/deploy.md): DNS, Resend, the Convex production deployment, secrets, going live, smoke checks and the cache purge re-test.
 
 - DNS: move `lofty.page` from Vercel to a Cloudflare zone (change its nameservers at Vercel), with proxied apex and `*` records and Worker routes for `lofty.page/*` and `*.lofty.page/*`; set `SITES_DOMAIN=lofty.page` on the production Convex deployment ([ADR-015](../../docs/decisions/ADR-015-give-each-site-a-lofty-page-address.md))
 - Attach `lofty.page` (primary) and `www.lofty.page` (redirect) to the marketing site from the CLI, since `domains:add` refuses hostnames in the sites domain; keep the Loft off `lofty.page` or add it to the Public Suffix List first

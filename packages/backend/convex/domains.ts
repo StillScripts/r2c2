@@ -1,8 +1,11 @@
 import { parseHostname } from "@workspace/core"
-import { v } from "convex/values"
-import { audit, ownDoc, siteMutation, siteQuery } from "./access"
+import { type Infer, v } from "convex/values"
+import type { Doc } from "./_generated/dataModel"
+import { internalMutation, type MutationCtx } from "./_generated/server"
+import { audit, ownDoc, siteMutation, siteQuery, writeAudit } from "./access"
 import { fail } from "./errors"
 import { domainByHost, domainsOf, scheduleRouteSync } from "./routes"
+import { findSite } from "./sites"
 import { customDomainKind } from "./validators"
 
 /** The domain every site has an address under: `lofty.page` in production, `localhost` in dev. */
@@ -19,6 +22,38 @@ export const list = siteQuery({
   handler: (ctx) => domainsOf(ctx, ctx.site._id),
 })
 
+/** Check a hostname is free, then add it to the site, audit it and sync the site's routes. */
+async function insertDomain(
+  ctx: MutationCtx,
+  site: Doc<"sites">,
+  actor: string,
+  hostname: string,
+  kind: Infer<typeof customDomainKind>
+) {
+  if (await domainByHost(ctx, hostname)) throw fail("hostname_taken")
+  if (
+    kind === "primary" &&
+    (await domainsOf(ctx, site._id)).some((d) => d.kind === "primary")
+  ) {
+    throw fail("primary_exists")
+  }
+
+  const domainId = await ctx.db.insert("domains", {
+    siteId: site._id,
+    hostname,
+    kind,
+    status: "active",
+  })
+  await writeAudit(ctx, {
+    siteId: site._id,
+    actor,
+    action: "domain.add",
+    target: hostname,
+  })
+  await scheduleRouteSync(ctx, site)
+  return domainId
+}
+
 export const add = siteMutation({
   role: "owner",
   args: { hostname: v.string(), kind: customDomainKind },
@@ -26,23 +61,23 @@ export const add = siteMutation({
     const hostname = parseHostname(input)
     if (!hostname) throw fail("invalid_hostname")
     if (inSitesDomain(hostname)) throw fail("reserved_hostname")
-    if (await domainByHost(ctx, hostname)) throw fail("hostname_taken")
-    if (
-      kind === "primary" &&
-      (await domainsOf(ctx, ctx.site._id)).some((d) => d.kind === "primary")
-    ) {
-      throw fail("primary_exists")
-    }
+    return insertDomain(ctx, ctx.site, ctx.userId, hostname, kind)
+  },
+})
 
-    const domainId = await ctx.db.insert("domains", {
-      siteId: ctx.site._id,
-      hostname,
-      kind,
-      status: "active",
-    })
-    await audit(ctx, { action: "domain.add", target: hostname })
-    await scheduleRouteSync(ctx, ctx.site)
-    return domainId
+/**
+ * Attach a hostname to a site from the CLI, including one in the sites domain that owners
+ * can't add, such as the marketing site's own `lofty.page` (ADR-015):
+ * `vp exec convex run domains:attach '{"slug": "r2c2", "hostname": "lofty.page", "kind": "primary"}'`
+ */
+export const attach = internalMutation({
+  args: { slug: v.string(), hostname: v.string(), kind: customDomainKind },
+  handler: async (ctx, { slug, hostname: input, kind }) => {
+    const hostname = parseHostname(input)
+    if (!hostname) throw fail("invalid_hostname")
+    const site = await findSite(ctx, slug)
+    if (!site) throw fail("not_found")
+    return insertDomain(ctx, site, "system", hostname, kind)
   },
 })
 

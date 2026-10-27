@@ -39,4 +39,4 @@ Deploy the Loft to Cloudflare Workers with TanStack Start's Cloudflare target, u
 ## Related
 
 - Task: tasks/done/choose-loft-hosting-platform.md
-- Deploy: tasks/someday/deploy-to-production.md
+- Deploy: tasks/done/deploy-to-production.md

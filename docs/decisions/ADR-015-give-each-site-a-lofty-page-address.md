@@ -2,7 +2,7 @@
 
 ## Status
 
-Proposed
+Accepted
 
 ## Date
 
@@ -52,5 +52,6 @@ Every site gets `<slug>.<SITES_DOMAIN>` as its address when it is created. `SITE
 
 ## Related
 
+- Plan: docs/plans/deploy-to-production.md
 - Task: tasks/done/give-sites-lofty-page-hostnames.md
 - Task: tasks/done/pick-marketing-site-domain.md
