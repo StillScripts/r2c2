@@ -60,5 +60,5 @@ The one-time setup is in `docs/deploy.md`.
 ## Related
 
 - Plan: docs/plans/deploy-to-production.md
-- Task: tasks/active/deploy-to-production.md
+- Task: tasks/done/deploy-to-production.md
 - Hosting: ADR-010
