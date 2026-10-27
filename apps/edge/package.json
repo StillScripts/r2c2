@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev --env dev",
+    "deploy": "wrangler deploy --env production",
     "spike:deploy": "wrangler deploy --config spike/wrangler.jsonc",
+    "spike:deploy:zone": "wrangler deploy --config spike/wrangler.jsonc --route \"spike.lofty.page/*\"",
     "spike:check": "vpx spike/check.ts",
     "spike:delete": "wrangler delete --config spike/wrangler.jsonc"
   },

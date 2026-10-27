@@ -221,8 +221,9 @@ Indexes on site-owned tables start with `siteId`. Every function that touches si
 | Convex | `SITES_DOMAIN` (`lofty.page`; `localhost` when unset)                                                                          | each site's own address       |
 | CLI    | `CONVEX_DEPLOYMENT` (local `.env.local` only)                                                                                  | which deployment the CLI uses |
 | Loft   | `VITE_CONVEX_URL`, `CONVEX_SITE_URL`                                                                                           | backend                       |
+| GitHub | `CONVEX_DEPLOY_KEY`, `CLOUDFLARE_API_TOKEN` (secrets); `CLOUDFLARE_ACCOUNT_ID`, `VITE_CONVEX_URL` (variables)                  | production deploys            |
 
-Each Convex deployment has its own R2 bucket and KV namespace (dev: bucket `r2c2-dev`, namespace `R2C2_ROUTES_DEV`), because site IDs differ between deployments. Commit `.env.example` files only. Environments: local (Convex dev deployment, `wrangler dev`), preview per PR later, production.
+Each Convex deployment has its own R2 bucket and KV namespace (dev: bucket `r2c2-dev`, namespace `R2C2_ROUTES_DEV`), because site IDs differ between deployments. Production uses bucket `r2c2-sites` and namespace `R2C2_ROUTES_PROD`. Commit `.env.example` files only. Environments: local (Convex dev deployment, `wrangler dev`), preview per PR later, production (Convex production deployment in US East, the edge on `lofty.page` and `*.lofty.page`, the Loft on `workers.dev`), deployed by GitHub Actions after CI passes on `master` (ADR-016, `docs/deploy.md`).
 
 ## 9. Working rules
 

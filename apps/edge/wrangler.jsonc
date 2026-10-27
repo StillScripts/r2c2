@@ -4,8 +4,6 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-10-19",
   "cache": { "enabled": true },
-  // Create once with an Oceania location hint:
-  // wrangler r2 bucket create r2c2-sites --location oc
   "r2_buckets": [{ "binding": "SITES", "bucket_name": "r2c2-sites" }],
   "kv_namespaces": [{ "binding": "ROUTES" }],
   // Per site and visitor IP: verified posts, and honeypot-only posts without JavaScript
@@ -45,6 +43,32 @@
         {
           "name": "FORMS_NOJS_LIMIT",
           "namespace_id": "1002",
+          "simple": { "limit": 3, "period": 60 },
+        },
+      ],
+    },
+    // Deployed by .github/workflows/deploy.yml; one-time setup is in docs/deploy.md.
+    // Rate limits use their own namespace ids so production doesn't share dev's counters.
+    "production": {
+      "workers_dev": false,
+      "routes": [
+        { "pattern": "lofty.page/*", "zone_name": "lofty.page" },
+        { "pattern": "*.lofty.page/*", "zone_name": "lofty.page" },
+      ],
+      "r2_buckets": [{ "binding": "SITES", "bucket_name": "r2c2-sites" }],
+      "kv_namespaces": [
+        // R2C2_ROUTES_PROD: must match the production deployment's CLOUDFLARE_KV_NAMESPACE_ID
+        { "binding": "ROUTES", "id": "e8b454708a764955b7cdc54d98f5a541" },
+      ],
+      "ratelimits": [
+        {
+          "name": "FORMS_LIMIT",
+          "namespace_id": "2001",
+          "simple": { "limit": 10, "period": 60 },
+        },
+        {
+          "name": "FORMS_NOJS_LIMIT",
+          "namespace_id": "2002",
           "simple": { "limit": 3, "period": 60 },
         },
       ],

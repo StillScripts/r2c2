@@ -1,6 +1,7 @@
 ---
 title: T23 Deploy to production
 created: 2026-10-24
+plan: docs/plans/deploy-to-production.md
 ---
 
 Take milestone 1 to production on Cloudflare and Convex.

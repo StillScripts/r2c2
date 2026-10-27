@@ -11,7 +11,10 @@ const fail = (message: string): never => {
   process.exit(1)
 }
 
-const slug = process.argv[2] ?? "r2c2"
+const args = process.argv.slice(2)
+// --prod imports into the production deployment instead of the one in .env.local
+const prod = args.includes("--prod")
+const slug = args.find((arg) => !arg.startsWith("--")) ?? "r2c2"
 if (!/^[a-z0-9-]+$/.test(slug)) {
   fail(
     `"${slug}" isn't a site slug: use lowercase letters, numbers and hyphens.`
@@ -55,10 +58,17 @@ for (const call of calls) {
 }
 
 // One call per page keeps each argument under MAX_ARG_BYTES
-const run = (args: object) =>
-  execFileSync("convex", ["run", "seed:importSite", JSON.stringify(args)], {
-    stdio: ["ignore", "ignore", "inherit"],
-  })
+const run = (callArgs: object) =>
+  execFileSync(
+    "convex",
+    [
+      "run",
+      ...(prod ? ["--prod"] : []),
+      "seed:importSite",
+      JSON.stringify(callArgs),
+    ],
+    { stdio: ["ignore", "ignore", "inherit"] }
+  )
 
 try {
   for (const { label, args } of calls) {

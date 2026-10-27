@@ -1,4 +1,11 @@
-import { describe, expect, test } from "vite-plus/test"
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+  vi,
+} from "vite-plus/test"
 import { api, internal } from "./_generated/api"
 import { addMember, addSite, errorCode, scheduled, setup } from "../test/setup"
 
@@ -174,5 +181,83 @@ describe("domains", () => {
     await expect(
       ann.mutation(api.domains.remove, { siteId, domainId: address!._id })
     ).rejects.toEqual(errorCode("site_address"))
+  })
+
+  describe("attach from the CLI", () => {
+    beforeEach(() => {
+      vi.stubEnv("SITES_DOMAIN", "lofty.page")
+    })
+    afterEach(() => {
+      vi.unstubAllEnvs()
+    })
+
+    test("takes hostnames in the sites domain, audited as the system and synced", async () => {
+      const { t, siteId, kinds } = await siteWithAddress()
+      await t.mutation(internal.domains.attach, {
+        slug: "a",
+        hostname: "lofty.page",
+        kind: "primary",
+      })
+      await t.mutation(internal.domains.attach, {
+        slug: "a",
+        hostname: "WWW.lofty.page",
+        kind: "redirect",
+      })
+
+      expect(await kinds()).toEqual({
+        "a.lofty.page": "address",
+        "lofty.page": "primary",
+        "www.lofty.page": "redirect",
+      })
+      const log = await t.run((ctx) => ctx.db.query("auditLog").collect())
+      expect(log).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            actor: "system",
+            action: "domain.add",
+            target: "lofty.page",
+          }),
+        ])
+      )
+      expect(await scheduled(t)).toContainEqual([
+        "routes:sync",
+        { siteId, version: 3 },
+      ])
+    })
+
+    test.each([
+      ["hostname_taken", "a.lofty.page", "redirect"],
+      ["hostname_taken", "b.lofty.page", "redirect"],
+      ["invalid_hostname", "lofty.page/path", "redirect"],
+    ] as const)("refuses with %s for %s", async (code, hostname, kind) => {
+      const { t } = await siteWithAddress()
+      await t.mutation(internal.sites.create, { name: "B", slug: "b" })
+      await expect(
+        t.mutation(internal.domains.attach, { slug: "a", hostname, kind })
+      ).rejects.toEqual(errorCode(code))
+    })
+
+    test("refuses a second primary", async () => {
+      const { t } = await siteWithAddress()
+      const attach = (hostname: string) =>
+        t.mutation(internal.domains.attach, {
+          slug: "a",
+          hostname,
+          kind: "primary",
+        })
+      await attach("lofty.page")
+      await expect(attach("a.dev")).rejects.toEqual(errorCode("primary_exists"))
+    })
+
+    test("refuses an unknown site", async () => {
+      const t = setup()
+      await expect(
+        t.mutation(internal.domains.attach, {
+          slug: "nope",
+          hostname: "lofty.page",
+          kind: "primary",
+        })
+      ).rejects.toThrow('No site has slug "nope"')
+    })
   })
 })

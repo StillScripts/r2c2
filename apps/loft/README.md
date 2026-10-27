@@ -19,6 +19,17 @@ The deployment's `SITE_URL` must be the Loft's origin, `http://localhost:3000` i
 Better Auth refuses the sign-in. Create an account with `staff:create` (see the backend
 README), then sign in.
 
+The Loft runs in workerd through `@cloudflare/vite-plugin`, both in dev and when built
+(`wrangler.jsonc`). `vp preview` serves the built Worker locally, with the same
+`.env.local`.
+
+## Deploying
+
+Production is the `r2c2-loft` Worker at its `workers.dev` address, kept off `lofty.page`
+(ADR-015). GitHub Actions runs `vp run deploy` after CI passes on `master`. The build
+inlines `VITE_CONVEX_URL` for the browser, and the server reads both URLs from the
+Worker's secrets. See [`docs/deploy.md`](../../docs/deploy.md).
+
 ## Sign-in
 
 Better Auth runs in Convex. The browser never calls Convex's auth routes directly:

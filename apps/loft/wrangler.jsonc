@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "r2c2-loft",
+  "main": "@tanstack/react-start/server-entry",
+  "compatibility_date": "2026-10-19",
+  // process.env holds the Worker's secrets, VITE_CONVEX_URL and CONVEX_SITE_URL, which
+  // auth-server.ts reads. Set them once with `wrangler secret put` (docs/deploy.md).
+  "compatibility_flags": ["nodejs_compat"],
+  // Served at r2c2-loft.<account>.workers.dev, kept off lofty.page (ADR-015)
+  "workers_dev": true,
+  "observability": { "enabled": true },
+}
