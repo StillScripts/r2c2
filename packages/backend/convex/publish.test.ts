@@ -125,6 +125,25 @@ describe("publish", () => {
     expect(writes.some((w) => w.key === script)).toBe(false)
   })
 
+  test("lets go of the page however it ends", async () => {
+    const { t, siteId, ed, pageId, save } = await site()
+    const claims = () => t.run((ctx) => ctx.db.query("pageClaims").collect())
+    const first = await ed.action(api.publish.publish, { siteId, pageId })
+    expect(await claims()).toEqual([])
+
+    await save("<p hidden>x</p>")
+    await ed.action(api.publish.publish, { siteId, pageId })
+    expect(await claims()).toEqual([])
+
+    if (!first.ok) throw new Error("first publish failed")
+    await ed.action(api.publish.rollback, {
+      siteId,
+      pageId,
+      versionId: first.versionId,
+    })
+    expect(await claims()).toEqual([])
+  })
+
   test("refuses a form when no sitekey is set", async () => {
     const { siteId, ed, pageId, save } = await site()
     await save(DRAFT.replace("<h1>Hello</h1>", FORM))

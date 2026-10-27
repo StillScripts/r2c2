@@ -14,6 +14,7 @@ export type ErrorCode =
   | "path_taken"
   | "page_too_large"
   | "form_conflict"
+  | "page_busy"
 
 /** The details a code carries alongside it, for the Loft's messages. */
 export type ErrorDetails = {

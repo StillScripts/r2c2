@@ -178,6 +178,7 @@ CSP for pages: `default-src 'self'; script-src 'self' https://challenges.cloudfl
 | `domains`      | siteId, hostname, kind (`primary` \| `redirect` \| `address`), status (`pending` \| `active`) | by_hostname, by_site   |
 | `pages`        | siteId, path, title, draftHtml, liveVersionId                                                 | by_site_path           |
 | `pageVersions` | siteId, pageId, hash, cssHash, forms, publishedBy, publishedAt                                | by_page                |
+| `pageClaims`   | siteId, pageId, expiresAt, forms (a publish or rollback in progress; saves wait for it)       | by_page, by_site       |
 | `forms`        | siteId, name, fields (name, type, required, maxLength)                                        | by_site_name           |
 | `enquiries`    | siteId, form, data, source, status (`new` \| `handled`), createdAt                            | by_site_status_created |
 | `memberships`  | userId (`identity.subject`), siteId, role (`owner` \| `editor`)                               | by_user_site, by_site  |

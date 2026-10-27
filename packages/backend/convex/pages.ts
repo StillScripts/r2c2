@@ -11,6 +11,7 @@ import type { MutationCtx, QueryCtx } from "./_generated/server"
 import { authComponent } from "./auth"
 import { fail } from "./errors"
 import { draftAt, draftHistory, recordDraft } from "./history"
+import { assertUnclaimed } from "./publishing"
 
 const escapeText = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -82,13 +83,17 @@ export const create = siteMutation({
   },
 })
 
-/** Check a new draft and patch it in, keeping `title` in step with its `<title>`. */
+/**
+ * Check a new draft and patch it in, keeping `title` in step with its `<title>`. Refused
+ * while a publish or rollback holds the page.
+ */
 export async function writeDraft(
   ctx: MutationCtx,
   page: Doc<"pages">,
   draftHtml: string
 ) {
   if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
+  await assertUnclaimed(ctx, page._id)
   const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
   await ctx.db.patch("pages", page._id, patch)
   return { ...page, ...patch }

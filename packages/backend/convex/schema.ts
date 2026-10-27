@@ -51,6 +51,17 @@ export default defineSchema({
     .index("by_page_hash", ["pageId", "hash"])
     .index("by_page_published", ["pageId", "publishedAt"]),
 
+  // A publish or rollback in progress, so only one runs per page at a time
+  pageClaims: defineTable({
+    siteId: v.id("sites"),
+    pageId: v.id("pages"),
+    expiresAt: v.number(),
+    // The forms the claim will put live, checked against other pages' claims
+    forms: v.array(formDefinition),
+  })
+    .index("by_page", ["pageId"])
+    .index("by_site", ["siteId"]),
+
   // The registry enquiry intake checks against, updated at publish
   forms: defineTable({
     siteId: v.id("sites"),

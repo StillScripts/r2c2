@@ -24,9 +24,7 @@ import "tailwindcss"
 import { ELEMENTS_JS } from "../elements.gen"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
-import { action } from "./_generated/server"
-import { fail } from "./errors"
-import { formClash } from "./publishing"
+import { action, type ActionCtx } from "./_generated/server"
 import { getObjectText, objectExists, putObject } from "./storage"
 
 const HTML = "text/html; charset=utf-8"
@@ -62,6 +60,19 @@ const writeLive = (
   metadata: LivePageMetadata
 ) => putObject(liveKey(siteId, path), html, HTML, metadata)
 
+/** Run `work` while holding the page's claim, letting it go however `work` ends. */
+async function whileClaimed<T>(
+  ctx: ActionCtx,
+  claimId: Id<"pageClaims">,
+  work: () => Promise<T>
+) {
+  try {
+    return await work()
+  } finally {
+    await ctx.runMutation(internal.publishing.release, { claimId })
+  }
+}
+
 /**
  * Publish a page's draft: build the release, write its CSS, version and live copy to
  * R2, then mark it live. The edge serves it once its cached copy expires (ADR-011).
@@ -69,47 +80,51 @@ const writeLive = (
 export const publish = action({
   args: { siteId: v.id("sites"), pageId: v.id("pages") },
   handler: async (ctx, { siteId, pageId }): Promise<PublishResult> => {
-    const context = await ctx.runQuery(internal.publishing.publishContext, {
+    const context = await ctx.runMutation(internal.publishing.claimPublish, {
       siteId,
       pageId,
     })
-    const draftHtml = context.page.draftHtml
-    const release = await buildRelease(draftHtml, {
-      theme: await loadTheme(context.theme),
-      canonicalUrl: context.canonicalUrl,
-      sitekey: process.env.TURNSTILE_SITE_KEY,
-      elementsUrl: `${ELEMENTS_PREFIX}${await elementsHash}.js`,
-      cssUrl: (hash) => `${ASSETS_PREFIX}${hash}.css`,
+    return whileClaimed(ctx, context.claimId, async () => {
+      const draftHtml = context.page.draftHtml
+      const release = await buildRelease(draftHtml, {
+        theme: await loadTheme(context.theme),
+        canonicalUrl: context.canonicalUrl,
+        sitekey: process.env.TURNSTILE_SITE_KEY,
+        elementsUrl: `${ELEMENTS_PREFIX}${await elementsHash}.js`,
+        cssUrl: (hash) => `${ASSETS_PREFIX}${hash}.css`,
+      })
+      if (!release.ok) return release
+
+      await ctx.runMutation(internal.publishing.holdForms, {
+        claimId: context.claimId,
+        forms: release.forms,
+      })
+
+      const { html, hash, css, cssHash } = release
+      await Promise.all([
+        release.usesElements && uploadElements(),
+        putObject(
+          assetKey(siteId, cssHash, "css"),
+          css,
+          ASSET_CONTENT_TYPES.css!
+        ),
+        putObject(versionKey(siteId, hash), html, HTML),
+      ])
+      // Last, so the edge never serves a page whose CSS or script isn't in R2 yet
+      await writeLive(siteId, context.page.path, html, { page: pageId, hash })
+
+      const versionId = await ctx.runMutation(internal.publishing.markLive, {
+        siteId,
+        pageId,
+        actor: context.userId,
+        draftHtml,
+        draftWithIds: release.draftWithIds,
+        hash,
+        cssHash,
+        forms: release.forms,
+      })
+      return { ok: true, versionId, warnings: release.warnings }
     })
-    if (!release.ok) return release
-
-    const clash = formClash(release.forms, context.otherForms)
-    if (clash) throw fail("form_conflict", { form: clash })
-
-    const { html, hash, css, cssHash } = release
-    await Promise.all([
-      release.usesElements && uploadElements(),
-      putObject(
-        assetKey(siteId, cssHash, "css"),
-        css,
-        ASSET_CONTENT_TYPES.css!
-      ),
-      putObject(versionKey(siteId, hash), html, HTML),
-    ])
-    // Last, so the edge never serves a page whose CSS or script isn't in R2 yet
-    await writeLive(siteId, context.page.path, html, { page: pageId, hash })
-
-    const versionId = await ctx.runMutation(internal.publishing.markLive, {
-      siteId,
-      pageId,
-      actor: context.userId,
-      draftHtml,
-      draftWithIds: release.draftWithIds,
-      hash,
-      cssHash,
-      forms: release.forms,
-    })
-    return { ok: true, versionId, warnings: release.warnings }
   },
 })
 
@@ -121,23 +136,22 @@ export const rollback = action({
     versionId: v.id("pageVersions"),
   },
   handler: async (ctx, { siteId, pageId, versionId }): Promise<void> => {
-    const { userId, page, version, otherForms } = await ctx.runQuery(
-      internal.publishing.rollbackContext,
+    const { claimId, userId, page, version } = await ctx.runMutation(
+      internal.publishing.claimRollback,
       { siteId, pageId, versionId }
     )
-    const clash = formClash(version.forms, otherForms)
-    if (clash) throw fail("form_conflict", { form: clash })
-
-    const html = await getObjectText(versionKey(siteId, version.hash))
-    await writeLive(siteId, page.path, html, {
-      page: pageId,
-      hash: version.hash,
-    })
-    await ctx.runMutation(internal.publishing.markRolledBack, {
-      siteId,
-      pageId,
-      versionId,
-      actor: userId,
+    await whileClaimed(ctx, claimId, async () => {
+      const html = await getObjectText(versionKey(siteId, version.hash))
+      await writeLive(siteId, page.path, html, {
+        page: pageId,
+        hash: version.hash,
+      })
+      await ctx.runMutation(internal.publishing.markRolledBack, {
+        siteId,
+        pageId,
+        versionId,
+        actor: userId,
+      })
     })
   },
 })
