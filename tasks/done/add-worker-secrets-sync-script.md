@@ -1,6 +1,7 @@
 ---
 title: Add a script that syncs the Workers' production secrets
 created: 2026-10-27
+completed: 2026-10-27
 ---
 
 Set the edge's and the Loft's production secrets in one command, piping each value from where it already lives, so nobody copies a secret by hand.
