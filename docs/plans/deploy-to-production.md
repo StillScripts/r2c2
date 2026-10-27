@@ -50,7 +50,7 @@ The top-level bindings stay local for tests. The bucket and the namespace are cr
 **Backend.**
 
 - Add an internal mutation `domains:attach`, run from the CLI like `sites:create`. It attaches a hostname to a site as `primary` or `redirect`, and is allowed to take hostnames inside the sites domain. It still refuses one that's already taken and a site's own address, and it syncs routes like `add` does. Tests cover these cases.
-- Give `import-site.ts` a `--prod` flag that it passes through to `convex run`.
+- Have `import-site.ts` pass its `--` flags, such as `--prod`, through to `convex run`.
 
 **Configuration.**
 
@@ -67,14 +67,14 @@ The top-level bindings stay local for tests. The bucket and the namespace are cr
 **Deploys.** Add `.github/workflows/deploy.yml`.
 
 - **Triggers.** It runs on `workflow_run` when CI completes successfully on `master`, which reuses CI's checks instead of repeating them. It also runs on `workflow_dispatch`, for the first deploy and for re-runs.
-- **Jobs.** All jobs run in a `production` GitHub environment, one job per target, in this order:
+- **Steps.** One job runs in a `production` GitHub environment, checks out and sets up once, then deploys each target as a step, in this order:
   1. Convex: `npx convex deploy` with `CONVEX_DEPLOY_KEY`, so schema and functions land before anything calls them.
   2. Edge: `vp run --filter edge deploy`.
   3. Loft: `vp run --filter loft deploy`, with `VITE_CONVEX_URL` from an environment variable for the browser build.
 - **Credentials.**
   - Convex uses `CONVEX_DEPLOY_KEY`.
   - Cloudflare uses `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. The token has the account permission Workers Scripts: Edit and the zone permission Workers Routes: Edit on `lofty.page`.
-- **Missing setup.** A first step in each job maps its secrets into `env` and exits with a notice when they are empty. A job-level `if:` can't read `secrets` directly. This keeps runs before setup green instead of failing.
+- **Missing setup.** The job maps its secrets into `env`, and each deploy step exits with a notice when its own are empty. A job-level `if:` can't read `secrets` directly. This keeps runs before setup green instead of failing.
 - **One deploy at a time.** `concurrency: deploy-production` makes deploys run one after another, without cancelling one that is already running.
 
 **Runbook.** `docs/deploy.md` records the one-time setup and the smoke checks. That setup is outside the repo, and some steps can only be done by the owner (marked ✋):
@@ -132,7 +132,7 @@ The top-level bindings stay local for tests. The bucket and the namespace are cr
 - [x] Add `env.production` to `apps/edge/wrangler.jsonc` (bucket, KV id, separate rate-limit ids, the two routes, `workers_dev: false`), and a `deploy` script
 - [x] Add the internal `domains:attach` mutation with tests, and a `--prod` flag on `import-site.ts`
 - [x] Add `spike:deploy:zone` for the cache re-test on `spike.lofty.page`
-- [x] Add `.github/workflows/deploy.yml` (`workflow_run` after CI on `master`, plus `workflow_dispatch`; Convex → edge → Loft; a secrets guard on each job; `concurrency` with no cancelling)
+- [x] Add `.github/workflows/deploy.yml` (`workflow_run` after CI on `master`, plus `workflow_dispatch`; Convex → edge → Loft; a secrets guard on each deploy step; `concurrency` with no cancelling)
 - [x] Write `docs/deploy.md` with the one-time setup, secrets and token scopes, first deploy, go-live and smoke checks
 - [x] Update SPEC §8 (production values and deploy secrets) and the `.env.example` files
 - [x] Record the ADR for deploying production from GitHub Actions with `document-decisions`. Mark ADR-015 `Accepted`, and add a note to ADR-007 that production is also in US East.
@@ -168,7 +168,7 @@ The top-level bindings stay local for tests. The bucket and the namespace are cr
 
 - **DNS cutover takes `lofty.page` off Vercel.** Nothing is served there yet, so the impact is low. Still, read the existing records at Vercel before switching and copy any that matter.
 - **The Loft's Workers build may hit Node-only code** in TanStack Start or Better Auth. Use `nodejs_compat` first. If it still fails, find the import and keep it off the server bundle. This is the first action item because it's the most likely to change the design.
-- **Pushes to `master` run before setup is done.** Each job's secrets guard skips with a notice instead of failing, and the edge's KV id is already real.
+- **Pushes to `master` run before setup is done.** Each deploy step's secrets guard skips with a notice instead of failing, and the edge's KV id is already real.
 - **A wrong `SITE_URL` breaks staff sign-in.** The smoke checks cover sign-in, and changing `SITE_URL` is quick to fix.
 - **Leaked production secrets.** Keep them in the GitHub environment, the Convex env and the Worker secrets only. Use tokens scoped as narrowly as possible, and never commit them.
 

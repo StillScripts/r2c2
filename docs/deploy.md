@@ -8,7 +8,7 @@ Production has three parts, all deployed by `.github/workflows/deploy.yml` once 
 | Edge   | Worker `r2c2-edge-production`, routes `lofty.page/*` and `*.lofty.page/*`                                                     | `vp run --filter edge deploy`                 |
 | Loft   | Worker `r2c2-loft` at `r2c2-loft.<account>.workers.dev` ([ADR-010](decisions/ADR-010-host-the-loft-on-cloudflare-workers.md)) | `vp run --filter loft deploy`                 |
 
-Convex goes first so the schema and functions are live before the Workers call them. A job whose secrets aren't set yet skips with a notice instead of failing, so pushes before setup stay green.
+Convex goes first so the schema and functions are live before the Workers call them. A deploy step whose secrets aren't set yet skips with a notice instead of failing, so pushes before setup stay green.
 
 The Loft stays off `lofty.page`: site pages are served from its subdomains and could set cookies for it ([ADR-015](decisions/ADR-015-give-each-site-a-lofty-page-address.md)). `workers.dev` is on the Public Suffix List, so it's safe there.
 

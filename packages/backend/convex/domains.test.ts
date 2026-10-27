@@ -257,7 +257,7 @@ describe("domains", () => {
           hostname: "lofty.page",
           kind: "primary",
         })
-      ).rejects.toThrow('No site has slug "nope"')
+      ).rejects.toEqual(errorCode("not_found"))
     })
   })
 })

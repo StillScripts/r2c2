@@ -12,8 +12,8 @@ const fail = (message: string): never => {
 }
 
 const args = process.argv.slice(2)
-// --prod imports into the production deployment instead of the one in .env.local
-const prod = args.includes("--prod")
+// Flags such as --prod go to `convex run`, to pick a deployment other than .env.local's
+const flags = args.filter((arg) => arg.startsWith("--"))
 const slug = args.find((arg) => !arg.startsWith("--")) ?? "r2c2"
 if (!/^[a-z0-9-]+$/.test(slug)) {
   fail(
@@ -61,12 +61,7 @@ for (const call of calls) {
 const run = (callArgs: object) =>
   execFileSync(
     "convex",
-    [
-      "run",
-      ...(prod ? ["--prod"] : []),
-      "seed:importSite",
-      JSON.stringify(callArgs),
-    ],
+    ["run", ...flags, "seed:importSite", JSON.stringify(callArgs)],
     { stdio: ["ignore", "ignore", "inherit"] }
   )
 

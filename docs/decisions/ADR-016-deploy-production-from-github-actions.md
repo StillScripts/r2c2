@@ -23,9 +23,9 @@ Order matters. The Workers call Convex functions, and published pages depend on 
 Deploy production from a GitHub Actions workflow, `.github/workflows/deploy.yml`.
 
 - **Trigger.** It runs on `workflow_run` once CI succeeds on a push to `master`, and on `workflow_dispatch` for the first deploy and for re-runs. It deploys the commit that CI checked.
-- **Order.** It runs three jobs in sequence: `convex deploy`, then the edge (`wrangler deploy --env production`), then the Loft (`vp build` and `wrangler deploy`). Each package has a `deploy` script, so people and CI run the same commands.
+- **Order.** One job runs three deploy steps in sequence: `convex deploy`, then the edge (`wrangler deploy --env production`), then the Loft (`vp build` and `wrangler deploy`). Each package has a `deploy` script, so people and CI run the same commands.
 - **Credentials.** Secrets live in a `production` GitHub environment: a Convex production deploy key, and a Cloudflare token limited to Workers Scripts and Workers Routes on `lofty.page`. Runtime secrets stay on the Convex deployment and the Workers, not in GitHub.
-- **Missing setup.** A job whose credentials aren't set yet skips with a notice instead of failing.
+- **Missing setup.** A step whose credentials aren't set yet skips with a notice instead of failing.
 - **One at a time.** Deploys share a concurrency group and never cancel each other.
 
 The one-time setup is in `docs/deploy.md`.

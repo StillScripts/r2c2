@@ -5,6 +5,7 @@ import { internalMutation, type MutationCtx } from "./_generated/server"
 import { audit, ownDoc, siteMutation, siteQuery, writeAudit } from "./access"
 import { fail } from "./errors"
 import { domainByHost, domainsOf, scheduleRouteSync } from "./routes"
+import { findSite } from "./sites"
 import { customDomainKind } from "./validators"
 
 /** The domain every site has an address under: `lofty.page` in production, `localhost` in dev. */
@@ -74,11 +75,8 @@ export const attach = internalMutation({
   handler: async (ctx, { slug, hostname: input, kind }) => {
     const hostname = parseHostname(input)
     if (!hostname) throw fail("invalid_hostname")
-    const site = await ctx.db
-      .query("sites")
-      .withIndex("by_slug", (q) => q.eq("slug", slug))
-      .unique()
-    if (!site) throw new Error(`No site has slug "${slug}"`)
+    const site = await findSite(ctx, slug)
+    if (!site) throw fail("not_found")
     return insertDomain(ctx, site, "system", hostname, kind)
   },
 })
