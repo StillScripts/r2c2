@@ -8,6 +8,7 @@ vp run --filter @workspace/backend dev   # push functions and watch for changes
 vp run --filter @workspace/backend seed  # create the r2c2 site at r2c2.localhost (safe to rerun)
 vp run --filter @workspace/backend site:import  # load sites/r2c2 into it as drafts
 vp run --filter @workspace/backend r2:check  # write, read and delete a test object in R2
+vp run --filter @workspace/backend secrets:sync  # set the production Workers' secrets (docs/deploy.md)
 vp test                                  # includes the convex-test suites
 ```
 
