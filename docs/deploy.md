@@ -102,7 +102,7 @@ From `packages/backend`:
 ```bash
 vp exec convex run --prod sites:create '{"name": "R2C2", "slug": "r2c2"}'
 vp exec convex run --prod staff:create '{"email": "…", "name": "…", "password": "…", "site": "r2c2"}'
-vp run site:import -- r2c2 --prod
+vp run site:import -- r2c2 --prod   # add --into <slug> to load sites/r2c2 into a site with another slug
 vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "lofty.page", "kind": "primary"}'
 vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "www.lofty.page", "kind": "redirect"}'
 ```

@@ -108,6 +108,14 @@ describe("buildRelease", () => {
     })
   })
 
+  it("publishes a page that only has warnings", async () => {
+    const result = await release(
+      page(`<h1 class="text-ink eyebrow bg-[#1f5b8a]">Welcome</h1>`)
+    )
+    expect(result.css).toContain(".text-ink")
+    expect(result.css).toContain("#1f5b8a")
+  })
+
   it("returns house-rule errors instead of a page", async () => {
     const result = await buildRelease(page(`<p hidden>x</p>`), options)
     expect(result.ok).toBe(false)

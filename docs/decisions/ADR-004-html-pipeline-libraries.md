@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The class rules are amended by [ADR-018](ADR-018-start-sites-from-tailwind-defaults.md): Tailwind's defaults are no longer reset, arbitrary values are allowed except `url(`, and unknown classes warn.
 
 ## Date
 

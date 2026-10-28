@@ -6,8 +6,7 @@ import { loadTheme } from "./theme"
 const theme = await loadTheme(THEME)
 
 describe("loadTheme", () => {
-  it("reads theme colours and component classes", () => {
-    expect(theme.colours).toEqual(["brand", "ink", "paper"])
+  it("reads component classes", () => {
     expect([...theme.components]).toEqual(["btn", "card", "section", "prose"])
   })
 
@@ -44,6 +43,16 @@ describe("compileCss", () => {
     expect(first.css).not.toContain("--color-red")
     expect(first.hash).toMatch(/^[0-9a-f]{16}$/)
     expect((await compileCss(html, theme)).hash).toBe(first.hash)
+  })
+
+  it("compiles Tailwind's defaults and arbitrary values on a theme without a reset", async () => {
+    const { css } = await compileCss(
+      '<p class="bg-blue-500 rounded-lg w-[1200px]">x</p>',
+      await loadTheme("")
+    )
+    expect(css).toContain(".bg-blue-500")
+    expect(css).toContain(".rounded-lg")
+    expect(css).toContain("1200px")
   })
 })
 

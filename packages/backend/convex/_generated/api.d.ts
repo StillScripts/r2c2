@@ -25,6 +25,7 @@ import type * as seed from "../seed.js";
 import type * as sites from "../sites.js";
 import type * as staff from "../staff.js";
 import type * as storage from "../storage.js";
+import type * as theme from "../theme.js";
 import type * as validators from "../validators.js";
 
 import type {
@@ -51,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   sites: typeof sites;
   staff: typeof staff;
   storage: typeof storage;
+  theme: typeof theme;
   validators: typeof validators;
 }>;
 

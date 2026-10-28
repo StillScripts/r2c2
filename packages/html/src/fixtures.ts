@@ -1,5 +1,10 @@
+// Starts from nothing, like a site that only allows its own tokens
 export const THEME = `
 @theme {
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
   --color-brand: #1f5b8a;
   --color-ink: #111111;
   --color-paper: #ffffff;

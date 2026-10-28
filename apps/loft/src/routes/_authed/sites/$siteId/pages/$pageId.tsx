@@ -4,6 +4,7 @@ import { Link, createFileRoute, useBlocker } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import { Button } from "@workspace/ui/components/button"
 import { useEffect, useEffectEvent, useState } from "react"
+import { CodeTextarea } from "@/components/code-textarea"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Issues, PreviewFrame, usePreview } from "@/components/page-preview"
 import { errorMessage } from "@/lib/errors"
@@ -129,15 +130,14 @@ function PageEditor() {
       </div>
       <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-2">
         <div className="flex min-h-0 flex-col gap-2">
-          <textarea
+          <CodeTextarea
             aria-label="Page HTML"
             value={draft}
             onChange={(event) => {
               setDraft(event.target.value)
               if (publish.data) publish.reset()
             }}
-            spellCheck={false}
-            className="min-h-0 flex-1 resize-none rounded-2xl border bg-transparent p-3 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+            className="min-h-0 flex-1 resize-none"
           />
           <Issues errors={issues?.errors} warnings={issues?.warnings} />
         </div>

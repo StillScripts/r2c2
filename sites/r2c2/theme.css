@@ -1,4 +1,10 @@
 @theme {
+  /* Only this theme's colours, fonts, radii and shadows, none of Tailwind's defaults */
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+
   --color-ink: #0e1116;
   --color-lead: #2a2f3a;
   --color-slate: #3a404c;

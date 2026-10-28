@@ -1,11 +1,12 @@
 import { isSiteSlug } from "@workspace/core"
 import { v } from "convex/values"
+import type { Id } from "./_generated/dataModel"
 import {
   internalMutation,
   type MutationCtx,
   type QueryCtx,
 } from "./_generated/server"
-import { audit, siteMutation, siteQuery, writeAudit } from "./access"
+import { audit, loadSite, siteMutation, siteQuery, writeAudit } from "./access"
 import { siteAddress } from "./domains"
 import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
@@ -58,6 +59,26 @@ export async function createSite(
   await scheduleRouteSync(ctx, { _id: siteId })
   return siteId
 }
+
+/** Replace a site's theme and record who did it. Pages pick it up when they're next published. */
+export async function writeTheme(
+  ctx: MutationCtx,
+  siteId: Id<"sites">,
+  theme: string,
+  actor: string
+) {
+  await ctx.db.patch("sites", siteId, { theme })
+  await writeAudit(ctx, { siteId, actor, action: "site.theme", target: siteId })
+}
+
+/** Save a theme that `theme:save` has already compiled. Owners only, like rename. */
+export const setTheme = internalMutation({
+  args: { siteId: v.id("sites"), theme: v.string() },
+  handler: async (ctx, { siteId, theme }) => {
+    const { userId } = await loadSite(ctx, siteId, "owner")
+    await writeTheme(ctx, siteId, theme, userId)
+  },
+})
 
 /**
  * Create a site at `<slug>.<SITES_DOMAIN>`, until the Loft can. Run from the CLI, then add
