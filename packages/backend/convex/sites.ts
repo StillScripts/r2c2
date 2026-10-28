@@ -11,9 +11,6 @@ import { siteAddress } from "./domains"
 import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
 
-/** The largest theme a site can save, in bytes. */
-export const MAX_THEME_BYTES = 100 * 1024
-
 /** The site with this slug, or null. */
 export const findSite = (ctx: QueryCtx, slug: string) =>
   ctx.db

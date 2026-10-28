@@ -96,6 +96,11 @@ describe("checkPage", () => {
       "md:[background:url(x)] isn't allowed. Images come from the site's media.",
     ],
     [
+      "no-url",
+      '<p class="bg-[URL(x)]">x</p>',
+      "bg-[URL(x)] isn't allowed. Images come from the site's media.",
+    ],
+    [
       "site-form",
       '<site-form name="c"><form><label for="a">A</label><input id="a"></form></site-form>',
       "Fields in a form need a name attribute.",

@@ -8,6 +8,7 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import type { FunctionArgs } from "convex/server"
 import { type FormEvent, useState } from "react"
+import { CodeTextarea } from "@/components/code-textarea"
 import { ConfirmButton } from "@/components/confirm-button"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
@@ -242,17 +243,16 @@ function ThemeEditor({
           new theme when they&apos;re next published.
         </p>
       </div>
-      <textarea
+      <CodeTextarea
         aria-label="Theme CSS"
         value={theme}
         onChange={(event) => {
           setTheme(event.target.value)
           if (save.data) save.reset()
         }}
-        spellCheck={false}
         rows={12}
         placeholder={"@theme {\n  --color-brand: #2f3bff;\n}"}
-        className="resize-y rounded-2xl border bg-transparent p-3 font-mono text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30"
+        className="resize-y"
       />
       {alert && (
         <p role="alert" className="text-sm text-destructive">

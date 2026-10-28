@@ -1,7 +1,7 @@
 import { expect, test } from "vite-plus/test"
 import { api } from "./_generated/api"
 import { addMember, addSite, errorCode, setup } from "../test/setup"
-import { MAX_THEME_BYTES } from "./sites"
+import { MAX_THEME_BYTES } from "@workspace/html"
 
 const THEME = `@theme { --color-brand: #1f5b8a; }\n@utility btn { padding: 1rem; }`
 

@@ -38,6 +38,8 @@ export async function checkPage(html: string, theme: Theme) {
   const warnings: Issue[] = []
   const at = (element: Element, rule: string, message: string) =>
     errors.push(issueAt(locate, element, rule, message))
+  const warn = (element: Element, rule: string, message: string) =>
+    warnings.push(issueAt(locate, element, rule, message))
 
   const titles: string[] = []
   const descriptions: (string | undefined)[] = []
@@ -70,7 +72,7 @@ export async function checkPage(html: string, theme: Theme) {
 
     const tokens = classTokens(element)
     for (const token of tokens) {
-      if (token.includes("url(")) {
+      if (/url\(/i.test(token)) {
         at(
           element,
           "no-url",
@@ -82,13 +84,10 @@ export async function checkPage(html: string, theme: Theme) {
       tokens.length > UTILITY_WARNING_THRESHOLD &&
       !tokens.some((token) => theme.components.has(token))
     ) {
-      warnings.push(
-        issueAt(
-          locate,
-          element,
-          "prefer-components",
-          `${tokens.length} utility classes. Consider a component class like ${[...theme.components].join(", ")}.`
-        )
+      warn(
+        element,
+        "prefer-components",
+        `${tokens.length} utility classes. Consider a component class like ${[...theme.components].join(", ")}.`
       )
     }
   }
@@ -99,13 +98,10 @@ export async function checkPage(html: string, theme: Theme) {
   // A class the theme can't compile makes no CSS, so it can't break the page
   for (const { element, token } of classes) {
     if (invalid.has(token)) {
-      warnings.push(
-        issueAt(
-          locate,
-          element,
-          "unknown-class",
-          `${token} doesn't match anything in this site's theme, so it has no effect.`
-        )
+      warn(
+        element,
+        "unknown-class",
+        `${token} doesn't match anything in this site's theme, so it has no effect.`
       )
     }
   }

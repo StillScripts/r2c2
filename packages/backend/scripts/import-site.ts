@@ -1,7 +1,12 @@
 import { execFileSync } from "node:child_process"
 import { readdir, readFile } from "node:fs/promises"
-import { MAX_PAGE_BYTES, pageBytes, parsePagePath } from "@workspace/core"
-import { loadTheme } from "@workspace/html"
+import {
+  isSiteSlug,
+  MAX_PAGE_BYTES,
+  pageBytes,
+  parsePagePath,
+} from "@workspace/core"
+import { themeProblem } from "@workspace/html"
 
 // Linux caps a single command-line argument at 128 KiB
 const MAX_ARG_BYTES = 128 * 1024
@@ -22,10 +27,10 @@ if (intoAt !== -1 && (!into || into.startsWith("--"))) {
 const flags = args.filter((arg) => arg.startsWith("--"))
 const folder = args.find((arg) => !arg.startsWith("--")) ?? "r2c2"
 const slug = into ?? folder
-for (const name of [folder, slug]) {
-  if (!/^[a-z0-9-]+$/.test(name)) {
+for (const name of new Set([folder, slug])) {
+  if (!isSiteSlug(name)) {
     fail(
-      `"${name}" isn't a site slug: use lowercase letters, numbers and hyphens.`
+      `"${name}" isn't a site slug: use lowercase letters, numbers and hyphens, and not a reserved name like "www".`
     )
   }
 }
@@ -44,9 +49,8 @@ const [theme, pages] = await Promise.all([
 ])
 
 // Check everything before writing anything, so a bad file can't leave a half-done import
-await loadTheme(theme).catch((error: unknown) =>
-  fail(`sites/${folder}/theme.css doesn't compile: ${String(error)}`)
-)
+const themeError = await themeProblem(theme)
+if (themeError) fail(`sites/${folder}/theme.css: ${themeError}`)
 const calls = [
   { label: "theme", args: { slug, theme, pages: [] } },
   ...pages.map((page) => ({ label: page.path, args: { slug, pages: [page] } })),
