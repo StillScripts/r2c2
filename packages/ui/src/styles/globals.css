@@ -3,7 +3,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/archivo";
 @import "@fontsource/instrument-serif";
-@import "@fontsource/instrument-serif/400-italic.css";
 @import "@fontsource-variable/jetbrains-mono";
 
 /* The Loft has one dark scheme (docs/design/loft.md §4.1), so `dark:` always applies. */
@@ -57,8 +56,9 @@
   --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
 }
 
-/* The Loft palette beyond shadcn's tokens (docs/design/loft.md §4.1). */
-@theme {
+/* The Loft palette (docs/design/loft.md §4.1). shadcn's tokens below point at these. */
+@theme static {
+  --color-glass-solid: #161a2a;
   --color-placeholder: #b9bfcc;
   --color-unheard: #a9afbd;
   --color-lamp: #ffc46b;
@@ -77,39 +77,40 @@
 }
 
 :root {
+  color-scheme: dark;
   --background: #10152a;
   --foreground: #f4f5f9;
   /* 0.8, not the spec draft's 0.66, keeps every text colour at 4.5:1 over the sunlit Coast sky */
   --card: rgb(13 16 27 / 0.8);
-  --card-foreground: #f4f5f9;
+  --card-foreground: var(--foreground);
   --popover: rgb(13 16 27 / 0.88);
-  --popover-foreground: #f4f5f9;
-  --primary: #ffc46b;
-  --primary-foreground: #1d1505;
-  --secondary: rgb(255 255 255 / 0.14);
-  --secondary-foreground: #f4f5f9;
-  --muted: rgb(255 255 255 / 0.08);
+  --popover-foreground: var(--foreground);
+  --primary: var(--color-lamp);
+  --primary-foreground: var(--color-lamp-ink);
+  --secondary: var(--color-fill-3);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--color-fill-1);
   --muted-foreground: #cdd1db;
-  --accent: rgb(255 255 255 / 0.2);
-  --accent-foreground: #f4f5f9;
-  --destructive: #ffb3a7;
-  --border: rgb(255 255 255 / 0.14);
-  --input: rgb(255 255 255 / 0.14);
-  --ring: #ffc46b;
+  --accent: var(--color-fill-selected);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--color-removed-text);
+  --border: var(--color-fill-3);
+  --input: var(--color-fill-3);
+  --ring: var(--color-lamp);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 1rem;
-  --sidebar: rgb(13 16 27 / 0.8);
-  --sidebar-foreground: #f4f5f9;
-  --sidebar-primary: #ffc46b;
-  --sidebar-primary-foreground: #1d1505;
-  --sidebar-accent: rgb(255 255 255 / 0.2);
-  --sidebar-accent-foreground: #f4f5f9;
-  --sidebar-border: rgb(255 255 255 / 0.14);
-  --sidebar-ring: #ffc46b;
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 /* Every panel, pill, bubble and input that holds text. Don't nest it: glass inside glass uses a fill colour. */
@@ -122,18 +123,18 @@
     0 24px 60px rgb(3 5 12 / 0.35);
 
   @supports not (backdrop-filter: blur(1px)) {
-    background: #161a2a;
+    background: var(--color-glass-solid);
   }
   @media (prefers-reduced-transparency: reduce) {
-    background: #161a2a;
+    background: var(--color-glass-solid);
     backdrop-filter: none;
   }
 }
 
 /* The single primary action on a surface, and the mic. */
 @utility lamp {
-  background: var(--color-lamp);
-  color: var(--color-lamp-ink);
+  background: var(--primary);
+  color: var(--primary-foreground);
   box-shadow:
     0 0 0 1px rgb(255 214 150 / 0.6),
     0 8px 30px rgb(255 180 80 / 0.45);
