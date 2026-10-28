@@ -86,29 +86,14 @@ describe("checkPage", () => {
       "Link text should say where the link goes.",
     ],
     [
-      "theme-only",
-      '<p class="bg-[#1f5b8a]">x</p>',
-      "bg-[#1f5b8a] isn't allowed. Use theme tokens (colours: brand, ink, paper).",
+      "no-url",
+      '<p class="bg-[url(/assets/a.png)]">x</p>',
+      "bg-[url(/assets/a.png)] isn't allowed. Images come from the site's media.",
     ],
     [
-      "theme-only",
-      '<p class="md:hover:[color:red]">x</p>',
-      "md:hover:[color:red] isn't allowed. Use theme tokens (colours: brand, ink, paper).",
-    ],
-    [
-      "theme-only",
-      '<p class="bg-(--x)">x</p>',
-      "bg-(--x) isn't allowed. Use theme tokens (colours: brand, ink, paper).",
-    ],
-    [
-      "theme-only",
-      '<p class="bg-red-500">x</p>',
-      "bg-red-500 isn't a theme class.",
-    ],
-    [
-      "theme-only",
-      '<p class="js-toggle">x</p>',
-      "js-toggle isn't a theme class.",
+      "no-url",
+      '<p class="md:[background:url(x)]">x</p>',
+      "md:[background:url(x)] isn't allowed. Images come from the site's media.",
     ],
     [
       "site-form",
@@ -143,19 +128,59 @@ describe("checkPage", () => {
 
   it("points at the line and column of the problem", async () => {
     const { errors } = await check(
-      '<h1>Title</h1>\n<p>ok</p>\n  <p class="bg-red-500">x</p>'
+      '<h1>Title</h1>\n<p>ok</p>\n  <p class="bg-[url(x)]">x</p>'
     )
     expect(errors).toEqual([
       {
         line: 5,
         column: 3,
-        rule: "theme-only",
-        message: "bg-red-500 isn't a theme class.",
+        rule: "no-url",
+        message:
+          "bg-[url(x)] isn't allowed. Images come from the site's media.",
       },
     ])
     expect(formatIssue(errors[0]!)).toBe(
-      "Line 5: bg-red-500 isn't a theme class."
+      "Line 5: bg-[url(x)] isn't allowed. Images come from the site's media."
     )
+  })
+
+  it("allows arbitrary values", async () => {
+    const body = `<h1 class="text-[2.5rem] tracking-[-0.02em]">Title</h1>
+<p class="bg-[#1f5b8a] grid-cols-[1fr_2fr] md:hover:[color:red] bg-(--color-brand)">x</p>`
+    expect(await check(body)).toMatchObject({ errors: [], warnings: [] })
+  })
+
+  it("warns about classes the theme can't compile without blocking", async () => {
+    const { errors, warnings } = await check(
+      '<h1>Title</h1>\n<p class="js-toggle">x</p>\n<p class="bg-red-500">y</p>'
+    )
+    expect(errors).toEqual([])
+    expect(warnings).toEqual([
+      {
+        line: 4,
+        column: 1,
+        rule: "unknown-class",
+        message:
+          "js-toggle doesn't match anything in this site's theme, so it has no effect.",
+      },
+      {
+        line: 5,
+        column: 1,
+        rule: "unknown-class",
+        message:
+          "bg-red-500 doesn't match anything in this site's theme, so it has no effect.",
+      },
+    ])
+  })
+
+  it("allows Tailwind's defaults when the theme doesn't reset them", async () => {
+    const plain = await loadTheme("")
+    const body = `<h1 class="text-gray-900 font-serif">Title</h1>
+<div class="bg-slate-900 rounded-lg shadow-md p-6"><p class="text-white">x</p></div>`
+    expect(await checkPage(page(body), plain)).toMatchObject({
+      errors: [],
+      warnings: [],
+    })
   })
 
   it.each([

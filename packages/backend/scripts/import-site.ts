@@ -12,15 +12,24 @@ const fail = (message: string): never => {
 }
 
 const args = process.argv.slice(2)
-// Flags such as --prod go to `convex run`, to pick a deployment other than .env.local's
-const flags = args.filter((arg) => arg.startsWith("--"))
-const slug = args.find((arg) => !arg.startsWith("--")) ?? "r2c2"
-if (!/^[a-z0-9-]+$/.test(slug)) {
-  fail(
-    `"${slug}" isn't a site slug: use lowercase letters, numbers and hyphens.`
-  )
+// `--into <slug>` loads the folder into a site with another slug, e.g. sites/r2c2 into r2c2-site
+const intoAt = args.indexOf("--into")
+const into = intoAt === -1 ? undefined : args.splice(intoAt, 2)[1]
+if (intoAt !== -1 && (!into || into.startsWith("--"))) {
+  fail("--into needs the slug of the site to import into.")
 }
-const dir = new URL(`../../../sites/${slug}/`, import.meta.url)
+// Other flags such as --prod go to `convex run`, to pick a deployment other than .env.local's
+const flags = args.filter((arg) => arg.startsWith("--"))
+const folder = args.find((arg) => !arg.startsWith("--")) ?? "r2c2"
+const slug = into ?? folder
+for (const name of [folder, slug]) {
+  if (!/^[a-z0-9-]+$/.test(name)) {
+    fail(
+      `"${name}" isn't a site slug: use lowercase letters, numbers and hyphens.`
+    )
+  }
+}
+const dir = new URL(`../../../sites/${folder}/`, import.meta.url)
 const read = (file: string) => readFile(new URL(file, dir), "utf8")
 
 const pathOf = (file: string) =>
@@ -36,7 +45,7 @@ const [theme, pages] = await Promise.all([
 
 // Check everything before writing anything, so a bad file can't leave a half-done import
 await loadTheme(theme).catch((error: unknown) =>
-  fail(`sites/${slug}/theme.css doesn't compile: ${String(error)}`)
+  fail(`sites/${folder}/theme.css doesn't compile: ${String(error)}`)
 )
 const calls = [
   { label: "theme", args: { slug, theme, pages: [] } },

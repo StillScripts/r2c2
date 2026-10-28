@@ -70,14 +70,11 @@ export async function checkPage(html: string, theme: Theme) {
 
     const tokens = classTokens(element)
     for (const token of tokens) {
-      if (/[[(]/.test(token)) {
-        const hint = theme.colours.length
-          ? ` (colours: ${theme.colours.join(", ")})`
-          : ""
+      if (token.includes("url(")) {
         at(
           element,
-          "theme-only",
-          `${token} isn't allowed. Use theme tokens${hint}.`
+          "no-url",
+          `${token} isn't allowed. Images come from the site's media.`
         )
       } else classes.push({ element, token })
     }
@@ -99,9 +96,18 @@ export async function checkPage(html: string, theme: Theme) {
   const invalid = new Set(
     theme.invalidClasses([...new Set(classes.map((c) => c.token))])
   )
+  // A class the theme can't compile makes no CSS, so it can't break the page
   for (const { element, token } of classes) {
-    if (invalid.has(token))
-      at(element, "theme-only", `${token} isn't a theme class.`)
+    if (invalid.has(token)) {
+      warnings.push(
+        issueAt(
+          locate,
+          element,
+          "unknown-class",
+          `${token} doesn't match anything in this site's theme, so it has no effect.`
+        )
+      )
+    }
   }
 
   // Publish adds the canonical URL, CSS and script to the head, so it must exist
@@ -129,6 +135,9 @@ export async function checkPage(html: string, theme: Theme) {
 
   const { forms, errors: formErrors } = formsIn(doc, locate)
   errors.push(...formErrors, ...(await validateStructure(html)))
-  errors.sort((a, b) => a.line - b.line || a.column - b.column)
+  const byPosition = (a: Issue, b: Issue) =>
+    a.line - b.line || a.column - b.column
+  errors.sort(byPosition)
+  warnings.sort(byPosition)
   return { errors, warnings, forms }
 }

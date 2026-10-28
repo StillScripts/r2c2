@@ -6,13 +6,6 @@ import { __unstable__loadDesignSystem, compile } from "tailwindcss"
 
 const require = createRequire(import.meta.url)
 
-const RESET = `@theme {
-  --color-*: initial;
-  --font-*: initial;
-  --radius-*: initial;
-  --shadow-*: initial;
-}`
-
 const isTailwind = (id: string) =>
   id === "tailwindcss" || id.startsWith("tailwindcss/")
 
@@ -34,15 +27,16 @@ async function loadStylesheet(id: string, base: string) {
 const names = (css: string, pattern: RegExp) =>
   [...css.matchAll(pattern)].map((match) => match[1]!)
 
+// A site's theme sits on top of Tailwind's defaults, so an empty theme is plain Tailwind.
+// A theme that wants only its own tokens starts with `--color-*: initial;` and friends.
 async function buildTheme(themeCss: string) {
-  const css = `@import "tailwindcss";\n${RESET}\n${themeCss}`
+  const css = `@import "tailwindcss";\n${themeCss}`
   const options = { base: process.cwd(), loadStylesheet }
   const [designSystem, compiler] = await Promise.all([
     __unstable__loadDesignSystem(css, options),
     compile(css, options),
   ])
   return {
-    colours: names(themeCss, /--color-([\w-]+)\s*:/g),
     components: new Set(names(themeCss, /@utility\s+([\w-]+)/g)),
     invalidClasses: (classes: string[]) => {
       const results = designSystem.candidatesToCss(classes)

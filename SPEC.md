@@ -286,7 +286,7 @@ If any fails, fall back to the Cache API (`caches.default` with `Cache-Tag`) and
 Every page is checked at publish in `packages/html`, whether it came from a person, the Loft's AI or an MCP client. A failure stops the publish and returns specific, fixable messages with line numbers, such as: `Line 12: bg-[#1f5b8a] isn't a theme colour. Use bg-brand.`
 
 - Only allowed tags, attributes and platform custom tags. No scripts, inline event handlers or `style` attributes.
-- Colours, fonts, radius and shadows come only from the site's theme tokens. No arbitrary values such as `bg-[#1f5b8a]` or `font-[Georgia]`.
+- Classes must compile against the site's theme, which sits on top of Tailwind's defaults; a theme that wants only its own colours, fonts, radii and shadows resets them with `--color-*: initial;` and friends. Arbitrary values such as `max-w-[1200px]` are allowed, except `url(`. A class the theme can't compile is a warning, not an error, since it has no effect ([ADR-018](docs/decisions/ADR-018-start-sites-from-tailwind-defaults.md)).
 - Prefer the site's component classes (`btn`, `card`, `section`, `prose`) over long utility strings, so a rebrand is a theme change.
 - Images come from the site's media in R2, never hotlinked, and have alt text.
 - One `h1` per page, headings in order, labelled form fields, descriptive link text.

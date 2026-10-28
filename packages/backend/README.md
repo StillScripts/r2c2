@@ -39,6 +39,7 @@ apart from the sites-domain rule:
 vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "lofty.page", "kind": "primary"}'
 vp exec convex run --prod domains:attach '{"slug": "r2c2", "hostname": "www.lofty.page", "kind": "redirect"}'
 vp run --filter @workspace/backend site:import -- r2c2 --prod  # import into production
+vp run --filter @workspace/backend site:import -- r2c2 --into r2c2-site --prod  # into a site with another slug
 ```
 
 ## Staff sign-in
@@ -77,7 +78,7 @@ always record (SPEC §6).
 and runs the house rules, exactly as publish will. `convex.json` keeps `tailwindcss`
 external (installed from this package's dependencies) so it can read its own stylesheet
 at runtime. Convex only installs an external package that a file in this package
-imports, not one imported from `@workspace/html`, so `preview.ts` and `publish.ts`
+imports, not one imported from `@workspace/html`, so `preview.ts`, `publish.ts` and `theme.ts`
 import `tailwindcss` themselves.
 
 ## Publish and rollback

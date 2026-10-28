@@ -2,7 +2,7 @@
 
 The source of the R2C2 marketing site, the first site on R2C2.
 
-- `theme.css` is the site's theme: `@theme` tokens (colours, fonts, radii, type sizes, page width), base styles, and the component classes the page uses (`section`, `btn`, `card`, `tile` and the rest).
+- `theme.css` is the site's theme. It starts by resetting Tailwind's default colours, fonts, radii and shadows, so the page can only use the site's own: `@theme` tokens (colours, fonts, radii, type sizes, page width), base styles, and the component classes the page uses (`section`, `btn`, `card`, `tile` and the rest).
 - `index.html` is the home page. Every class in it is a theme token or a component class, so `packages/html` checks it against the house rules (SPEC §12) in `src/sites.test.ts`.
 
 The page uses system fonts and no images until sites can upload media. The contact section is a `<site-form name="contact">`, so enquiries land in the Loft inbox.
@@ -15,5 +15,7 @@ With the Convex dev deployment running and seeded, load the theme and every `*.h
 vp run --filter @workspace/backend seed
 vp run --filter @workspace/backend site:import
 ```
+
+To load it into a site with a different slug, such as a test site, add `--into <slug>`: `vp run --filter @workspace/backend site:import -- r2c2 --into r2c2-site`. An owner can also paste `theme.css` into the site's **Theme** section in the Loft and `index.html` into a page.
 
 Then publish the home page from the Loft. Importing again overwrites the drafts, not what's live. Any draft edits not yet in history get a snapshot first, so you can restore them. The script checks that the theme compiles and that every page fits before it writes anything.
