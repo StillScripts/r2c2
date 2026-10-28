@@ -70,13 +70,13 @@ Everything sits on dark glass over the view, so the Loft has one colour scheme a
 
 A site's badge (the "R2" square) uses that site's own brand colour from its theme (`#2f3bff` for R2C2), not a Loft colour.
 
-Contrast: every text colour above passes 4.5:1 on dark glass over the brightest view (the Coast sky). The glass opacity in §4.2 is what makes that true, so don't lower it.
+Contrast: measured over the brightest part of any view (the sun on the Coast horizon), every text colour above passes 4.5:1 on glass, on `fill-1` and on `lamp-tint`. On `fill-2`, `fill-3`, a lamp or live chip, or `fill-selected`, use only `text`, `lamp-soft` or `live-text`. The glass opacity in §4.2 (0.8) is what makes that true, so don't lower it. The canvas drafts used 0.64–0.66, which drops `text-muted` to 4.3:1 and placeholders to 3.6:1 there.
 
 ### 4.2 Materials
 
 | Material     | CSS                                                                                                                                                                                                       | Use                                                                      |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Glass        | `background: rgba(13,16,27,0.66); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 24px 60px rgba(3,5,12,0.35)`  | Every panel, pill, bubble and input that holds text                      |
+| Glass        | `background: rgba(13,16,27,0.8); border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(24px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 24px 60px rgba(3,5,12,0.35)`   | Every panel, pill, bubble and input that holds text                      |
 | Bright glass | `background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.3); backdrop-filter: blur(20px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25), 0 30px 70px rgba(3,5,12,0.4)` | Frames around a page preview only. Never put text directly on it         |
 | Lamp         | `background: #ffc46b; color: #1d1505; box-shadow: 0 0 0 1px rgba(255,214,150,0.6), 0 8px 30px rgba(255,180,80,0.45)`                                                                                      | The single primary action on a surface, and the mic                      |
 | Text on view | `text-shadow: 0 2px 24px rgba(6,20,30,0.6)`                                                                                                                                                               | Any text placed straight on the view (the greeting and the summary line) |
@@ -163,9 +163,9 @@ Remap shadcn's semantic tokens so existing components pick up the look, and add 
 :root {
   --background: #10152a;
   --foreground: #f4f5f9;
-  --card: rgba(13, 16, 27, 0.66);
+  --card: rgba(13, 16, 27, 0.8);
   --card-foreground: #f4f5f9;
-  --popover: rgba(13, 16, 27, 0.8);
+  --popover: rgba(13, 16, 27, 0.88);
   --popover-foreground: #f4f5f9;
   --primary: #ffc46b;
   --primary-foreground: #1d1505;
