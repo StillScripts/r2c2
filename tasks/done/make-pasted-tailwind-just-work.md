@@ -1,6 +1,7 @@
 ---
 title: Make pasted Tailwind HTML just work
 created: 2026-10-28
+completed: 2026-10-28
 plan: docs/plans/make-pasted-tailwind-just-work.md
 ---
 

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Loft — approve a publish</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#10152a}
+a{color:#ffd08a}a:hover{color:#ffe3b8}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid #ffc46b;outline-offset:2px}
+.glass{background:rgba(13,16,27,0.7);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 20px 50px rgba(3,5,12,0.35)}
+.lamp{background:#ffc46b;color:#1d1505;box-shadow:0 0 0 1px rgba(255,214,150,0.6),0 8px 30px rgba(255,180,80,0.45)}
+.mono{font-family:'JetBrains Mono',monospace}
+</style>
+</helmet>
+<div style="position: relative; width: 390px; height: 844px; overflow: hidden; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; color: #f4f5f9;">
+<div style="position: absolute; inset: 0;">
+<dc-import name="Scene" view="city" frame="{{noFrame}}" hint-size="100%,100%"></dc-import>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(5,7,16,0.42); pointer-events: none;"></div>
+<div style="position: relative; height: 100%; box-sizing: border-box; padding: 20px 16px 18px; display: flex; flex-direction: column; gap: 14px;">
+
+<header style="display: flex; align-items: center; justify-content: space-between; gap: 8px; opacity: 0.6;">
+<div class="glass" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px 0 10px; border-radius: 999px;">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffc46b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5"></path><path d="M6 9.5V20h12V9.5"></path><path d="M10 12h4v4h-4zM12 12v4M10 14h4"></path></svg>
+<span style="font-family: 'Instrument Serif', Georgia, serif; font-size: 22px;">The Loft</span>
+</div>
+<span class="mono" style="font-size: 12px; color: #dfe2ea;">11:46 pm</span>
+</header>
+
+<div style="flex: 1;"></div>
+
+<section class="glass" role="dialog" aria-labelledby="ask" style="padding: 18px; border-radius: 28px; display: flex; flex-direction: column; gap: 14px;">
+<div style="display: flex; align-items: center; gap: 10px;">
+<span style="display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; background: #2f3bff; color: #ffffff; font-size: 12px; font-weight: 700;">R2</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+<span style="font-size: 14px; font-weight: 600;">R2C2</span>
+<span style="font-size: 12px; color: #cdd1db;">1 draft ready</span>
+</div>
+</div>
+
+<h2 id="ask" style="margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 34px; line-height: 1.05;">Your pricing page is ready to go live.</h2>
+
+<div style="display: flex; gap: 12px; align-items: center; padding: 10px; border-radius: 16px; background: rgba(255,255,255,0.08);">
+<div style="flex: none; width: 104px; height: 74px; border-radius: 10px; background: #f4f5f7; color: #0e1116; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 6px; overflow: hidden;">
+<span style="font-size: 10px; font-weight: 700;">Pricing</span>
+<span style="display: flex; gap: 3px; flex: 1;"><span style="flex: 1; border-radius: 3px; background: #d9dce3;"></span><span style="flex: 1; border-radius: 3px; background: #2f3bff;"></span><span style="flex: 1; border-radius: 3px; background: #d9dce3;"></span></span>
+</div>
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px;">
+<span class="mono" style="font-size: 13px;">/pricing</span>
+<span style="font-size: 13px; color: #cdd1db;">New page · three plans</span>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #b9f5d4;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>House rules pass</span>
+</div>
+</div>
+
+<p style="margin: 0; font-size: 13px; line-height: 1.5; color: #cdd1db;">It goes live at <span class="mono" style="font-size: 12px; color: #f4f5f9;">r2c2.lofty.page</span> within a minute, and you can roll it back.</p>
+
+<div style="display: flex; flex-direction: column; gap: 8px;">
+<button class="lamp" style="height: 52px; border-radius: 999px; font-size: 16px; font-weight: 600;">Publish</button>
+<div style="display: flex; gap: 8px;">
+<button style="flex: 1; height: 44px; border-radius: 999px; background: rgba(255,255,255,0.14); font-size: 14px; font-weight: 500;">Look first</button>
+<button style="flex: 1; height: 44px; border-radius: 999px; background: rgba(255,255,255,0.14); font-size: 14px; font-weight: 500;">Not now</button>
+</div>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { noFrame: false };
+  }
+}
+</script>
+</body>
+</html>

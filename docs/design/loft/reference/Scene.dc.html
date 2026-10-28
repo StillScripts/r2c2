@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Window views</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#10152a}
+</style>
+</helmet>
+<div style="position: absolute; inset: 0; overflow: hidden; background: #10152a;">
+<sc-if value="{{isCity}}" hint-placeholder-val="{{true}}">
+<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;">
+<defs>
+<linearGradient id="citySky" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#121735"></stop>
+<stop offset="0.42" stop-color="#352c66"></stop>
+<stop offset="0.66" stop-color="#9b4f7c"></stop>
+<stop offset="0.82" stop-color="#ef9466"></stop>
+<stop offset="1" stop-color="#ffc98a"></stop>
+</linearGradient>
+<linearGradient id="cityWater" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#2c2452"></stop>
+<stop offset="1" stop-color="#0a0c1e"></stop>
+</linearGradient>
+<pattern id="cityWinA" width="16" height="22" patternUnits="userSpaceOnUse">
+<rect x="5" y="6" width="5" height="7" fill="#ffc970" opacity="0.3"></rect>
+</pattern>
+<pattern id="cityWinB" width="40" height="44" x="8" y="3" patternUnits="userSpaceOnUse">
+<rect x="5" y="6" width="5" height="7" fill="#ffe2a6" opacity="0.8"></rect>
+<rect x="21" y="28" width="5" height="7" fill="#ffe2a6" opacity="0.6"></rect>
+</pattern>
+<pattern id="cityWinC" width="24" height="28" patternUnits="userSpaceOnUse">
+<rect x="8" y="9" width="7" height="9" fill="#ffd68a" opacity="0.4"></rect>
+</pattern>
+<g id="cityFar">
+<rect x="0" y="560" width="60" height="140"></rect>
+<rect x="60" y="510" width="40" height="190"></rect>
+<rect x="100" y="580" width="70" height="120"></rect>
+<rect x="170" y="470" width="50" height="230"></rect>
+<rect x="220" y="540" width="80" height="160"></rect>
+<rect x="300" y="440" width="45" height="260"></rect>
+<rect x="345" y="550" width="70" height="150"></rect>
+<rect x="415" y="500" width="55" height="200"></rect>
+<rect x="470" y="570" width="90" height="130"></rect>
+<rect x="560" y="400" width="40" height="300"></rect>
+<rect x="600" y="520" width="65" height="180"></rect>
+<rect x="665" y="560" width="50" height="140"></rect>
+<rect x="715" y="480" width="75" height="220"></rect>
+<rect x="790" y="530" width="45" height="170"></rect>
+<rect x="835" y="450" width="60" height="250"></rect>
+<rect x="895" y="550" width="80" height="150"></rect>
+<rect x="975" y="500" width="50" height="200"></rect>
+<rect x="1025" y="420" width="70" height="280"></rect>
+<rect x="1095" y="540" width="55" height="160"></rect>
+<rect x="1150" y="490" width="85" height="210"></rect>
+<rect x="1235" y="560" width="45" height="140"></rect>
+<rect x="1280" y="460" width="70" height="240"></rect>
+<rect x="1350" y="530" width="90" height="170"></rect>
+</g>
+<g id="cityMid">
+<rect x="20" y="440" width="90" height="260"></rect>
+<rect x="140" y="360" width="70" height="340"></rect>
+<rect x="250" y="480" width="110" height="220"></rect>
+<rect x="390" y="300" width="80" height="400"></rect>
+<rect x="520" y="420" width="100" height="280"></rect>
+<rect x="660" y="340" width="70" height="360"></rect>
+<rect x="780" y="460" width="120" height="240"></rect>
+<rect x="940" y="280" width="90" height="420"></rect>
+<rect x="1080" y="400" width="110" height="300"></rect>
+<rect x="1230" y="320" width="80" height="380"></rect>
+<rect x="1330" y="440" width="110" height="260"></rect>
+</g>
+<g id="cityNear">
+<rect x="880" y="510" width="120" height="190"></rect>
+<rect x="1000" y="450" width="110" height="250"></rect>
+<rect x="1110" y="530" width="150" height="170"></rect>
+<rect x="1260" y="470" width="180" height="230"></rect>
+</g>
+</defs>
+<rect width="1440" height="700" fill="url(#citySky)"></rect>
+<circle cx="140" cy="90" r="1.4" fill="#ffffff" opacity="0.7"></circle>
+<circle cx="380" cy="150" r="1" fill="#ffffff" opacity="0.6"></circle>
+<circle cx="620" cy="70" r="1.6" fill="#ffffff" opacity="0.8"></circle>
+<circle cx="880" cy="130" r="1" fill="#ffffff" opacity="0.5"></circle>
+<circle cx="1110" cy="60" r="1.3" fill="#ffffff" opacity="0.7"></circle>
+<circle cx="1330" cy="170" r="1" fill="#ffffff" opacity="0.6"></circle>
+<circle cx="815" cy="660" r="170" fill="#ffb27a" opacity="0.16"></circle>
+<circle cx="815" cy="660" r="62" fill="#ffd9a0" opacity="0.7"></circle>
+<use href="#cityFar" fill="#4b3a72" opacity="0.75"></use>
+<use href="#cityMid" fill="#272348"></use>
+<use href="#cityMid" fill="url(#cityWinA)"></use>
+<use href="#cityMid" fill="url(#cityWinB)"></use>
+<g stroke="#17162f" fill="none" stroke-linecap="round">
+<path d="M 110 700 Q 415 420 720 700" stroke-width="10"></path>
+<path d="M 40 640 L 800 640" stroke-width="7"></path>
+<path d="M 220 617 V 640 M 270 592 V 640 M 320 574 V 640 M 370 563 V 640 M 415 560 V 640 M 460 563 V 640 M 510 574 V 640 M 560 592 V 640 M 610 617 V 640" stroke-width="2.5"></path>
+</g>
+<rect x="70" y="606" width="40" height="94" fill="#17162f"></rect>
+<rect x="720" y="606" width="40" height="94" fill="#17162f"></rect>
+<use href="#cityNear" fill="#14152c"></use>
+<use href="#cityNear" fill="url(#cityWinC)"></use>
+<rect y="700" width="1440" height="200" fill="url(#cityWater)"></rect>
+<rect x="775" y="712" width="80" height="3" fill="#ffd9a0" opacity="0.55"></rect>
+<rect x="755" y="732" width="120" height="3" fill="#ffd9a0" opacity="0.35"></rect>
+<rect x="790" y="754" width="50" height="2" fill="#ffd9a0" opacity="0.3"></rect>
+<rect x="735" y="782" width="160" height="2" fill="#ffd9a0" opacity="0.18"></rect>
+<rect x="960" y="724" width="18" height="2" fill="#ffc970" opacity="0.3"></rect>
+<rect x="1060" y="744" width="24" height="2" fill="#ffc970" opacity="0.25"></rect>
+<rect x="1180" y="716" width="16" height="2" fill="#ffc970" opacity="0.3"></rect>
+<rect x="1310" y="738" width="28" height="2" fill="#ffc970" opacity="0.22"></rect>
+<rect x="420" y="728" width="22" height="2" fill="#ffc970" opacity="0.2"></rect>
+<rect x="180" y="748" width="18" height="2" fill="#ffc970" opacity="0.2"></rect>
+</svg>
+</sc-if>
+<sc-if value="{{isCoast}}" hint-placeholder-val="{{false}}">
+<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;">
+<defs>
+<linearGradient id="coastSky" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#4f8fc4"></stop>
+<stop offset="0.55" stop-color="#a6cbe4"></stop>
+<stop offset="0.85" stop-color="#f1dbb2"></stop>
+<stop offset="1" stop-color="#f6c88e"></stop>
+</linearGradient>
+<linearGradient id="coastSea" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#2f7d93"></stop>
+<stop offset="0.45" stop-color="#16596d"></stop>
+<stop offset="1" stop-color="#0c3c4c"></stop>
+</linearGradient>
+</defs>
+<rect width="1440" height="560" fill="url(#coastSky)"></rect>
+<circle cx="1060" cy="470" r="130" fill="#fff4d6" opacity="0.25"></circle>
+<circle cx="1060" cy="470" r="44" fill="#fff6dc"></circle>
+<path d="M 760 560 C 860 520 960 498 1080 516 C 1180 532 1300 512 1440 528 L 1440 562 L 760 562 Z" fill="#6f8aa0" opacity="0.85"></path>
+<rect x="1214" y="488" width="9" height="30" fill="#f5f1e6"></rect>
+<rect x="1212" y="484" width="13" height="6" fill="#cf5b3d"></rect>
+<rect y="560" width="1440" height="340" fill="url(#coastSea)"></rect>
+<g fill="#fff6dc">
+<ellipse cx="1060" cy="580" rx="40" ry="2" opacity="0.7"></ellipse>
+<ellipse cx="1050" cy="600" rx="60" ry="2" opacity="0.45"></ellipse>
+<ellipse cx="1075" cy="624" rx="34" ry="2" opacity="0.4"></ellipse>
+<ellipse cx="1040" cy="652" rx="70" ry="2" opacity="0.25"></ellipse>
+<ellipse cx="1090" cy="690" rx="46" ry="2" opacity="0.2"></ellipse>
+</g>
+<g stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.3">
+<path d="M 620 640 q 20 -6 40 0 t 40 0"></path>
+<path d="M 820 700 q 24 -7 48 0 t 48 0"></path>
+<path d="M 1180 660 q 20 -6 40 0 t 40 0"></path>
+<path d="M 700 780 q 28 -8 56 0 t 56 0"></path>
+</g>
+<path d="M 900 900 C 1000 822 1200 790 1440 778 L 1440 900 Z" fill="#e8cfa2"></path>
+<path d="M 920 884 C 1020 810 1210 784 1440 772" stroke="#ffffff" stroke-width="5" fill="none" opacity="0.65" stroke-linecap="round"></path>
+<path d="M 0 400 C 120 384 220 418 300 470 C 362 512 420 596 470 700 C 500 762 522 832 540 900 L 0 900 Z" fill="#3b4a38"></path>
+<path d="M 300 470 C 362 512 420 596 470 700 C 500 762 522 832 540 900 L 492 900 C 466 822 438 742 398 664 C 362 594 334 528 300 470 Z" fill="#c08e5d"></path>
+<path d="M 0 400 C 120 384 220 418 300 470 L 300 482 C 220 432 120 400 0 414 Z" fill="#56684c"></path>
+<g stroke="#33475a" stroke-width="2" fill="none" stroke-linecap="round">
+<path d="M 640 300 l 8 6 l 8 -6"></path>
+<path d="M 676 280 l 6 5 l 6 -5"></path>
+</g>
+</svg>
+</sc-if>
+<sc-if value="{{isAlps}}" hint-placeholder-val="{{false}}">
+<svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" aria-hidden="true" style="position: absolute; inset: 0; width: 100%; height: 100%; display: block;">
+<defs>
+<linearGradient id="alpsSky" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#1b2850"></stop>
+<stop offset="0.5" stop-color="#47598f"></stop>
+<stop offset="0.8" stop-color="#c3a3c0"></stop>
+<stop offset="1" stop-color="#eec5ae"></stop>
+</linearGradient>
+<g id="pine">
+<polygon points="0,-64 -15,-24 -8,-24 -19,0 19,0 8,-24 15,-24"></polygon>
+</g>
+</defs>
+<rect width="1440" height="700" fill="url(#alpsSky)"></rect>
+<circle cx="1120" cy="170" r="60" fill="#f5f1e6" opacity="0.12"></circle>
+<circle cx="1120" cy="170" r="24" fill="#f5f1e6" opacity="0.92"></circle>
+<circle cx="260" cy="110" r="1.3" fill="#ffffff" opacity="0.7"></circle>
+<circle cx="520" cy="70" r="1" fill="#ffffff" opacity="0.6"></circle>
+<circle cx="860" cy="120" r="1.4" fill="#ffffff" opacity="0.7"></circle>
+<circle cx="1320" cy="90" r="1" fill="#ffffff" opacity="0.5"></circle>
+<polygon points="0,560 140,420 230,480 360,300 470,430 560,380 700,220 820,400 900,350 1040,250 1160,420 1260,360 1440,460 1440,900 0,900" fill="#8a94bd"></polygon>
+<g fill="#eef1fa" opacity="0.92">
+<polygon points="700,220 639,290 660,282 678,298 698,284 718,300 735,286 746,290"></polygon>
+<polygon points="1040,250 956,310 975,302 995,318 1015,304 1040,320 1060,306 1082,310"></polygon>
+<polygon points="360,300 324,350 340,344 356,358 372,344 390,356 402,350"></polygon>
+</g>
+<rect y="590" width="1440" height="50" fill="#ffffff" opacity="0.06"></rect>
+<polygon points="0,640 120,560 240,610 380,500 520,600 640,540 780,620 900,520 1020,610 1160,560 1300,630 1440,580 1440,900 0,900" fill="#3c4a7a"></polygon>
+<polygon points="0,720 200,680 420,720 640,690 860,730 1080,690 1300,720 1440,700 1440,900 0,900" fill="#1d2546"></polygon>
+<g fill="#121833">
+<use href="#pine" x="60" y="712"></use>
+<use href="#pine" x="96" y="704"></use>
+<use href="#pine" x="150" y="700"></use>
+<use href="#pine" x="300" y="706"></use>
+<use href="#pine" x="338" y="712"></use>
+<use href="#pine" x="540" y="702"></use>
+<use href="#pine" x="580" y="698"></use>
+<use href="#pine" x="760" y="716"></use>
+<use href="#pine" x="1180" y="704"></use>
+<use href="#pine" x="1224" y="712"></use>
+<use href="#pine" x="1380" y="704"></use>
+<use href="#pine" x="1414" y="710"></use>
+</g>
+<circle cx="1000" cy="694" r="40" fill="#ffcf7a" opacity="0.18"></circle>
+<rect x="980" y="684" width="42" height="26" fill="#10152e"></rect>
+<polygon points="974,686 1001,664 1028,686" fill="#10152e"></polygon>
+<rect x="990" y="692" width="8" height="8" fill="#ffcf7a"></rect>
+<rect x="1004" y="692" width="8" height="8" fill="#ffcf7a" opacity="0.8"></rect>
+<rect y="760" width="1440" height="140" fill="#141a36"></rect>
+</svg>
+</sc-if>
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(130% 100% at 50% 35%, rgba(0,0,0,0) 55%, rgba(5,7,15,0.5) 100%);"></div>
+<sc-if value="{{frame}}" hint-placeholder-val="{{true}}">
+<div aria-hidden="true" style="position: absolute; inset: 0; pointer-events: none;">
+<div style="position: absolute; left: 0; right: 0; top: 0; height: 14px; background: #0b0e18;"></div>
+<div style="position: absolute; left: 0; right: 0; top: 22%; height: 6px; background: rgba(11,14,24,0.85);"></div>
+<div style="position: absolute; top: 0; bottom: 0; left: calc(33.333% - 5px); width: 10px; background: rgba(11,14,24,0.9);"></div>
+<div style="position: absolute; top: 0; bottom: 0; left: calc(66.666% - 5px); width: 10px; background: rgba(11,14,24,0.9);"></div>
+<svg viewBox="0 0 300 340" aria-hidden="true" style="position: absolute; left: -30px; bottom: -20px; width: 300px; height: 340px;">
+<g fill="#080b14">
+<path d="M 150 340 C 148 280 140 220 120 150" stroke="#080b14" stroke-width="5" fill="none"></path>
+<path d="M 150 340 C 160 270 190 210 240 170" stroke="#080b14" stroke-width="5" fill="none"></path>
+<path d="M 150 340 C 130 290 90 250 40 230" stroke="#080b14" stroke-width="5" fill="none"></path>
+<ellipse cx="112" cy="128" rx="34" ry="62" transform="rotate(-18 112 128)"></ellipse>
+<ellipse cx="248" cy="154" rx="30" ry="58" transform="rotate(52 248 154)"></ellipse>
+<ellipse cx="34" cy="220" rx="26" ry="52" transform="rotate(-62 34 220)"></ellipse>
+<ellipse cx="190" cy="230" rx="22" ry="44" transform="rotate(30 190 230)"></ellipse>
+<rect x="100" y="300" width="100" height="40" rx="8"></rect>
+</g>
+</svg>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"view":{"editor":"enum","options":["city","coast","alps"],"default":"city"},"frame":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const view = this.props.view ?? 'city';
+    return {
+      isCity: view === 'city',
+      isCoast: view === 'coast',
+      isAlps: view === 'alps',
+      frame: this.props.frame ?? true
+    };
+  }
+}
+</script>
+</body>
+</html>
