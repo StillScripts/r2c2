@@ -14,6 +14,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AuthedIndexRouteImport } from './routes/_authed/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AuthedSitesSiteIdIndexRouteImport } from './routes/_authed/sites/$siteId/index'
+import { Route as AuthedSitesSiteIdThemeRouteImport } from './routes/_authed/sites/$siteId/theme'
 import { Route as AuthedSitesSiteIdEnquiriesIndexRouteImport } from './routes/_authed/sites/$siteId/enquiries/index'
 import { Route as AuthedSitesSiteIdEnquiriesEnquiryIdRouteImport } from './routes/_authed/sites/$siteId/enquiries/$enquiryId'
 import { Route as AuthedSitesSiteIdPagesPageIdRouteImport } from './routes/_authed/sites/$siteId/pages/$pageId'
@@ -41,6 +42,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 const AuthedSitesSiteIdIndexRoute = AuthedSitesSiteIdIndexRouteImport.update({
   id: '/sites/$siteId/',
   path: '/sites/$siteId/',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedSitesSiteIdThemeRoute = AuthedSitesSiteIdThemeRouteImport.update({
+  id: '/sites/$siteId/theme',
+  path: '/sites/$siteId/theme',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedSitesSiteIdEnquiriesIndexRoute =
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthedIndexRoute
   '/sign-in': typeof SignInRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/sites/$siteId/theme': typeof AuthedSitesSiteIdThemeRoute
   '/sites/$siteId/': typeof AuthedSitesSiteIdIndexRoute
   '/sites/$siteId/enquiries/$enquiryId': typeof AuthedSitesSiteIdEnquiriesEnquiryIdRoute
   '/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/sites/$siteId/theme': typeof AuthedSitesSiteIdThemeRoute
   '/sites/$siteId': typeof AuthedSitesSiteIdIndexRoute
   '/sites/$siteId/enquiries/$enquiryId': typeof AuthedSitesSiteIdEnquiriesEnquiryIdRoute
   '/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/_authed/': typeof AuthedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_authed/sites/$siteId/theme': typeof AuthedSitesSiteIdThemeRoute
   '/_authed/sites/$siteId/': typeof AuthedSitesSiteIdIndexRoute
   '/_authed/sites/$siteId/enquiries/$enquiryId': typeof AuthedSitesSiteIdEnquiriesEnquiryIdRoute
   '/_authed/sites/$siteId/pages/$pageId': typeof AuthedSitesSiteIdPagesPageIdRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sign-in'
     | '/api/auth/$'
+    | '/sites/$siteId/theme'
     | '/sites/$siteId/'
     | '/sites/$siteId/enquiries/$enquiryId'
     | '/sites/$siteId/pages/$pageId'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/'
     | '/api/auth/$'
+    | '/sites/$siteId/theme'
     | '/sites/$siteId'
     | '/sites/$siteId/enquiries/$enquiryId'
     | '/sites/$siteId/pages/$pageId'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/_authed/'
     | '/api/auth/$'
+    | '/_authed/sites/$siteId/theme'
     | '/_authed/sites/$siteId/'
     | '/_authed/sites/$siteId/enquiries/$enquiryId'
     | '/_authed/sites/$siteId/pages/$pageId'
@@ -177,6 +189,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedSitesSiteIdIndexRouteImport
       parentRoute: typeof AuthedRoute
     }
+    '/_authed/sites/$siteId/theme': {
+      id: '/_authed/sites/$siteId/theme'
+      path: '/sites/$siteId/theme'
+      fullPath: '/sites/$siteId/theme'
+      preLoaderRoute: typeof AuthedSitesSiteIdThemeRouteImport
+      parentRoute: typeof AuthedRoute
+    }
     '/_authed/sites/$siteId/enquiries/': {
       id: '/_authed/sites/$siteId/enquiries/'
       path: '/sites/$siteId/enquiries'
@@ -210,6 +229,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthedRouteChildren {
   AuthedIndexRoute: typeof AuthedIndexRoute
+  AuthedSitesSiteIdThemeRoute: typeof AuthedSitesSiteIdThemeRoute
   AuthedSitesSiteIdIndexRoute: typeof AuthedSitesSiteIdIndexRoute
   AuthedSitesSiteIdEnquiriesEnquiryIdRoute: typeof AuthedSitesSiteIdEnquiriesEnquiryIdRoute
   AuthedSitesSiteIdPagesPageIdRoute: typeof AuthedSitesSiteIdPagesPageIdRoute
@@ -219,6 +239,7 @@ interface AuthedRouteChildren {
 
 const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedIndexRoute: AuthedIndexRoute,
+  AuthedSitesSiteIdThemeRoute: AuthedSitesSiteIdThemeRoute,
   AuthedSitesSiteIdIndexRoute: AuthedSitesSiteIdIndexRoute,
   AuthedSitesSiteIdEnquiriesEnquiryIdRoute:
     AuthedSitesSiteIdEnquiriesEnquiryIdRoute,
