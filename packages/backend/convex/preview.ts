@@ -8,19 +8,23 @@ import "tailwindcss"
 import { api } from "./_generated/api"
 import { action } from "./_generated/server"
 
-/** Compile a draft's CSS and check its house rules, the same way publish will. */
+/** A draft's compiled CSS and house-rule issues under a theme, the same way publish will. */
+export async function previewPage(html: string, themeCss: string) {
+  const theme = await loadTheme(themeCss)
+  const [{ css }, { errors, warnings }] = await Promise.all([
+    compileCss(html, theme),
+    checkPage(html, theme),
+  ])
+  return { css, errors, warnings }
+}
+
+export type PagePreview = { css: string; errors: Issue[]; warnings: Issue[] }
+
+/** Compile a draft's CSS and check its house rules with the site's theme. */
 export const preview = action({
   args: { siteId: v.id("sites"), html: v.string() },
-  handler: async (
-    ctx,
-    { siteId, html }
-  ): Promise<{ css: string; errors: Issue[]; warnings: Issue[] }> => {
+  handler: async (ctx, { siteId, html }): Promise<PagePreview> => {
     const site = await ctx.runQuery(api.sites.get, { siteId })
-    const theme = await loadTheme(site.theme)
-    const [{ css }, { errors, warnings }] = await Promise.all([
-      compileCss(html, theme),
-      checkPage(html, theme),
-    ])
-    return { css, errors, warnings }
+    return previewPage(html, site.theme)
   },
 })

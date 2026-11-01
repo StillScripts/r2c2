@@ -87,6 +87,22 @@ test("an owner previews a page with an unsaved theme", async () => {
   expect((await stored(t)).theme).toBe("")
 })
 
+test("a preview warns about classes the unsaved theme no longer has", async () => {
+  const { siteId, ann } = await siteWithOwner()
+  expect(
+    await ann.action(api.theme.preview, {
+      siteId,
+      theme: "",
+      html: `<p class="btn">hi</p>`,
+    })
+  ).toMatchObject({
+    ok: true,
+    warnings: [
+      expect.objectContaining({ message: expect.stringContaining("btn") }),
+    ],
+  })
+})
+
 test("a preview with a theme that doesn't compile says why", async () => {
   const { siteId, ann } = await siteWithOwner()
   expect(

@@ -5,9 +5,11 @@ import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import type { FunctionReturnType } from "convex/server"
 import { type FormEvent, useState } from "react"
 import { CodeTextarea } from "@/components/code-textarea"
-import { PreviewFrame, useDebouncedResult } from "@/components/page-preview"
+import { Issues, PreviewFrame } from "@/components/page-preview"
+import { useDebouncedResult } from "@/lib/debounced-result"
 import { useEditorGuards } from "@/lib/editor-guards"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
@@ -48,9 +50,7 @@ function ThemePanel() {
   const preview = useThemePreview(siteId, theme, pageId)
   const unsaved = theme !== site.theme
   const problem =
-    saveTheme.data?.ok === false
-      ? saveTheme.data.message
-      : preview.result?.ok === false && preview.result.message
+    saveTheme.data?.ok === false ? saveTheme.data.message : preview.problem
   const alert = saveTheme.error ? errorMessage(saveTheme.error) : problem
   const status = unsaved
     ? "Unsaved changes"
@@ -125,7 +125,13 @@ function ThemePanel() {
                   </option>
                 ))}
               </select>
-              <PreviewFrame preview={preview.shown} fallback={preview.html} />
+              <div className="min-h-0 flex-1">
+                <PreviewFrame preview={preview.shown} fallback={preview.html} />
+              </div>
+              <Issues
+                errors={preview.shown?.errors}
+                warnings={preview.shown?.warnings}
+              />
             </>
           ) : (
             <p className="text-muted-foreground">
@@ -138,7 +144,12 @@ function ThemePanel() {
   )
 }
 
-/** A page's draft compiled with the unsaved theme, keeping the last one that compiled on screen. */
+type ThemePreview = Extract<
+  FunctionReturnType<typeof api.theme.preview>,
+  { ok: true }
+> & { html: string }
+
+/** A page's draft previewed with the unsaved theme, keeping the last one that compiled on screen. */
 function useThemePreview(
   siteId: Id<"sites">,
   theme: string,
@@ -151,15 +162,19 @@ function useThemePreview(
   const html = page?.draftHtml
   const runPreview = useConvexAction(api.theme.preview)
   const result = useDebouncedResult(
-    html === undefined ? undefined : JSON.stringify([theme, html]),
+    html === undefined ? undefined : `${html}\0${theme}`,
     async () => ({
       ...(await runPreview({ siteId, theme, html: html! })),
       html: html!,
     })
   )
-  const [shown, setShown] = useState<{ html: string; css: string }>()
+  const [shown, setShown] = useState<ThemePreview>()
   if (result?.ok && result !== shown) setShown(result)
-  return { result, shown, html: html ?? "" }
+  return {
+    shown,
+    html: html ?? "",
+    problem: result?.ok === false ? result.message : undefined,
+  }
 }
 
 function ColourTokens({

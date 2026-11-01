@@ -2,40 +2,15 @@ import { useConvexAction } from "@convex-dev/react-query"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import type { FunctionReturnType } from "convex/server"
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
+import { useMemo } from "react"
+import { useDebouncedResult } from "@/lib/debounced-result"
 import { previewDocument } from "@/lib/preview"
-
-const PREVIEW_DELAY_MS = 400
 
 type Preview = FunctionReturnType<typeof api.preview.preview> & {
   html: string
 }
 
 export type Issue = Preview["errors"][number]
-
-/** The latest result of `run`, called once `key` stops changing. Stale responses are dropped. */
-export function useDebouncedResult<T>(
-  key: string | undefined,
-  run: () => Promise<T>
-) {
-  const [result, setResult] = useState<T>()
-  const call = useEffectEvent(run)
-  const latest = useRef(0)
-
-  useEffect(() => {
-    if (key === undefined) return
-    const request = ++latest.current
-    const timer = setTimeout(() => {
-      call().then(
-        (value) => request === latest.current && setResult(value),
-        () => {}
-      )
-    }, PREVIEW_DELAY_MS)
-    return () => clearTimeout(timer)
-  }, [key])
-
-  return result
-}
 
 /** The latest preview for the HTML, fetched once typing pauses. */
 export function usePreview(siteId: Id<"sites">, html: string) {

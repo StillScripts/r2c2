@@ -25,12 +25,13 @@ Make the Theme section that shipped in [make-pasted-tailwind-just-work](make-pas
 ## Approach
 
 - **Backend:** a new owner-only `"use node"` action, `theme:preview({ siteId, theme, html })`, in `packages/backend/convex/theme.ts`. It returns `{ ok: true, css }`, or `{ ok: false, message }` from `themeProblem`.
-  - It reuses `loadTheme` and `compileCss` from `@workspace/html`, and the same owner check as `theme:save` (pulled into a shared helper).
+  - It shares `previewPage` (compile and house-rule check) with `preview:preview`, so the panel shows the same errors and warnings as the page editor, and the same owner check as `theme:save`.
+  - `loadTheme` keeps only the 16 most recently used themes, since every pause in typing compiles a new one.
   - It's a separate action, not a `theme` argument on `preview:preview`. That keeps the page editor's action open to editors and keeps theme compiling owner-only.
 - **Loft:** the route is laid out like the page editor, with the editor on the left and the preview on the right.
   - Left: the colour pickers above the CSS textarea, then the compile error if there is one.
   - Right: a page `<select>` (from `pagesQuery`) and `PreviewFrame`.
-  - The preview is debounced like `usePreview`, through a shared `useDebouncedResult` hook. If the theme stops compiling, the last preview that compiled stays on screen under the error.
+  - The preview is debounced like `usePreview`, through a shared `useDebouncedResult` hook in `apps/loft/src/lib/`. If the theme stops compiling, the last preview that compiled stays on screen under the error.
   - Cmd/Ctrl+S and the unsaved-changes guard move into a shared `useEditorGuards` hook used by both editors.
 - **Colour tokens:** pure helpers in `apps/loft/src/lib/theme-colours.ts`:
   - `readColours(css)` finds `--name: value;` declarations inside the first `@theme { … }` block. It skips the `--color-*: initial` reset line.
