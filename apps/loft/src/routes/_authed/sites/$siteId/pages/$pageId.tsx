@@ -1,12 +1,13 @@
 import { useConvexAction, useConvexMutation } from "@convex-dev/react-query"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
-import { Link, createFileRoute, useBlocker } from "@tanstack/react-router"
+import { Link, createFileRoute } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import { Button } from "@workspace/ui/components/button"
-import { useEffect, useEffectEvent, useState } from "react"
+import { useState } from "react"
 import { CodeTextarea } from "@/components/code-textarea"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Issues, PreviewFrame, usePreview } from "@/components/page-preview"
+import { useEditorGuards } from "@/lib/editor-guards"
 import { errorMessage } from "@/lib/errors"
 import { parsePageParams } from "@/lib/params"
 import { pageQuery } from "@/lib/queries"
@@ -52,22 +53,7 @@ function PageEditor() {
     }
   }
 
-  const onKeyDown = useEffectEvent((event: KeyboardEvent) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === "s") {
-      event.preventDefault()
-      save()
-    }
-  })
-  useEffect(() => {
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
-
-  useBlocker({
-    shouldBlockFn: () =>
-      unsaved && !window.confirm("Leave without saving your changes?"),
-    enableBeforeUnload: unsaved,
-  })
+  useEditorGuards({ unsaved, save })
 
   return (
     <main className="flex h-[calc(100svh-3.5rem)] flex-col gap-3 p-4">

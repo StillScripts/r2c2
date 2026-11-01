@@ -30,7 +30,8 @@ Make the Theme section that shipped in [make-pasted-tailwind-just-work](make-pas
 - **Loft:** the route is laid out like the page editor, with the editor on the left and the preview on the right.
   - Left: the colour pickers above the CSS textarea, then the compile error if there is one.
   - Right: a page `<select>` (from `pagesQuery`) and `PreviewFrame`.
-  - The preview is debounced like `usePreview`. Shared debounce and stale-response logic gets pulled out of `usePreview` instead of copied.
+  - The preview is debounced like `usePreview`, through a shared `useDebouncedResult` hook. If the theme stops compiling, the last preview that compiled stays on screen under the error.
+  - Cmd/Ctrl+S and the unsaved-changes guard move into a shared `useEditorGuards` hook used by both editors.
 - **Colour tokens:** pure helpers in `apps/loft/src/lib/theme-colours.ts`:
   - `readColours(css)` finds `--name: value;` declarations inside the first `@theme { … }` block. It skips the `--color-*: initial` reset line.
   - `setColour(css, name, value)` replaces one declaration's value.
@@ -39,13 +40,13 @@ Make the Theme section that shipped in [make-pasted-tailwind-just-work](make-pas
 
 ## Action items
 
-- [ ] Add `theme:preview` to `packages/backend/convex/theme.ts`, sharing the owner check with `theme:save`. Add `convex-test` tests for an owner, a non-owner and a theme that doesn't compile.
-- [ ] Add `readColours`, `setColour` and `addColour` in `apps/loft/src/lib/theme-colours.ts`. Test them with `sites/r2c2/theme.css`, an empty theme, a theme without `@theme`, comments and non-hex values.
-- [ ] Pull the debounce-and-drop-stale logic out of `usePreview` in `apps/loft/src/components/page-preview.tsx` so the theme preview can reuse it.
-- [ ] Add `apps/loft/src/routes/_authed/sites/$siteId/theme.tsx` with the pickers, textarea, page select and preview, keeping Cmd/Ctrl+S, the unsaved-changes guard and the published-pages note.
-- [ ] Replace `ThemeEditor` on `apps/loft/src/routes/_authed/sites/$siteId/index.tsx` with a "Theme" link for owners. Redirect non-owners who open the theme route back to the site page.
-- [ ] Update SPEC §11's theme panel line and the ADR-018 / plan references to the Theme section if they name its location.
-- [ ] Run `vp check` and `vp test`.
+- [x] Add `theme:preview` to `packages/backend/convex/theme.ts`, sharing the owner check with `theme:save`. Add `convex-test` tests for an owner, a non-owner and a theme that doesn't compile.
+- [x] Add `readColours`, `setColour` and `addColour` in `apps/loft/src/lib/theme-colours.ts`. Test them with `sites/r2c2/theme.css`, an empty theme, a theme without `@theme`, comments and non-hex values.
+- [x] Pull the debounce-and-drop-stale logic out of `usePreview` in `apps/loft/src/components/page-preview.tsx` so the theme preview can reuse it.
+- [x] Add `apps/loft/src/routes/_authed/sites/$siteId/theme.tsx` with the pickers, textarea, page select and preview, keeping Cmd/Ctrl+S, the unsaved-changes guard and the published-pages note.
+- [x] Replace `ThemeEditor` on `apps/loft/src/routes/_authed/sites/$siteId/index.tsx` with a "Theme" link for owners. Redirect non-owners who open the theme route back to the site page.
+- [x] Update references to the Theme section's location (`sites/r2c2/README.md`). SPEC §11 doesn't name one, and ADR-018 stays as written.
+- [x] Run `vp check` and `vp test`.
 - [ ] Manually: in local dev, change `--color-brand` on the r2c2 site with a picker and watch the home page preview change, break the CSS and see the compile error, then save.
 
 ## Open questions

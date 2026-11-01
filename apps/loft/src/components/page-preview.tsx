@@ -2,7 +2,7 @@ import { useConvexAction } from "@convex-dev/react-query"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import type { FunctionReturnType } from "convex/server"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react"
 import { previewDocument } from "@/lib/preview"
 
 const PREVIEW_DELAY_MS = 400
@@ -13,25 +13,37 @@ type Preview = FunctionReturnType<typeof api.preview.preview> & {
 
 export type Issue = Preview["errors"][number]
 
-/** The latest preview for the HTML, fetched once typing pauses. Stale responses are dropped. */
-export function usePreview(siteId: Id<"sites">, html: string) {
-  const runPreview = useConvexAction(api.preview.preview)
-  const [preview, setPreview] = useState<Preview>()
+/** The latest result of `run`, called once `key` stops changing. Stale responses are dropped. */
+export function useDebouncedResult<T>(
+  key: string | undefined,
+  run: () => Promise<T>
+) {
+  const [result, setResult] = useState<T>()
+  const call = useEffectEvent(run)
   const latest = useRef(0)
 
   useEffect(() => {
+    if (key === undefined) return
     const request = ++latest.current
     const timer = setTimeout(() => {
-      runPreview({ siteId, html }).then(
-        (result) =>
-          request === latest.current && setPreview({ ...result, html }),
+      call().then(
+        (value) => request === latest.current && setResult(value),
         () => {}
       )
     }, PREVIEW_DELAY_MS)
     return () => clearTimeout(timer)
-  }, [runPreview, siteId, html])
+  }, [key])
 
-  return preview
+  return result
+}
+
+/** The latest preview for the HTML, fetched once typing pauses. */
+export function usePreview(siteId: Id<"sites">, html: string) {
+  const runPreview = useConvexAction(api.preview.preview)
+  return useDebouncedResult(html, async () => ({
+    ...(await runPreview({ siteId, html })),
+    html,
+  }))
 }
 
 /** A sandboxed, script-free frame showing the previewed HTML with its compiled CSS. */
@@ -39,7 +51,7 @@ export function PreviewFrame({
   preview,
   fallback,
 }: {
-  preview?: Preview
+  preview?: { html: string; css: string }
   fallback: string
 }) {
   const srcDoc = useMemo(
