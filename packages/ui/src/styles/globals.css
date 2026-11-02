@@ -1,9 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/archivo";
+@import "@fontsource/instrument-serif";
+@import "@fontsource-variable/jetbrains-mono";
 
-@custom-variant dark (&:is(.dark *));
+/* The Loft has one dark scheme (docs/design/loft.md §4.1), so `dark:` always applies. */
+@custom-variant dark (&);
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
@@ -48,76 +51,93 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --font-sans: "Inter Variable", sans-serif;
+  --font-sans: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Instrument Serif", Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+}
+
+/* The Loft palette (docs/design/loft.md §4.1). shadcn's tokens below point at these. */
+@theme static {
+  --color-glass-solid: #161a2a;
+  --color-placeholder: #b9bfcc;
+  --color-unheard: #a9afbd;
+  --color-lamp: #ffc46b;
+  --color-lamp-ink: #1d1505;
+  --color-lamp-text: #ffd08a;
+  --color-lamp-soft: #ffe3b8;
+  --color-lamp-tint: rgb(255 196 107 / 0.12);
+  --color-live: #6ee7a8;
+  --color-live-text: #b9f5d4;
+  --color-live-tint: rgb(110 231 168 / 0.2);
+  --color-removed-text: #ffb3a7;
+  --color-fill-1: rgb(255 255 255 / 0.08);
+  --color-fill-2: rgb(255 255 255 / 0.12);
+  --color-fill-3: rgb(255 255 255 / 0.14);
+  --color-fill-selected: rgb(255 255 255 / 0.2);
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  color-scheme: dark;
+  --background: #10152a;
+  --foreground: #f4f5f9;
+  /* 0.8, not the spec draft's 0.66, keeps every text colour at 4.5:1 over the sunlit Coast sky */
+  --card: rgb(13 16 27 / 0.8);
+  --card-foreground: var(--foreground);
+  --popover: rgb(13 16 27 / 0.88);
+  --popover-foreground: var(--foreground);
+  --primary: var(--color-lamp);
+  --primary-foreground: var(--color-lamp-ink);
+  --secondary: var(--color-fill-3);
+  --secondary-foreground: var(--foreground);
+  --muted: var(--color-fill-1);
+  --muted-foreground: #cdd1db;
+  --accent: var(--color-fill-selected);
+  --accent-foreground: var(--foreground);
+  --destructive: var(--color-removed-text);
+  --border: var(--color-fill-3);
+  --input: var(--color-fill-3);
+  --ring: var(--color-lamp);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 1rem;
+  --sidebar: var(--card);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* Every panel, pill, bubble and input that holds text. Don't nest it: glass inside glass uses a fill colour. */
+@utility glass {
+  background: var(--card);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(24px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 24px 60px rgb(3 5 12 / 0.35);
+
+  @supports not (backdrop-filter: blur(1px)) {
+    background: var(--color-glass-solid);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--color-glass-solid);
+    backdrop-filter: none;
+  }
+}
+
+/* The single primary action on a surface, and the mic. */
+@utility lamp {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow:
+    0 0 0 1px rgb(255 214 150 / 0.6),
+    0 8px 30px rgb(255 180 80 / 0.45);
 }
 
 @layer base {
@@ -126,5 +146,17 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Calm motion stops entirely (docs/design/loft.md §4.6). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

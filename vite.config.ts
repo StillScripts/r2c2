@@ -27,6 +27,7 @@ export default defineConfig({
       "**/convex/_generated/**",
       ".claude/skills/convex*/**",
       "packages/backend/{AGENTS,CLAUDE}.md",
+      "docs/design/loft/**",
     ],
   },
   test: {

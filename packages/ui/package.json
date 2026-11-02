@@ -5,7 +5,9 @@
   "private": true,
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@fontsource-variable/inter": "catalog:",
+    "@fontsource-variable/archivo": "catalog:",
+    "@fontsource-variable/jetbrains-mono": "catalog:",
+    "@fontsource/instrument-serif": "catalog:",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "lucide-react": "catalog:",

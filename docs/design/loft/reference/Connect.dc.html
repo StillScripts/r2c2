@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Loft — connect an assistant</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&amp;family=Instrument+Serif:ital@0;1&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#10152a}
+a{color:#ffd08a}a:hover{color:#ffe3b8}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid #ffc46b;outline-offset:2px}
+.glass{background:rgba(13,16,27,0.66);border:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08),0 24px 60px rgba(3,5,12,0.35)}
+.lamp{background:#ffc46b;color:#1d1505;box-shadow:0 0 0 1px rgba(255,214,150,0.6),0 8px 30px rgba(255,180,80,0.45)}
+.mono{font-family:'JetBrains Mono',monospace}
+</style>
+</helmet>
+<div style="position: relative; min-height: 100vh; overflow: hidden; font-family: Archivo, 'Helvetica Neue', Arial, sans-serif; color: #f4f5f9;">
+<div style="position: absolute; inset: 0;">
+<dc-import name="Scene" view="alps" hint-size="100%,100%"></dc-import>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(6,9,20,0.3); pointer-events: none;"></div>
+<div style="position: relative; min-height: 100vh; box-sizing: border-box; padding: 22px 24px 28px; display: flex; flex-direction: column; gap: 22px;">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;">
+<a href="Home.dc.html" class="glass" style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 16px 0 12px; border-radius: 999px; color: #f4f5f9; text-decoration: none;">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ffc46b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5"></path><path d="M6 9.5V20h12V9.5"></path><path d="M10 12h4v4h-4zM12 12v4M10 14h4"></path></svg>
+<span style="font-family: 'Instrument Serif', Georgia, serif; font-size: 24px;">The Loft</span>
+</a>
+<a href="Home.dc.html" class="glass" style="display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 999px; color: #f4f5f9; text-decoration: none; font-size: 14px;">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+Close
+</a>
+</header>
+
+<main style="flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px;">
+<div style="display: flex; flex-direction: column; gap: 10px; max-width: 760px;">
+<h1 style="margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-weight: 400; font-size: 64px; line-height: 1; text-shadow: 0 2px 24px rgba(0,0,0,0.5);">Open your loft to any assistant.</h1>
+<p style="margin: 0; font-size: 18px; line-height: 1.5; text-shadow: 0 2px 16px rgba(0,0,0,0.6);">The Loft speaks MCP. Anything you connect gets the same tools Concierge uses, and nothing more. Their work shows up here, and you decide what needs your OK.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;">
+<div style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 16px;">
+<section class="glass" aria-labelledby="address" style="padding: 20px; border-radius: 24px; display: flex; flex-direction: column; gap: 14px;">
+<h2 id="address" style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #cdd1db;">Your loft’s MCP address</h2>
+<div style="display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 16px; border-radius: 16px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);">
+<span class="mono" style="flex: 1; min-width: 0; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">https://[your-loft-address]/mcp</span>
+<button class="lamp" style="height: 40px; padding: 0 16px; border-radius: 12px; font-size: 14px; font-weight: 600;">Copy</button>
+</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px;">
+<li style="display: flex; gap: 12px; font-size: 15px; line-height: 1.45;"><span class="mono" style="color: #ffd08a; font-size: 13px;">01</span>Add the address as a connector in your assistant.</li>
+<li style="display: flex; gap: 12px; font-size: 15px; line-height: 1.45;"><span class="mono" style="color: #ffd08a; font-size: 13px;">02</span>Sign in to the Loft when it asks, and pick which sites it can reach.</li>
+<li style="display: flex; gap: 12px; font-size: 15px; line-height: 1.45;"><span class="mono" style="color: #ffd08a; font-size: 13px;">03</span>Ask it for something. You’ll see the work land on your home screen.</li>
+</ol>
+</section>
+
+<section class="glass" aria-labelledby="clients" style="padding: 20px; border-radius: 24px; display: flex; flex-direction: column; gap: 4px;">
+<h2 id="clients" style="margin: 0 0 8px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #cdd1db;">Connected now</h2>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 56px;">
+<span style="display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; background: #ffc46b; color: #1d1505;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18h16M6 18a6 6 0 0 1 12 0M12 9V7M10 7h4"></path></svg></span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 500;">Concierge</span><span style="font-size: 12px; color: #cdd1db;">Built in · voice and chat in the Loft</span></div>
+<span style="font-size: 13px; color: #cdd1db;">Always on</span>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-top: 1px solid rgba(255,255,255,0.08);">
+<span style="display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; background: #e7a184; color: #2a120a; font-size: 13px; font-weight: 700;">C</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 500;">Claude · MacBook</span><span style="font-size: 12px; color: #cdd1db;">R2C2 only · last used 11:48 pm</span></div>
+<button style="height: 36px; padding: 0 14px; border-radius: 999px; background: rgba(255,255,255,0.12); font-size: 13px;">Manage</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-top: 1px solid rgba(255,255,255,0.08);">
+<span style="display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; background: #8fd3c8; color: #0b2a26; font-size: 13px; font-weight: 700;">A</span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 15px; font-weight: 500;">[Your own agent]</span><span style="font-size: 12px; color: #cdd1db;">Read only · enquiries</span></div>
+<button style="height: 36px; padding: 0 14px; border-radius: 999px; background: rgba(255,255,255,0.12); font-size: 13px;">Manage</button>
+</div>
+</section>
+</div>
+
+<section class="glass" aria-labelledby="tools" style="flex: 1 1 420px; min-width: 0; padding: 20px; border-radius: 24px; display: flex; flex-direction: column; gap: 4px;">
+<div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px;">
+<h2 id="tools" style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #cdd1db;">What assistants can do</h2>
+<span style="font-size: 12px; color: #cdd1db;">Applies to every connection</span>
+</div>
+<sc-for list="{{tools}}" as="t" hint-placeholder-count="8">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 50px; border-top: 1px solid rgba(255,255,255,0.08);">
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+<span class="mono" style="font-size: 13px; color: #f4f5f9;">{{t.name}}</span>
+<span style="font-size: 12px; color: #cdd1db;">{{t.does}}</span>
+</div>
+<button aria-label="{{t.aria}}" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px 0 12px; border-radius: 999px; font-size: 13px; font-weight: 500; background: {{t.bg}}; color: {{t.fg}};">
+{{t.level}}
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+</div>
+</sc-for>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+const LEVELS = {
+  allow: { level: 'Allowed', bg: 'rgba(110,231,168,0.16)', fg: '#b9f5d4' },
+  draft: { level: 'Drafts only', bg: 'rgba(255,255,255,0.12)', fg: '#f4f5f9' },
+  ask: { level: 'Ask me first', bg: 'rgba(255,196,107,0.2)', fg: '#ffd08a' }
+};
+class Component extends DCLogic {
+  renderVals() {
+    const tools = [
+      { name: 'list_sites', does: 'See which sites it can reach', lv: 'allow' },
+      { name: 'list_pages', does: 'See a site’s pages', lv: 'allow' },
+      { name: 'get_page', does: 'Read a page’s HTML', lv: 'allow' },
+      { name: 'list_enquiries', does: 'Read enquiries from your forms', lv: 'allow' },
+      { name: 'edit_element', does: 'Change one element on a draft', lv: 'draft' },
+      { name: 'preview_draft', does: 'Make a preview of a draft', lv: 'draft' },
+      { name: 'publish_draft', does: 'Put a draft live', lv: 'ask' },
+      { name: 'rollback_page', does: 'Put an older version back live', lv: 'ask' }
+    ];
+    return {
+      tools: tools.map((t) => ({ ...t, ...LEVELS[t.lv], aria: t.name + ': ' + LEVELS[t.lv].level + '. Change' }))
+    };
+  }
+}
+</script>
+</body>
+</html>
