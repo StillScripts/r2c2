@@ -1,4 +1,4 @@
-import { useConvexAction, useConvexMutation } from "@convex-dev/react-query"
+import { useConvexMutation } from "@convex-dev/react-query"
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
@@ -7,8 +7,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import type { FunctionArgs } from "convex/server"
-import { type FormEvent, useState } from "react"
-import { CodeTextarea } from "@/components/code-textarea"
+import type { FormEvent } from "react"
 import { ConfirmButton } from "@/components/confirm-button"
 import { errorMessage } from "@/lib/errors"
 import { parseSiteParams } from "@/lib/params"
@@ -41,15 +40,26 @@ function SitePages() {
         </Link>
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="text-2xl font-medium">{site.name}</h1>
-          <Link
-            to="/sites/$siteId/enquiries"
-            params={{ siteId }}
-            search={{ status: "new" }}
-            className="text-sm hover:underline"
-          >
-            Enquiries
-            {count > 0 && ` (${count}${capped ? "+" : ""} new)`}
-          </Link>
+          <div className="flex gap-4 text-sm">
+            {site.role === "owner" && (
+              <Link
+                to="/sites/$siteId/theme"
+                params={{ siteId }}
+                className="hover:underline"
+              >
+                Theme
+              </Link>
+            )}
+            <Link
+              to="/sites/$siteId/enquiries"
+              params={{ siteId }}
+              search={{ status: "new" }}
+              className="hover:underline"
+            >
+              Enquiries
+              {count > 0 && ` (${count}${capped ? "+" : ""} new)`}
+            </Link>
+          </div>
         </div>
       </div>
       <SiteStatus
@@ -84,9 +94,6 @@ function SitePages() {
         </ul>
       )}
       <NewPageForm siteId={siteId} />
-      {site.role === "owner" && (
-        <ThemeEditor siteId={siteId} saved={site.theme} />
-      )}
     </main>
   )
 }
@@ -208,67 +215,6 @@ function NewPageForm({ siteId }: { siteId: Id<"sites"> }) {
       )}
       <Button type="submit" disabled={create.isPending} className="self-start">
         {create.isPending ? "Creating…" : "Create page"}
-      </Button>
-    </form>
-  )
-}
-
-function ThemeEditor({
-  siteId,
-  saved,
-}: {
-  siteId: Id<"sites">
-  saved: string
-}) {
-  const [theme, setTheme] = useState(saved)
-  const save = useMutation({ mutationFn: useConvexAction(api.theme.save) })
-  const unsaved = theme !== saved
-  const failed = save.data?.ok === false ? save.data.message : undefined
-  const alert = save.error ? errorMessage(save.error) : failed
-
-  return (
-    <form
-      method="post"
-      onSubmit={(event) => {
-        event.preventDefault()
-        save.mutate({ siteId, theme })
-      }}
-      className="flex flex-col gap-4 rounded-3xl border p-6"
-    >
-      <div className="flex flex-col">
-        <h2 className="font-medium">Theme</h2>
-        <p className="text-sm text-muted-foreground">
-          Tailwind CSS: <code>@theme</code> tokens and <code>@utility</code>{" "}
-          classes, on top of Tailwind&apos;s defaults. Published pages pick up a
-          new theme when they&apos;re next published.
-        </p>
-      </div>
-      <CodeTextarea
-        aria-label="Theme CSS"
-        value={theme}
-        onChange={(event) => {
-          setTheme(event.target.value)
-          if (save.data) save.reset()
-        }}
-        rows={12}
-        placeholder={"@theme {\n  --color-brand: #2f3bff;\n}"}
-        className="resize-y"
-      />
-      {alert && (
-        <p role="alert" className="text-sm text-destructive">
-          {alert}
-        </p>
-      )}
-      {save.data?.ok && !unsaved && (
-        <p className="text-sm text-muted-foreground">Theme saved.</p>
-      )}
-      <Button
-        type="submit"
-        variant="outline"
-        disabled={!unsaved || save.isPending}
-        className="self-start"
-      >
-        {save.isPending ? "Saving…" : "Save theme"}
       </Button>
     </form>
   )

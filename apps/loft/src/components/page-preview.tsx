@@ -2,10 +2,9 @@ import { useConvexAction } from "@convex-dev/react-query"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import type { FunctionReturnType } from "convex/server"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useMemo } from "react"
+import { useDebouncedResult } from "@/lib/debounced-result"
 import { previewDocument } from "@/lib/preview"
-
-const PREVIEW_DELAY_MS = 400
 
 type Preview = FunctionReturnType<typeof api.preview.preview> & {
   html: string
@@ -13,25 +12,13 @@ type Preview = FunctionReturnType<typeof api.preview.preview> & {
 
 export type Issue = Preview["errors"][number]
 
-/** The latest preview for the HTML, fetched once typing pauses. Stale responses are dropped. */
+/** The latest preview for the HTML, fetched once typing pauses. */
 export function usePreview(siteId: Id<"sites">, html: string) {
   const runPreview = useConvexAction(api.preview.preview)
-  const [preview, setPreview] = useState<Preview>()
-  const latest = useRef(0)
-
-  useEffect(() => {
-    const request = ++latest.current
-    const timer = setTimeout(() => {
-      runPreview({ siteId, html }).then(
-        (result) =>
-          request === latest.current && setPreview({ ...result, html }),
-        () => {}
-      )
-    }, PREVIEW_DELAY_MS)
-    return () => clearTimeout(timer)
-  }, [runPreview, siteId, html])
-
-  return preview
+  return useDebouncedResult(html, async () => ({
+    ...(await runPreview({ siteId, html })),
+    html,
+  }))
 }
 
 /** A sandboxed, script-free frame showing the previewed HTML with its compiled CSS. */
@@ -39,7 +26,7 @@ export function PreviewFrame({
   preview,
   fallback,
 }: {
-  preview?: Preview
+  preview?: { html: string; css: string }
   fallback: string
 }) {
   const srcDoc = useMemo(

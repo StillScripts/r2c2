@@ -48,15 +48,22 @@ async function buildTheme(themeCss: string) {
 
 export type Theme = Awaited<ReturnType<typeof buildTheme>>
 
+// Each theme holds a compiled Tailwind design system, and a theme editor sends a new one
+// per pause in typing, so only the most recently used are kept
+const MAX_CACHED_THEMES = 16
 const themes = new Map<string, Promise<Theme>>()
 
 export function loadTheme(themeCss: string): Promise<Theme> {
   let theme = themes.get(themeCss)
+  themes.delete(themeCss)
   if (!theme) {
     theme = buildTheme(themeCss)
-    themes.set(themeCss, theme)
     // A failed build isn't cached, so the next call tries again
     theme.catch(() => themes.delete(themeCss))
+  }
+  themes.set(themeCss, theme)
+  if (themes.size > MAX_CACHED_THEMES) {
+    themes.delete(themes.keys().next().value!)
   }
   return theme
 }

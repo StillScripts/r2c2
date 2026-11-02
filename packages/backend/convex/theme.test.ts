@@ -72,3 +72,59 @@ test("only owners save a theme", async () => {
   ).rejects.toEqual(errorCode("not_found"))
   expect((await stored(t)).theme).toBe("")
 })
+
+test("an owner previews a page with an unsaved theme", async () => {
+  const { t, siteId, ann } = await siteWithOwner()
+  const result = await ann.action(api.theme.preview, {
+    siteId,
+    theme: THEME,
+    html: `<p class="bg-brand btn">hi</p>`,
+  })
+  expect(result).toMatchObject({ ok: true })
+  const { css } = result as { css: string }
+  expect(css).toContain("#1f5b8a")
+  expect(css).toContain(".btn")
+  expect((await stored(t)).theme).toBe("")
+})
+
+test("a preview warns about classes the unsaved theme no longer has", async () => {
+  const { siteId, ann } = await siteWithOwner()
+  expect(
+    await ann.action(api.theme.preview, {
+      siteId,
+      theme: "",
+      html: `<p class="btn">hi</p>`,
+    })
+  ).toMatchObject({
+    ok: true,
+    warnings: [
+      expect.objectContaining({ message: expect.stringContaining("btn") }),
+    ],
+  })
+})
+
+test("a preview with a theme that doesn't compile says why", async () => {
+  const { siteId, ann } = await siteWithOwner()
+  expect(
+    await ann.action(api.theme.preview, {
+      siteId,
+      theme: `@utility btn { @apply no-such-class; }`,
+      html: "<p>hi</p>",
+    })
+  ).toMatchObject({
+    ok: false,
+    message: expect.stringMatching(/^The theme doesn't compile: /),
+  })
+})
+
+test("only owners preview a theme", async () => {
+  const { t, siteId } = await siteWithOwner()
+  await addMember(t, siteId, { userId: "ed", role: "editor" })
+  const args = { siteId, theme: THEME, html: "<p>hi</p>" }
+  await expect(
+    t.withIdentity({ subject: "ed" }).action(api.theme.preview, args)
+  ).rejects.toEqual(errorCode("forbidden"))
+  await expect(
+    t.withIdentity({ subject: "eve" }).action(api.theme.preview, args)
+  ).rejects.toEqual(errorCode("not_found"))
+})

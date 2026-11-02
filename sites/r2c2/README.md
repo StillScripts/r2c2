@@ -16,6 +16,6 @@ vp run --filter @workspace/backend seed
 vp run --filter @workspace/backend site:import
 ```
 
-To load it into a site with a different slug, such as a test site, add `--into <slug>`: `vp run --filter @workspace/backend site:import -- r2c2 --into r2c2-site`. An owner can also paste `theme.css` into the site's **Theme** section in the Loft and `index.html` into a page.
+To load it into a site with a different slug, such as a test site, add `--into <slug>`: `vp run --filter @workspace/backend site:import -- r2c2 --into r2c2-site`. An owner can also paste `theme.css` into the site's **Theme** page in the Loft and `index.html` into a page.
 
 Then publish the home page from the Loft. Importing again overwrites the drafts, not what's live. Any draft edits not yet in history get a snapshot first, so you can restore them. The script checks that the theme compiles and that every page fits before it writes anything.
