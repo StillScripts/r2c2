@@ -9,6 +9,7 @@ import {
   formField,
   role,
   siteStatus,
+  view,
 } from "./validators"
 
 export default defineSchema({
@@ -91,6 +92,13 @@ export default defineSchema({
   })
     .index("by_user_site", ["userId", "siteId"])
     .index("by_site", ["siteId"]),
+
+  // One row per user, created on their first change; no row means the defaults
+  preferences: defineTable({
+    // identity.subject, the Better Auth user ID
+    userId: v.string(),
+    view,
+  }).index("by_user", ["userId"]),
 
   auditLog: defineTable({
     siteId: v.id("sites"),

@@ -10,6 +10,7 @@ import {
 import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
 import { SEED_SLUG } from "./seed"
+import { viewOf } from "./preferences"
 import { findSite } from "./sites"
 import { role, type Role } from "./validators"
 
@@ -117,6 +118,7 @@ export const me = query({
       name: user.name,
       email: user.email,
       sites: sites.filter((site) => site !== null),
+      view: await viewOf(ctx, user._id),
     }
   },
 })

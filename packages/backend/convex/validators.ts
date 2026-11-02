@@ -10,8 +10,11 @@ export const domainKind = literals("primary", "redirect", "address")
 export const domainStatus = literals("pending", "active")
 export const enquiryStatus = literals("new", "handled")
 export const role = literals("owner", "editor")
+/** The scene behind the Loft, per user (ADR-017). */
+export const view = literals("harbour", "coast", "alps")
 
 export type Role = Infer<typeof role>
+export type View = Infer<typeof view>
 export type EnquiryStatus = Infer<typeof enquiryStatus>
 
 export const formField = v.object({

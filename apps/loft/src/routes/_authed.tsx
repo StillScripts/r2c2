@@ -7,6 +7,9 @@ import {
 } from "@tanstack/react-router"
 import { Button } from "@workspace/ui/components/button"
 import { useEffect } from "react"
+import { LocalTime } from "@/components/loft/local-time"
+import { LoftView } from "@/components/loft/loft-view"
+import { ViewSwitcher } from "@/components/loft/view-switcher"
 import { authClient } from "@/lib/auth-client"
 import { meQuery } from "@/lib/queries"
 
@@ -36,17 +39,24 @@ function AuthedLayout() {
   if (!me) return null
 
   return (
-    <div className="min-h-svh">
-      <header className="flex items-center justify-between gap-4 border-b px-6 py-3">
-        <span className="font-medium">Loft</span>
+    <div className="flex min-h-svh flex-col gap-3 p-3">
+      <LoftView view={me.view} />
+      <header className="flex h-14 items-center justify-between gap-4 rounded-full px-5 glass">
+        <span className="font-serif text-2xl">Loft</span>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">{me.email}</span>
+          <ViewSwitcher view={me.view} />
+          <LocalTime />
+          <span className="hidden text-muted-foreground md:inline">
+            {me.email}
+          </span>
           <Button variant="outline" size="sm" onClick={signOut}>
             Sign out
           </Button>
         </div>
       </header>
-      <Outlet />
+      <div className="rounded-3xl glass">
+        <Outlet />
+      </div>
     </div>
   )
 }

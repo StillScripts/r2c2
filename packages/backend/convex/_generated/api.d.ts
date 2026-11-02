@@ -17,6 +17,7 @@ import type * as history from "../history.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
 import type * as pages from "../pages.js";
+import type * as preferences from "../preferences.js";
 import type * as preview from "../preview.js";
 import type * as publish from "../publish.js";
 import type * as publishing from "../publishing.js";
@@ -44,6 +45,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   notifications: typeof notifications;
   pages: typeof pages;
+  preferences: typeof preferences;
   preview: typeof preview;
   publish: typeof publish;
   publishing: typeof publishing;

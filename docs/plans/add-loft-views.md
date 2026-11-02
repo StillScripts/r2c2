@@ -35,7 +35,7 @@ Put the chosen view (Harbour, Coast or Alps) behind every signed-in Loft screen,
 - Move the four SVGs from `docs/design/loft/views/` to `apps/loft/public/views/`, so there's one copy, and point the spec's links there.
 - Add `apps/loft/public/views/**` to the formatter's `ignorePatterns` in the root `vite.config.ts`. `docs/design/loft/**` is ignored today, and reformatting could damage the C2PA blocks.
 - They're served as static files and drawn with `<img>`, so the browser caches them and they stay out of the JS bundle.
-- A `VIEWS` list in `apps/loft/src/lib/views.ts` holds each view's id, label, Lucide icon (`Building2`, `Waves`, `MountainSnow`) and file. Adding a view later means adding one SVG and one entry.
+- `VIEWS` in `apps/loft/src/lib/views.ts` maps each view id to its label and Lucide icon (`Building2`, `Waves`, `MountainSnow`). Its type is keyed by the schema's view ids, so a new id can't type-check without an entry. The art is `/views/<id>.svg`. Adding a view later means adding one SVG, one validator value and one entry.
 
 **`LoftView` component** (`apps/loft/src/components/loft/loft-view.tsx`, the folder spec §12 suggests). A fixed, full-bleed stack behind the content, with everything `aria-hidden` and `pointer-events-none`:
 
@@ -55,7 +55,7 @@ When the view changes, the new image is drawn underneath and the old one fades o
 **Keeping today's screens readable.**
 
 - The header becomes a glass bar.
-- The `<Outlet />` sits inside one glass panel with the spec's page padding.
+- The `<Outlet />` sits inside one glass panel. The panel fits its content, so the view shows below short screens. The page editor and theme panel take a shared `fullHeight` class sized to the header and padding.
 - This is a deliberate stopgap: the shell reskin replaces it with per-screen glass. It's one wrapper in `_authed.tsx`, so no screen changes now.
 - Glass must not be nested (§4.2). Anything inside the wrapper that uses `glass` (a `glass` Button variant, for instance) switches to a `fill-*` colour.
 
@@ -76,26 +76,26 @@ When the view changes, the new image is drawn underneath and the old one fades o
 
 ## Action items
 
-- [ ] Add a `view` validator (`harbour`, `coast`, `alps`) to `packages/backend/convex/validators.ts` and a `preferences` table, indexed `by_user`, to `schema.ts`.
-- [ ] Add `packages/backend/convex/preferences.ts` with `setView`, which needs a signed-in user and upserts their row. Return `view` (defaulting to `harbour`) from `staff.me`.
-- [ ] Add `convex-test` tests:
+- [x] Add a `view` validator (`harbour`, `coast`, `alps`) to `packages/backend/convex/validators.ts` and a `preferences` table, indexed `by_user`, to `schema.ts`.
+- [x] Add `packages/backend/convex/preferences.ts` with `setView`, which needs a signed-in user and upserts their row. Return `view` (defaulting to `harbour`) from `staff.me`.
+- [x] Add `convex-test` tests:
   - A new user gets Harbour.
   - `setView` saves and `me` returns it.
   - A second `setView` updates the same row.
   - Signed-out callers are refused.
   - One user's view doesn't change another's.
-- [ ] Move `docs/design/loft/views/*.svg` to `apps/loft/public/views/` and update the links in `docs/design/loft.md` (§5, §13 and the header).
-- [ ] Add `apps/loft/public/views/**` to the formatter's `ignorePatterns` in `vite.config.ts`.
-- [ ] Add `apps/loft/src/lib/views.ts` (`VIEWS` with ids, labels, icons and files) and `apps/loft/src/components/loft/loft-view.tsx` (scene, vignette, desktop frame and plant, and the cross-fade).
-- [ ] Add the segmented view switcher and the local time to the header in `apps/loft/src/routes/_authed.tsx`, with an optimistic update on `staff.me`. Make the header glass and wrap `<Outlet />` in one glass panel. Swap any nested `glass` inside routes for `fill-*`, and fix the full-height calc in `pages/$pageId.tsx` and `theme.tsx`.
-- [ ] Test the cross-fade bookkeeping: the old view is kept until the new one finishes, and switching quickly doesn't stack layers. Test `VIEWS` against the validator, so a new id can't miss its art.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Move `docs/design/loft/views/*.svg` to `apps/loft/public/views/` and update the links in `docs/design/loft.md` (§5, §13 and the header).
+- [x] Add `apps/loft/public/views/**` to the formatter's `ignorePatterns` in `vite.config.ts`.
+- [x] Add `apps/loft/src/lib/views.ts` (`VIEWS` with ids, labels, icons and files) and `apps/loft/src/components/loft/loft-view.tsx` (scene, vignette, desktop frame and plant, and the cross-fade).
+- [x] Add the segmented view switcher and the local time to the header in `apps/loft/src/routes/_authed.tsx`, with an optimistic update on `staff.me`. Make the header glass and wrap `<Outlet />` in one glass panel. Swap any nested `glass` inside routes for `fill-*`, and fix the full-height calc in `pages/$pageId.tsx` and `theme.tsx`.
+- [x] Test the cross-fade bookkeeping: the old view is kept until the new one finishes, and switching quickly doesn't stack layers. (`VIEWS` is checked against the schema's ids by its type, not a test.)
+- [x] Run `vp check`, `vp test` and `vp run build`.
 - [ ] Manually: in local dev, switch views and watch the cross-fade, reload and see the same view, sign in on a second browser and see the same view. Check the frame is gone at phone width and the art and frame are skipped by a screen reader.
 
 ## Testing
 
 - **Backend:** `convex-test` suites for `preferences.setView` and `staff.me`'s `view`, including the default, an update and isolation between users.
-- **Loft:** a unit test for the cross-fade state (a pure helper that tracks which view layers are shown) and for `VIEWS` matching the validator's ids.
+- **Loft:** a unit test for the cross-fade state (`switchView`, a pure helper that tracks which view layers are shown). `VIEWS` is typed by the schema's view ids.
 - **Manual:**
   - Cross-fade, reduced motion (an instant swap), and reduced transparency (solid glass).
   - The phone width (no frame, labels hidden).
