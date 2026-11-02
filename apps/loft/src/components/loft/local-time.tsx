@@ -12,19 +12,13 @@ export function LocalTime() {
   const [time, setTime] = useState<string>()
 
   useEffect(() => {
-    setTime(now())
-    let interval: ReturnType<typeof setInterval> | undefined
-    const timer = setTimeout(
-      () => {
-        setTime(now())
-        interval = setInterval(() => setTime(now()), 60_000)
-      },
-      60_000 - (Date.now() % 60_000)
-    )
-    return () => {
-      clearTimeout(timer)
-      clearInterval(interval)
+    let timer: ReturnType<typeof setTimeout>
+    const tick = () => {
+      setTime(now())
+      timer = setTimeout(tick, 60_000 - (Date.now() % 60_000))
     }
+    tick()
+    return () => clearTimeout(timer)
   }, [])
 
   return <time className="font-mono text-xs text-muted-foreground">{time}</time>

@@ -14,8 +14,7 @@ export const VIEWS: Record<View, { label: string; icon: LucideIcon }> = {
 
 export const viewIds = Object.keys(VIEWS) as View[]
 
-/** A view's scene, or the plant on the window sill. */
-export const viewArt = (name: View | "window-plant") => `/views/${name}.svg`
+export const viewArt = (view: View) => `/views/${view}.svg`
 
 /** The view on screen, and the one fading out over it after a switch. */
 export type ViewLayers = { shown: View; leaving?: View }

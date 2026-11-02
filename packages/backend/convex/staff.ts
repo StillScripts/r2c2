@@ -104,10 +104,13 @@ export const me = query({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) return null
-    const memberships = await ctx.db
-      .query("memberships")
-      .withIndex("by_user_site", (q) => q.eq("userId", user._id))
-      .collect()
+    const [memberships, view] = await Promise.all([
+      ctx.db
+        .query("memberships")
+        .withIndex("by_user_site", (q) => q.eq("userId", user._id))
+        .collect(),
+      viewOf(ctx, user._id),
+    ])
     const sites = await Promise.all(
       memberships.map(async ({ siteId, role }) => {
         const site = await ctx.db.get("sites", siteId)
@@ -118,7 +121,7 @@ export const me = query({
       name: user.name,
       email: user.email,
       sites: sites.filter((site) => site !== null),
-      view: await viewOf(ctx, user._id),
+      view,
     }
   },
 })

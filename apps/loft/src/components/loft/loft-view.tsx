@@ -1,3 +1,4 @@
+import { cn } from "@workspace/ui/lib/utils"
 import { useEffect, useState } from "react"
 import {
   VIEW_FADE_MS,
@@ -36,11 +37,12 @@ export function LoftView({ view }: { view: View }) {
               key={id}
               src={viewArt(id)}
               alt=""
-              className={
-                id === layers.leaving
-                  ? "absolute inset-0 size-full animate-out object-cover object-bottom duration-600 fill-mode-forwards fade-out"
-                  : "absolute inset-0 size-full object-cover object-bottom"
-              }
+              className={cn(
+                "absolute inset-0 size-full object-cover object-bottom",
+                id === layers.leaving &&
+                  "animate-out fill-mode-forwards fade-out"
+              )}
+              style={{ animationDuration: `${VIEW_FADE_MS}ms` }}
             />
           )
       )}
@@ -54,13 +56,8 @@ export function LoftView({ view }: { view: View }) {
         <div
           className={`${FRAME} inset-y-0 left-2/3 w-2.5 -translate-x-1/2 opacity-90`}
         />
-        <img
-          src={viewArt("window-plant")}
-          alt=""
-          width={300}
-          height={340}
-          className="absolute -bottom-5 -left-7.5"
-        />
+        {/* A background, not an <img>, so phones never download it */}
+        <div className="absolute -bottom-5 -left-7.5 h-85 w-75 bg-[url(/views/window-plant.svg)] bg-contain bg-no-repeat" />
       </div>
     </div>
   )

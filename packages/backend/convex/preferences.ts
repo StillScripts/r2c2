@@ -1,9 +1,9 @@
 import type { QueryCtx } from "./_generated/server"
 import { mutation } from "./_generated/server"
-import { fail } from "./errors"
+import { requireUserId } from "./access"
 import { type View, view } from "./validators"
 
-export const DEFAULT_VIEW: View = "harbour"
+const DEFAULT_VIEW: View = "harbour"
 
 const preferencesOf = (ctx: QueryCtx, userId: string) =>
   ctx.db
@@ -20,9 +20,7 @@ export async function viewOf(ctx: QueryCtx, userId: string) {
 export const setView = mutation({
   args: { view },
   handler: async (ctx, { view }) => {
-    const identity = await ctx.auth.getUserIdentity()
-    if (!identity) throw fail("unauthenticated")
-    const userId = identity.subject
+    const userId = await requireUserId(ctx)
     const preferences = await preferencesOf(ctx, userId)
     if (preferences) {
       await ctx.db.patch("preferences", preferences._id, { view })

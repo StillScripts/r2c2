@@ -17,15 +17,20 @@ import type { Role } from "./validators"
 
 type SiteCtx = Awaited<ReturnType<typeof loadSite>>
 
+/** The signed-in caller's user ID (identity.subject, the Better Auth user ID). */
+export async function requireUserId(ctx: QueryCtx) {
+  const identity = await ctx.auth.getUserIdentity()
+  if (!identity) throw fail("unauthenticated")
+  return identity.subject
+}
+
 /** Load a site the caller is a member of, for internal functions called from public actions. */
 export async function loadSite(
   ctx: QueryCtx,
   siteId: Id<"sites">,
   needs?: Role
 ) {
-  const identity = await ctx.auth.getUserIdentity()
-  if (!identity) throw fail("unauthenticated")
-  const userId = identity.subject
+  const userId = await requireUserId(ctx)
   const [site, membership] = await Promise.all([
     ctx.db.get(siteId),
     ctx.db
