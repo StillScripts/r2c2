@@ -1,6 +1,7 @@
 ---
 title: Add the Harbour, Coast and Alps views
 created: 2026-10-28
+plan: docs/plans/add-loft-views.md
 ---
 
 Add a `LoftView` component that draws the chosen view behind the Loft (the scene SVG, the vignette and, on desktop, the window frame). Add a view switcher in the header and a per-user preference in Convex, so the choice follows you across devices. New users get Harbour.
