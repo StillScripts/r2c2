@@ -1,6 +1,6 @@
 import { useConvexAction } from "@convex-dev/react-query"
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query"
-import { Link, createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
@@ -13,8 +13,7 @@ import { Issues, PreviewFrame } from "@/components/page-preview"
 import { useDebouncedResult } from "@/lib/debounced-result"
 import { useEditorGuards } from "@/lib/editor-guards"
 import { errorMessage } from "@/lib/errors"
-import { fullHeight } from "@/lib/layout"
-import { parseSiteParams } from "@/lib/params"
+import { card, editor } from "@/lib/layout"
 import { pageQuery, pagesQuery, siteQuery } from "@/lib/queries"
 import {
   addColour,
@@ -22,10 +21,9 @@ import {
   isColourName,
   readColours,
   setColour,
-} from "@/lib/theme-colours"
+} from "@workspace/core"
 
 export const Route = createFileRoute("/_authed/sites/$siteId/theme")({
-  params: { parse: parseSiteParams },
   loader: async ({ context, params: { siteId } }) => {
     const [site] = await Promise.all([
       context.queryClient.ensureQueryData(siteQuery(siteId)),
@@ -70,16 +68,9 @@ function ThemePanel() {
   useEditorGuards({ unsaved, save })
 
   return (
-    <main className={cn("flex flex-col gap-3 p-4", fullHeight)}>
+    <main className={editor}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <Link
-            to="/sites/$siteId"
-            params={{ siteId }}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            {site.name}
-          </Link>
           <h1 className="text-lg font-medium">Theme</h1>
         </div>
         <div className="flex items-center gap-3 text-sm">
@@ -188,7 +179,12 @@ function ColourTokens({
 }) {
   const colours = readColours(theme)
   return (
-    <section className="flex max-h-[45%] flex-col gap-2 overflow-auto rounded-2xl border p-3">
+    <section
+      className={cn(
+        "flex max-h-[45svh] flex-col gap-2 overflow-auto p-3",
+        card
+      )}
+    >
       <h2 className="text-sm font-medium">Colours</h2>
       {colours.length > 0 && (
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">

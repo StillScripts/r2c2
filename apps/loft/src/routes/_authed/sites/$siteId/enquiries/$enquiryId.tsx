@@ -8,6 +8,8 @@ import { errorMessage } from "@/lib/errors"
 import { when } from "@/lib/format"
 import { parseEnquiryParams } from "@/lib/params"
 import { type EnquiryStatus, enquiryQuery } from "@/lib/queries"
+import { cn } from "@workspace/ui/lib/utils"
+import { card, screen } from "@/lib/layout"
 
 export const Route = createFileRoute(
   "/_authed/sites/$siteId/enquiries/$enquiryId"
@@ -37,7 +39,7 @@ function EnquiryDetail() {
   ]
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
+    <main className={cn(screen, "max-w-2xl")}>
       <div>
         <Link
           to="/sites/$siteId/enquiries"
@@ -51,7 +53,7 @@ function EnquiryDetail() {
           {handled ? "Handled enquiry" : "New enquiry"}
         </h1>
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 rounded-3xl border p-6">
+      <dl className={cn("grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 p-5", card)}>
         {Object.entries(enquiry.data).map(([field, value]) => (
           <Detail key={field} label={field} value={value} />
         ))}

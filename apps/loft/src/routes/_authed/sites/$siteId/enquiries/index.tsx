@@ -2,8 +2,9 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import { enquirySummary } from "@workspace/core"
 import { when } from "@/lib/format"
-import { parseSiteParams } from "@/lib/params"
-import { type EnquiryStatus, enquiriesQuery, siteQuery } from "@/lib/queries"
+import { type EnquiryStatus, enquiriesQuery } from "@/lib/queries"
+import { cn } from "@workspace/ui/lib/utils"
+import { card, screen } from "@/lib/layout"
 
 const TABS: [EnquiryStatus, string][] = [
   ["new", "New"],
@@ -11,39 +12,25 @@ const TABS: [EnquiryStatus, string][] = [
 ]
 
 export const Route = createFileRoute("/_authed/sites/$siteId/enquiries/")({
-  params: { parse: parseSiteParams },
   validateSearch: (search): { status: EnquiryStatus } => ({
     status: search.status === "handled" ? "handled" : "new",
   }),
   loaderDeps: ({ search: { status } }) => ({ status }),
   loader: ({ context: { queryClient }, params: { siteId }, deps }) =>
-    Promise.all([
-      queryClient.ensureQueryData(siteQuery(siteId)),
-      queryClient.ensureQueryData(enquiriesQuery(siteId, deps.status)),
-    ]),
+    queryClient.ensureQueryData(enquiriesQuery(siteId, deps.status)),
   component: Inbox,
 })
 
 function Inbox() {
   const { siteId } = Route.useParams()
   const { status } = Route.useSearch()
-  const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const {
     data: { enquiries, capped },
   } = useSuspenseQuery(enquiriesQuery(siteId, status))
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
-      <div>
-        <Link
-          to="/sites/$siteId"
-          params={{ siteId }}
-          className="text-sm text-muted-foreground hover:underline"
-        >
-          {site.name}
-        </Link>
-        <h1 className="text-2xl font-medium">Enquiries</h1>
-      </div>
+    <main className={cn(screen, "max-w-2xl")}>
+      <h1 className="font-serif text-4xl">Enquiries</h1>
       <nav className="flex gap-4 border-b">
         {TABS.map(([tab, label]) => (
           <Link
@@ -63,13 +50,13 @@ function Inbox() {
           {status === "new" ? "No new enquiries." : "No handled enquiries yet."}
         </p>
       ) : (
-        <ul className="divide-y rounded-3xl border">
+        <ul className={cn("divide-y", card)}>
           {enquiries.map((enquiry) => (
             <li key={enquiry._id}>
               <Link
                 to="/sites/$siteId/enquiries/$enquiryId"
                 params={{ siteId, enquiryId: enquiry._id }}
-                className="flex flex-col gap-1 px-4 py-3 hover:bg-muted"
+                className="flex flex-col gap-1 px-4 py-3 hover:bg-fill-2"
               >
                 <span className="flex justify-between gap-4">
                   <span className="truncate">

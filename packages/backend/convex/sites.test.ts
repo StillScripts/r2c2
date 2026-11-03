@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { internal } from "./_generated/api"
 import { scheduled, setup } from "../test/setup"
+import { brandOf } from "./sites"
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -67,5 +68,23 @@ describe("sites:create", () => {
     await expect(
       t.mutation(internal.sites.create, { name: "B", slug: "a" })
     ).rejects.toThrow("already exists")
+  })
+})
+
+describe("brandOf", () => {
+  test("reads the theme's brand colour", () => {
+    expect(
+      brandOf(
+        "@theme {\n  --color-brand-soft: #ecedff;\n  --color-brand: #2f3bff;\n}"
+      )
+    ).toBe("#2f3bff")
+    expect(brandOf("@theme { --color-brand: oklch(0.5 0.2 260) }")).toBe(
+      "oklch(0.5 0.2 260)"
+    )
+  })
+
+  test("is null for a theme without one", () => {
+    expect(brandOf("")).toBeNull()
+    expect(brandOf("@theme { --color-brand-soft: #ecedff; }")).toBeNull()
   })
 })

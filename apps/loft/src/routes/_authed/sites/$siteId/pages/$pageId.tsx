@@ -3,14 +3,13 @@ import { useMutation, useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import { Button } from "@workspace/ui/components/button"
-import { cn } from "@workspace/ui/lib/utils"
 import { useState } from "react"
 import { CodeTextarea } from "@/components/code-textarea"
 import { ConfirmButton } from "@/components/confirm-button"
 import { Issues, PreviewFrame, usePreview } from "@/components/page-preview"
 import { useEditorGuards } from "@/lib/editor-guards"
 import { errorMessage } from "@/lib/errors"
-import { fullHeight } from "@/lib/layout"
+import { editor } from "@/lib/layout"
 import { parsePageParams } from "@/lib/params"
 import { pageQuery } from "@/lib/queries"
 
@@ -58,25 +57,16 @@ function PageEditor() {
   useEditorGuards({ unsaved, save })
 
   return (
-    <main className={cn("flex flex-col gap-3 p-4", fullHeight)}>
+    <main className={editor}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex gap-3 text-sm text-muted-foreground">
-            <Link
-              to="/sites/$siteId"
-              params={{ siteId }}
-              className="hover:underline"
-            >
-              Pages
-            </Link>
-            <Link
-              to="/sites/$siteId/pages/$pageId/history"
-              params={{ siteId, pageId }}
-              className="hover:underline"
-            >
-              History
-            </Link>
-          </div>
+          <Link
+            to="/sites/$siteId/pages/$pageId/history"
+            params={{ siteId, pageId }}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            History
+          </Link>
           <h1 className="truncate text-lg font-medium">
             {page.title}{" "}
             <span className="font-mono text-sm text-muted-foreground">
