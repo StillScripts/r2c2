@@ -1,6 +1,7 @@
 ---
 title: Build the Loft home screen
 created: 2026-10-28
+plan: docs/plans/build-loft-home-screen.md
 ---
 
 The screen you land on: a greeting by time of day and a one-line summary of what happened since your last visit. Below that, the big talk-or-type input (behind a flag until the conversation ships) and live suggestion chips. Then "Lately", built from `auditLog` and new enquiries, and your sites. This needs `lastSeenAt` on the user's preferences.
