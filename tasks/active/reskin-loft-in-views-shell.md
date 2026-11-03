@@ -1,6 +1,7 @@
 ---
 title: Move the Loft's screens into the views shell
 created: 2026-10-28
+plan: docs/plans/reskin-loft-in-views-shell.md
 ---
 
 Build the shell: the view layer, plus a header with the wordmark, the site switcher, the view and time pill, and the avatar. Move today's screens into it: sites, pages, the HTML editor, versions and history, and enquiries. They change how they look, not how they work. The sidebar goes, and those screens are reached from the site switcher's menu.
