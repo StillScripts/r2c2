@@ -4,3 +4,26 @@ export const when = (time: number) =>
     dateStyle: "medium",
     timeStyle: "short",
   })
+
+const clock = new Intl.DateTimeFormat(undefined, {
+  hour: "numeric",
+  minute: "2-digit",
+})
+
+/** A time of day in the reader's locale, like "7:12 pm". */
+export const clockTime = (time: Date | number) =>
+  clock.format(time).toLowerCase()
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+const startOfDay = (time: number) => new Date(time).setHours(0, 0, 0, 0)
+
+/** A short time for a list: "6:02 am" today, "Yesterday", a weekday this week, then "25 Oct". */
+export function shortWhen(time: number, now = Date.now()) {
+  const days = Math.round((startOfDay(now) - startOfDay(time)) / DAY_MS)
+  const date = new Date(time)
+  if (days <= 0) return clockTime(date)
+  if (days === 1) return "Yesterday"
+  if (days < 7) return date.toLocaleDateString(undefined, { weekday: "short" })
+  return date.toLocaleDateString(undefined, { day: "numeric", month: "short" })
+}

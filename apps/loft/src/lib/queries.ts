@@ -35,3 +35,5 @@ export const newEnquiriesQuery = (siteId: Id<"sites">) =>
 
 export const enquiryQuery = (siteId: Id<"sites">, enquiryId: Id<"enquiries">) =>
   convexQuery(api.enquiries.get, { siteId, enquiryId })
+
+export const homeQuery = convexQuery(api.home.overview, {})

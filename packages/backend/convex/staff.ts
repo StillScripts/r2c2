@@ -11,7 +11,7 @@ import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
 import { SEED_SLUG } from "./seed"
 import { viewOf } from "./preferences"
-import { brandOf, findSite } from "./sites"
+import { brandOf, findSite, memberSites } from "./sites"
 import { role, type Role } from "./validators"
 
 /**
@@ -104,25 +104,19 @@ export const me = query({
   handler: async (ctx) => {
     const user = await authComponent.safeGetAuthUser(ctx)
     if (!user) return null
-    const [memberships, view] = await Promise.all([
-      ctx.db
-        .query("memberships")
-        .withIndex("by_user_site", (q) => q.eq("userId", user._id))
-        .collect(),
+    const [sites, view] = await Promise.all([
+      memberSites(ctx, user._id),
       viewOf(ctx, user._id),
     ])
-    const sites = await Promise.all(
-      memberships.map(async ({ siteId, role }) => {
-        const site = await ctx.db.get("sites", siteId)
-        return (
-          site && { siteId, name: site.name, role, brand: brandOf(site.theme) }
-        )
-      })
-    )
     return {
       name: user.name,
       email: user.email,
-      sites: sites.filter((site) => site !== null),
+      sites: sites.map(({ site, role }) => ({
+        siteId: site._id,
+        name: site.name,
+        role,
+        brand: brandOf(site.theme),
+      })),
       view,
     }
   },

@@ -1,39 +1,67 @@
+import { useConvexMutation } from "@convex-dev/react-query"
 import { useSuspenseQuery } from "@tanstack/react-query"
-import { Link, createFileRoute } from "@tanstack/react-router"
-import { cn } from "@workspace/ui/lib/utils"
-import { card, screen } from "@/lib/layout"
-import { meQuery } from "@/lib/queries"
+import { createFileRoute } from "@tanstack/react-router"
+import { api } from "@workspace/backend/api"
+import { useEffect } from "react"
+import { ActivityList } from "@/components/loft/home/activity-list"
+import { CoreInput } from "@/components/loft/home/core-input"
+import { Greeting } from "@/components/loft/home/greeting"
+import { HomePanel } from "@/components/loft/home/home-panel"
+import { SiteRow } from "@/components/loft/home/site-row"
+import { SuggestionChips } from "@/components/loft/home/suggestion-chips"
+import { CONVERSATION_ENABLED } from "@/lib/flags"
+import { suggestions, summaryLine } from "@/lib/home"
+import { homeQuery, meQuery } from "@/lib/queries"
 
-export const Route = createFileRoute("/_authed/")({ component: Sites })
+export const Route = createFileRoute("/_authed/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),
+  staticData: { viewDim: "rgb(8 22 34 / 0.2)" },
+  component: Home,
+})
 
-function Sites() {
-  const sites = useSuspenseQuery(meQuery).data?.sites ?? []
+function Home() {
+  const { data: me } = useSuspenseQuery(meQuery)
+  const { data: overview } = useSuspenseQuery(homeQuery)
+  const markSeen = useConvexMutation(api.home.markSeen)
+  useEffect(() => {
+    void markSeen({})
+  }, [markSeen])
+
+  const chips = suggestions(overview)
 
   return (
-    <main className={cn(screen, "max-w-2xl")}>
-      <h1 className="font-serif text-4xl">Your sites</h1>
-      {sites.length === 0 ? (
-        <p className="text-muted-foreground">
-          You aren&apos;t a member of any site yet.
+    <main className="mx-auto flex w-full max-w-260 flex-col gap-6.5 pt-[3vh]">
+      <div className="flex flex-col gap-2.5">
+        <Greeting name={me?.name ?? ""} />
+        <p className="max-w-175 text-base leading-[1.45] text-white text-on-view sm:text-xl">
+          {summaryLine(overview.summary)}
         </p>
+      </div>
+      {CONVERSATION_ENABLED ? (
+        <CoreInput>
+          <SuggestionChips chips={chips} />
+        </CoreInput>
       ) : (
-        <ul className={cn("divide-y", card)}>
-          {sites.map((site) => (
-            <li key={site.siteId}>
-              <Link
-                to="/sites/$siteId"
-                params={{ siteId: site.siteId }}
-                className="flex items-center justify-between px-4 py-3 hover:bg-fill-2"
-              >
-                <span>{site.name}</span>
-                <span className="text-sm text-muted-foreground capitalize">
-                  {site.role}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <SuggestionChips chips={chips} onView />
       )}
+      <div className="flex flex-wrap items-stretch gap-4">
+        <ActivityList rows={overview.activity} />
+        <HomePanel
+          id="sites"
+          title="Sites"
+          className="flex-[1_1_300px] gap-2.5 self-start"
+        >
+          {overview.sites.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              You aren&apos;t a member of any site yet.
+            </p>
+          ) : (
+            overview.sites.map((site) => (
+              <SiteRow key={site.siteId} site={site} />
+            ))
+          )}
+        </HomePanel>
+      </div>
     </main>
   )
 }

@@ -94,7 +94,11 @@ export async function writeDraft(
 ) {
   if (pageBytes(draftHtml) > MAX_PAGE_BYTES) throw fail("page_too_large")
   await assertUnclaimed(ctx, page._id)
-  const patch = { draftHtml, title: draftTitle(draftHtml) ?? page.title }
+  const patch = {
+    draftHtml,
+    title: draftTitle(draftHtml) ?? page.title,
+    draftChangedAt: Date.now(),
+  }
   await ctx.db.patch("pages", page._id, patch)
   return { ...page, ...patch }
 }

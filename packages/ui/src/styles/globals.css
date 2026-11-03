@@ -131,6 +131,11 @@
   }
 }
 
+/* Text placed straight on the view, like Home's greeting and summary. */
+@utility text-on-view {
+  text-shadow: 0 2px 24px rgb(6 20 30 / 0.6);
+}
+
 /* The single primary action on a surface, and the mic. */
 @utility lamp {
   background: var(--primary);
