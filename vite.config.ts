@@ -28,6 +28,7 @@ export default defineConfig({
       ".claude/skills/convex*/**",
       "packages/backend/{AGENTS,CLAUDE}.md",
       "docs/design/loft/**",
+      "apps/loft/public/views/**",
     ],
   },
   test: {

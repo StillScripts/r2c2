@@ -4,6 +4,7 @@ import { Link, createFileRoute, redirect } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 import { Input } from "@workspace/ui/components/input"
 import type { FunctionReturnType } from "convex/server"
 import { type FormEvent, useState } from "react"
@@ -12,6 +13,7 @@ import { Issues, PreviewFrame } from "@/components/page-preview"
 import { useDebouncedResult } from "@/lib/debounced-result"
 import { useEditorGuards } from "@/lib/editor-guards"
 import { errorMessage } from "@/lib/errors"
+import { fullHeight } from "@/lib/layout"
 import { parseSiteParams } from "@/lib/params"
 import { pageQuery, pagesQuery, siteQuery } from "@/lib/queries"
 import {
@@ -68,7 +70,7 @@ function ThemePanel() {
   useEditorGuards({ unsaved, save })
 
   return (
-    <main className="flex h-[calc(100svh-3.5rem)] flex-col gap-3 p-4">
+    <main className={cn("flex flex-col gap-3 p-4", fullHeight)}>
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <Link

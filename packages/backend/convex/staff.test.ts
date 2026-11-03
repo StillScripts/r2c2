@@ -135,6 +135,10 @@ describe("staff", () => {
       name: "Ann",
       email: "ann@r2c2.dev",
       sites: [{ siteId: r2c2, name: "r2c2", role: "owner" }],
+      view: "harbour",
     })
+
+    await asAnn.mutation(api.preferences.setView, { view: "coast" })
+    expect(await asAnn.query(api.staff.me, {})).toMatchObject({ view: "coast" })
   })
 })

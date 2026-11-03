@@ -4,7 +4,7 @@ How the Loft should look and behave from here on: a calm, conversation-first pla
 
 - **Source:** the "The Loft — Concepts" canvas in Claude Design, page "Talk to it" (private to Daniel).
 - **Reference markup:** [`loft/reference/`](loft/reference/) holds the canvas source for every screen. See [Reading the reference files](#13-reading-the-reference-files).
-- **Scenes:** [`loft/views/`](loft/views/) holds the three views as standalone SVG.
+- **Scenes:** [`apps/loft/public/views/`](../../apps/loft/public/views/) holds the three views as standalone SVG, served by the Loft as they are.
 - **Status:** draft, 28 October 2026.
 
 Related: [ADR-017](../decisions/ADR-017-call-loft-scenes-views.md) (views, not themes), [SPEC §1](../../SPEC.md#1-milestone-1) (the Loft should feel calm), [SPEC §11](../../SPEC.md#11-later-specs-outlines) (AI editing), [SPEC §12](../../SPEC.md#12-html-house-rules) (house rules).
@@ -221,11 +221,11 @@ Then add `glass` and `lamp` variants to the `Button` cva in `packages/ui/src/com
 
 ## 5. Views
 
-| Id        | Label   | Mood                                                          | File                                    |
-| --------- | ------- | ------------------------------------------------------------- | --------------------------------------- |
-| `harbour` | Harbour | City at dusk: skyline, an arch bridge, lit windows on water   | [`harbour.svg`](loft/views/harbour.svg) |
-| `coast`   | Coast   | Golden afternoon: sandstone cliff, sea, a lighthouse, a beach | [`coast.svg`](loft/views/coast.svg)     |
-| `alps`    | Alps    | Blue hour: snowy peaks, pines, a lit chalet, the moon         | [`alps.svg`](loft/views/alps.svg)       |
+| Id        | Label   | Mood                                                          | File                                                      |
+| --------- | ------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| `harbour` | Harbour | City at dusk: skyline, an arch bridge, lit windows on water   | [`harbour.svg`](../../apps/loft/public/views/harbour.svg) |
+| `coast`   | Coast   | Golden afternoon: sandstone cliff, sea, a lighthouse, a beach | [`coast.svg`](../../apps/loft/public/views/coast.svg)     |
+| `alps`    | Alps    | Blue hour: snowy peaks, pines, a lit chalet, the moon         | [`alps.svg`](../../apps/loft/public/views/alps.svg)       |
 
 In the canvas source the Harbour view's id is `city`. Use `harbour` in code.
 
@@ -233,7 +233,7 @@ In the canvas source the Harbour view's id is `city`. Use `harbour` in code.
 
 1. **Scene SVG.** It's 1440×900 and fills the screen, cropped like `preserveAspectRatio="xMidYMax slice"`: centred horizontally, bottom-anchored, so the horizon and foreground stay in frame at any size. As an `<img>`, that's `object-fit: cover; object-position: center bottom`. The files are self-contained, with no scripts or external references.
 2. **Vignette.** `radial-gradient(130% 100% at 50% 35%, transparent 55%, rgba(5,7,15,0.5) 100%)`.
-3. **Window frame (desktop only).** All colour `#0b0e18`: a 14px top beam, a 6px transom at 22% height (85% opacity), and 10px mullions centred at 33.333% and 66.666% (90% opacity). Add [`window-plant.svg`](loft/views/window-plant.svg) at 300×340, `left: -30px; bottom: -20px`. The frame is what makes it feel like you're inside a room. Leave it off on phones, where it crowds a narrow screen.
+3. **Window frame (desktop only).** All colour `#0b0e18`: a 14px top beam, a 6px transom at 22% height (85% opacity), and 10px mullions centred at 33.333% and 66.666% (90% opacity). Add [`window-plant.svg`](../../apps/loft/public/views/window-plant.svg) at 300×340, `left: -30px; bottom: -20px`. The frame is what makes it feel like you're inside a room. Leave it off on phones, where it crowds a narrow screen.
 4. **Screen dim**, if the screen asks for one (§4.2).
 5. **Content.**
 
@@ -405,7 +405,7 @@ The `.dc.html` files are Claude Design source, not production code. Read them fo
 - **Values are exact.** Inline `style="…"` attributes are the real sizes, colours and spacing. Shared materials (`.glass`, `.lamp`) are defined in each file's `<helmet><style>`.
 - **Markup is a template.** `{{name}}` is a value from `renderVals()` in the script at the bottom of the file, `<sc-for list>` repeats, and `<sc-if value>` branches.
 - **Sample data lives in the script.** Activity rows, tool steps and the voice bars are in `renderVals()`.
-- **Scenes are imported.** `<dc-import name="Scene" view="coast">` places the view (`Scene.dc.html`). The standalone SVGs in `loft/views/` are the same art.
+- **Scenes are imported.** `<dc-import name="Scene" view="coast">` places the view (`Scene.dc.html`). The standalone SVGs in [`apps/loft/public/views/`](../../apps/loft/public/views/) are the same art.
 - **Build accessible, responsive React** with the shared components, not a copy of the markup. All copy in the files is final unless it's in `[BRACKETS]`.
 
 ## 14. Open questions
