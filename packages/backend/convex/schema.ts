@@ -40,7 +40,9 @@ export default defineSchema({
     liveVersionId: v.optional(v.id("pageVersions")),
     // When the draft last moved ahead of what's live; absent once it's published
     draftChangedAt: v.optional(v.number()),
-  }).index("by_site_path", ["siteId", "path"]),
+  })
+    .index("by_site_path", ["siteId", "path"])
+    .index("by_site_draft", ["siteId", "draftChangedAt"]),
 
   pageVersions: defineTable({
     siteId: v.id("sites"),
@@ -95,13 +97,19 @@ export default defineSchema({
     .index("by_user_site", ["userId", "siteId"])
     .index("by_site", ["siteId"]),
 
-  // One row per user, created on their first change or first visit to Home; no row means the defaults
+  // One row per user, created on their first change; no row means the defaults
   preferences: defineTable({
     // identity.subject, the Better Auth user ID
     userId: v.string(),
     view,
-    // When Home last saw the user, and when it last saw them before this visit
-    lastSeenAt: v.optional(v.number()),
+  }).index("by_user", ["userId"]),
+
+  // When Home saw each user, kept apart from preferences so a visit doesn't re-run staff.me
+  visits: defineTable({
+    // identity.subject, the Better Auth user ID
+    userId: v.string(),
+    lastSeenAt: v.number(),
+    // When Home last saw them before this visit; absent on their first
     previousSeenAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 

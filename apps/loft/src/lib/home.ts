@@ -1,9 +1,24 @@
+import { linkOptions } from "@tanstack/react-router"
 import type { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import type { FunctionReturnType } from "convex/server"
 
 export type Overview = FunctionReturnType<typeof api.home.overview>
 type Summary = Overview["summary"]
+export type Activity = Overview["activity"][number]
+
+const inboxLink = (siteId: Id<"sites">) =>
+  linkOptions({
+    to: "/sites/$siteId/enquiries",
+    params: { siteId },
+    search: { status: "new" },
+  })
+
+const editorLink = (siteId: Id<"sites">, pageId: Id<"pages">) =>
+  linkOptions({
+    to: "/sites/$siteId/pages/$pageId",
+    params: { siteId, pageId },
+  })
 
 /** "Morning" before 12, "Afternoon" before 17, otherwise "Evening". */
 export const greetingFor = (hour: number) =>
@@ -11,6 +26,8 @@ export const greetingFor = (hour: number) =>
 
 const count = (n: number, one: string, many: string) =>
   `${n} ${n === 1 ? one : many}`
+
+const newEnquiries = (n: number) => count(n, "new enquiry", "new enquiries")
 
 function wentLive(paths: string[]) {
   if (paths.length === 0) return undefined
@@ -23,13 +40,12 @@ function wentLive(paths: string[]) {
 export function summaryLine({
   firstVisit,
   published,
-  newEnquiries,
+  newEnquiries: arrived,
   drafts,
 }: Summary) {
   const happened = [
     wentLive(published),
-    newEnquiries > 0 &&
-      `${count(newEnquiries, "new enquiry", "new enquiries")} came in`,
+    arrived > 0 && `${newEnquiries(arrived)} came in`,
   ].filter(Boolean)
   const lead = firstVisit
     ? "Welcome to the Loft."
@@ -40,16 +56,45 @@ export function summaryLine({
     drafts.length === 0
       ? "Nothing needs you yet."
       : `${count(drafts.length, "draft is", "drafts are")} waiting to be published.`
-  const sentence = `${lead} ${needs}`
-  return sentence.charAt(0).toUpperCase() + sentence.slice(1)
+  return `${lead} ${needs}`
 }
 
-export type Suggestion =
-  | { kind: "enquiries"; label: string; siteId: Id<"sites"> }
-  | { kind: "draft"; label: string; siteId: Id<"sites">; pageId: Id<"pages"> }
+const PAGE_TITLES = {
+  "page.publish": "Published",
+  "page.rollback": "Rolled back",
+  "page.create": "Created",
+  "page.restore": "Restored an earlier draft of",
+} as const
+
+/** A "Lately" row's words, its icon and where it links, if anywhere. */
+export function activityRow(row: Activity) {
+  if (row.kind === "enquiry") {
+    return {
+      icon: "enquiry" as const,
+      title: newEnquiries(row.count),
+      detail: `From the ${row.form} form`,
+      link: inboxLink(row.siteId),
+    }
+  }
+  const live = row.action === "page.publish" || row.action === "page.rollback"
+  return {
+    icon: live ? ("live" as const) : ("draft" as const),
+    title: `${PAGE_TITLES[row.action]} ${row.path}`,
+    detail: row.siteName,
+    link: row.pageId && editorLink(row.siteId, row.pageId),
+  }
+}
+
+export type Suggestion = {
+  label: string
+  link: ReturnType<typeof inboxLink> | ReturnType<typeof editorLink>
+}
 
 /** Up to three things worth doing now: new enquiries per site, then the newest draft waiting. */
-export function suggestions({ sites, summary }: Overview): Suggestion[] {
+export function suggestions({
+  sites,
+  summary,
+}: Pick<Overview, "sites" | "summary">): Suggestion[] {
   const several = sites.length > 1
   const name = (siteId: Id<"sites">) =>
     sites.find((site) => site.siteId === siteId)?.name
@@ -58,20 +103,16 @@ export function suggestions({ sites, summary }: Overview): Suggestion[] {
     .sort((a, b) => b.newEnquiries - a.newEnquiries)
     .slice(0, 2)
     .map((site): Suggestion => ({
-      kind: "enquiries",
-      label: `Read the ${count(site.newEnquiries, "new enquiry", "new enquiries")}${several ? ` for ${site.name}` : ""}`,
-      siteId: site.siteId,
+      label: `Read the ${newEnquiries(site.newEnquiries)}${several ? ` for ${site.name}` : ""}`,
+      link: inboxLink(site.siteId),
     }))
   const draft = summary.drafts[0]
-  return draft
-    ? [
-        ...enquiries,
-        {
-          kind: "draft",
-          label: `Publish the ${draft.path} draft${several ? ` on ${name(draft.siteId)}` : ""}`,
-          siteId: draft.siteId,
-          pageId: draft.pageId,
-        },
-      ]
-    : enquiries
+  if (!draft) return enquiries
+  return [
+    ...enquiries,
+    {
+      label: `Publish the ${draft.path} draft${several ? ` on ${name(draft.siteId)}` : ""}`,
+      link: editorLink(draft.siteId, draft.pageId),
+    },
+  ]
 }

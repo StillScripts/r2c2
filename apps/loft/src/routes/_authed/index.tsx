@@ -6,6 +6,7 @@ import { useEffect } from "react"
 import { ActivityList } from "@/components/loft/home/activity-list"
 import { CoreInput } from "@/components/loft/home/core-input"
 import { Greeting } from "@/components/loft/home/greeting"
+import { HomePanel } from "@/components/loft/home/home-panel"
 import { SiteRow } from "@/components/loft/home/site-row"
 import { SuggestionChips } from "@/components/loft/home/suggestion-chips"
 import { CONVERSATION_ENABLED } from "@/lib/flags"
@@ -45,16 +46,11 @@ function Home() {
       )}
       <div className="flex flex-wrap items-stretch gap-4">
         <ActivityList rows={overview.activity} />
-        <section
-          aria-labelledby="sites"
-          className="flex min-w-0 flex-[1_1_300px] flex-col gap-2.5 self-start rounded-3xl px-5 py-4 glass"
+        <HomePanel
+          id="sites"
+          title="Sites"
+          className="flex-[1_1_300px] gap-2.5 self-start"
         >
-          <h2
-            id="sites"
-            className="text-[13px] font-semibold tracking-[0.08em] text-muted-foreground uppercase"
-          >
-            Sites
-          </h2>
           {overview.sites.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               You aren&apos;t a member of any site yet.
@@ -64,7 +60,7 @@ function Home() {
               <SiteRow key={site.siteId} site={site} />
             ))
           )}
-        </section>
+        </HomePanel>
       </div>
     </main>
   )

@@ -3,42 +3,39 @@ import { mutation, query, type QueryCtx } from "./_generated/server"
 import { requireUserId } from "./access"
 import { siteAddress } from "./domains"
 import { inboxPage } from "./enquiries"
-import { DEFAULT_VIEW, preferencesOf } from "./preferences"
-import { brandOf } from "./sites"
+import { brandOf, memberSites } from "./sites"
 
 /** A gap longer than this since Home last saw you starts a new visit. */
 export const VISIT_GAP_MS = 30 * 60 * 1000
+/** Within a visit, Home's record of you is refreshed at most this often, so it rarely re-runs the overview. */
+export const SEEN_REFRESH_MS = 5 * 60 * 1000
 /** How many rows "Lately" shows. */
 export const ACTIVITY_LIMIT = 4
-const AUDIT_PER_SITE = 20
-const PUBLISHED_PER_SITE = 50
+// Most audit entries aren't page actions, so read more than are shown
+const AUDIT_PER_SITE = 50
+const RECENT_PER_SITE = 20
 
-const ACTIVITY = {
-  "page.publish": {
-    kind: "live",
-    title: (path: string) => `Published ${path}`,
-  },
-  "page.rollback": {
-    kind: "live",
-    title: (path: string) => `Rolled back ${path}`,
-  },
-  "page.create": { kind: "draft", title: (path: string) => `Created ${path}` },
-  "page.restore": {
-    kind: "draft",
-    title: (path: string) => `Restored an earlier draft of ${path}`,
-  },
-} as const
+const PAGE_ACTIONS = [
+  "page.publish",
+  "page.rollback",
+  "page.create",
+  "page.restore",
+] as const
+type PageAction = (typeof PAGE_ACTIONS)[number]
+const isPageAction = (action: string): action is PageAction =>
+  (PAGE_ACTIONS as readonly string[]).includes(action)
 
-type ActivityKind = "live" | "draft" | "enquiry"
+/** A row in "Lately", as data; the Loft words it. */
+export type Activity = { at: number; siteId: Id<"sites">; siteName: string } & (
+  | { kind: "page"; action: PageAction; path: string; pageId?: Id<"pages"> }
+  | { kind: "enquiry"; form: string; count: number }
+)
 
-export type Activity = {
-  kind: ActivityKind
-  title: string
-  detail: string
-  at: number
-  siteId: Id<"sites">
-  pageId?: Id<"pages">
-}
+const visitOf = (ctx: QueryCtx, userId: string) =>
+  ctx.db
+    .query("visits")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .unique()
 
 /** Note that Home saw the caller, starting a new visit after a long enough gap. */
 export const markSeen = mutation({
@@ -46,20 +43,16 @@ export const markSeen = mutation({
   handler: async (ctx) => {
     const userId = await requireUserId(ctx)
     const now = Date.now()
-    const preferences = await preferencesOf(ctx, userId)
-    if (!preferences) {
-      await ctx.db.insert("preferences", {
-        userId,
-        view: DEFAULT_VIEW,
-        lastSeenAt: now,
-      })
+    const visit = await visitOf(ctx, userId)
+    if (!visit) {
+      await ctx.db.insert("visits", { userId, lastSeenAt: now })
       return
     }
-    const { lastSeenAt } = preferences
-    const newVisit = lastSeenAt !== undefined && now - lastSeenAt > VISIT_GAP_MS
-    await ctx.db.patch("preferences", preferences._id, {
+    const away = now - visit.lastSeenAt
+    if (away <= SEEN_REFRESH_MS) return
+    await ctx.db.patch("visits", visit._id, {
       lastSeenAt: now,
-      ...(newVisit && { previousSeenAt: lastSeenAt }),
+      ...(away > VISIT_GAP_MS && { previousSeenAt: visit.lastSeenAt }),
     })
   },
 })
@@ -73,51 +66,41 @@ async function siteOverview(
   role: Doc<"memberships">["role"],
   since: number | undefined
 ) {
-  const auditFrom = (from?: number, limit = AUDIT_PER_SITE) =>
+  const [log, inbox, drafts] = await Promise.all([
     ctx.db
       .query("auditLog")
-      .withIndex("by_site_at", (q) =>
-        from === undefined
-          ? q.eq("siteId", site._id)
-          : q.eq("siteId", site._id).gt("at", from)
-      )
+      .withIndex("by_site_at", (q) => q.eq("siteId", site._id))
       .order("desc")
-      .take(limit)
-  const [recent, inbox, pages, sinceLog] = await Promise.all([
-    auditFrom(),
+      .take(AUDIT_PER_SITE),
     inboxPage(ctx, site._id, "new"),
     ctx.db
       .query("pages")
-      .withIndex("by_site_path", (q) => q.eq("siteId", site._id))
+      .withIndex("by_site_draft", (q) =>
+        q.eq("siteId", site._id).gt("draftChangedAt", 0)
+      )
       .collect(),
-    since === undefined ? [] : auditFrom(since, PUBLISHED_PER_SITE),
   ])
-  const pageAt = new Map(pages.map((page) => [page.path, page._id]))
+  const base = { siteId: site._id, siteName: site.name }
 
-  const pageRows = recent.flatMap(({ action, target, at }): Activity[] => {
-    const known = ACTIVITY[action as keyof typeof ACTIVITY]
-    if (!known) return []
-    return [
-      {
-        kind: known.kind,
-        title: known.title(target),
-        detail: site.name,
-        at,
-        siteId: site._id,
-        pageId: pageAt.get(target),
-      },
-    ]
-  })
+  const pageRows = log
+    .slice(0, RECENT_PER_SITE)
+    .flatMap(({ action, target, at }): Activity[] =>
+      isPageAction(action)
+        ? [{ ...base, kind: "page", action, path: target, at }]
+        : []
+    )
   const byForm = new Map<string, Doc<"enquiries">[]>()
   for (const enquiry of inbox.enquiries) {
-    byForm.set(enquiry.form, [...(byForm.get(enquiry.form) ?? []), enquiry])
+    const group = byForm.get(enquiry.form)
+    if (group) group.push(enquiry)
+    else byForm.set(enquiry.form, [enquiry])
   }
   const enquiryRows = [...byForm].map(([form, enquiries]): Activity => ({
+    ...base,
     kind: "enquiry",
-    title: `${enquiries.length} new ${enquiries.length === 1 ? "enquiry" : "enquiries"}`,
-    detail: `From the ${form} form`,
+    form,
+    count: enquiries.length,
     at: enquiries[0]!.createdAt,
-    siteId: site._id,
   }))
 
   return {
@@ -131,19 +114,35 @@ async function siteOverview(
       newEnquiries: inbox.enquiries.length,
     },
     activity: [...pageRows, ...enquiryRows],
-    published: sinceLog
-      .filter(({ action }) => action === "page.publish")
-      .map(({ target }) => target),
+    published:
+      since === undefined
+        ? []
+        : log
+            .filter(({ action, at }) => action === "page.publish" && at > since)
+            .map(({ target }) => target),
     newSince:
       since === undefined
         ? 0
         : inbox.enquiries.filter(({ createdAt }) => createdAt > since).length,
-    drafts: pages.flatMap(({ _id, path, draftChangedAt }) =>
-      draftChangedAt === undefined
-        ? []
-        : [{ siteId: site._id, pageId: _id, path, at: draftChangedAt }]
-    ),
+    drafts: drafts.map(({ _id, path, draftChangedAt }) => ({
+      siteId: site._id,
+      pageId: _id,
+      path,
+      at: draftChangedAt!,
+    })),
   }
+}
+
+/** Links an activity row to its page, if the page still exists. Only the rows shown are looked up. */
+async function withPage(ctx: QueryCtx, row: Activity): Promise<Activity> {
+  if (row.kind !== "page") return row
+  const page = await ctx.db
+    .query("pages")
+    .withIndex("by_site_path", (q) =>
+      q.eq("siteId", row.siteId).eq("path", row.path)
+    )
+    .unique()
+  return page ? { ...row, pageId: page._id } : row
 }
 
 /** Everything Home shows, across the caller's sites. Activity never names who did it. */
@@ -151,31 +150,24 @@ export const overview = query({
   args: {},
   handler: async (ctx) => {
     const userId = await requireUserId(ctx)
-    const [memberships, preferences] = await Promise.all([
-      ctx.db
-        .query("memberships")
-        .withIndex("by_user_site", (q) => q.eq("userId", userId))
-        .collect(),
-      preferencesOf(ctx, userId),
+    const [sites, visit] = await Promise.all([
+      memberSites(ctx, userId),
+      visitOf(ctx, userId),
     ])
-    const since = preferences?.previousSeenAt
-    const parts = (
-      await Promise.all(
-        memberships.map(async ({ siteId, role }) => {
-          const site = await ctx.db.get("sites", siteId)
-          return site && siteOverview(ctx, site, role, since)
-        })
-      )
-    ).filter((part) => part !== null)
+    const since = visit?.previousSeenAt
+    const parts = await Promise.all(
+      sites.map(({ site, role }) => siteOverview(ctx, site, role, since))
+    )
+    const shown = parts
+      .flatMap(({ activity }) => activity)
+      .sort(newestFirst)
+      .slice(0, ACTIVITY_LIMIT)
 
     return {
       sites: parts
         .map(({ site }) => site)
         .sort((a, b) => a.name.localeCompare(b.name)),
-      activity: parts
-        .flatMap(({ activity }) => activity)
-        .sort(newestFirst)
-        .slice(0, ACTIVITY_LIMIT),
+      activity: await Promise.all(shown.map((row) => withPage(ctx, row))),
       summary: {
         firstVisit: since === undefined,
         published: [...new Set(parts.flatMap(({ published }) => published))],

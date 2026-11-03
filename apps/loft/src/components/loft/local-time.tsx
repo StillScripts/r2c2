@@ -1,11 +1,7 @@
 import { useEffect, useState } from "react"
+import { clockTime } from "@/lib/format"
 
-const format = new Intl.DateTimeFormat(undefined, {
-  hour: "numeric",
-  minute: "2-digit",
-})
-
-const now = () => format.format(new Date()).toLowerCase()
+const now = () => clockTime(new Date())
 
 /** The local time, as `7:12 pm`. Blank until mounted, so it can't mismatch the server's HTML. */
 export function LocalTime() {

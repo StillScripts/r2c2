@@ -1,6 +1,12 @@
 import type { Id } from "@workspace/backend/dataModel"
 import { describe, expect, it } from "vite-plus/test"
-import { greetingFor, type Overview, suggestions, summaryLine } from "./home"
+import {
+  activityRow,
+  greetingFor,
+  type Overview,
+  suggestions,
+  summaryLine,
+} from "./home"
 
 const a = "a" as Id<"sites">
 const b = "b" as Id<"sites">
@@ -88,15 +94,18 @@ describe("suggestions", () => {
       suggestions({
         sites: [site(a, "R2C2", 2)],
         summary: summary({ drafts: [draft] }),
-        activity: [],
       })
-    ).toEqual([
-      { kind: "enquiries", label: "Read the 2 new enquiries", siteId: a },
+    ).toMatchObject([
       {
-        kind: "draft",
+        label: "Read the 2 new enquiries",
+        link: { to: "/sites/$siteId/enquiries", params: { siteId: a } },
+      },
+      {
         label: "Publish the /how draft",
-        siteId: a,
-        pageId: how,
+        link: {
+          to: "/sites/$siteId/pages/$pageId",
+          params: { siteId: a, pageId: how },
+        },
       },
     ])
   })
@@ -107,7 +116,6 @@ describe("suggestions", () => {
       suggestions({
         sites: [site(a, "A", 1), site(b, "B", 3), site(c, "C", 2)],
         summary: summary(),
-        activity: [],
       }).map(({ label }) => label)
     ).toEqual([
       "Read the 3 new enquiries for B",
@@ -116,8 +124,53 @@ describe("suggestions", () => {
   })
 
   it("suggests nothing when nothing's waiting", () => {
+    expect(suggestions({ sites: [site(a, "A")], summary: summary() })).toEqual(
+      []
+    )
+  })
+})
+
+describe("activityRow", () => {
+  const base = { at: 1, siteId: a, siteName: "R2C2" }
+
+  it("words page actions as outcomes and links to the page", () => {
     expect(
-      suggestions({ sites: [site(a, "A")], summary: summary(), activity: [] })
-    ).toEqual([])
+      activityRow({
+        ...base,
+        kind: "page",
+        action: "page.publish",
+        path: "/pricing",
+        pageId: how,
+      })
+    ).toMatchObject({
+      icon: "live",
+      title: "Published /pricing",
+      detail: "R2C2",
+      link: { params: { siteId: a, pageId: how } },
+    })
+    expect(
+      activityRow({
+        ...base,
+        kind: "page",
+        action: "page.restore",
+        path: "/how",
+      })
+    ).toEqual({
+      icon: "draft",
+      title: "Restored an earlier draft of /how",
+      detail: "R2C2",
+      link: undefined,
+    })
+  })
+
+  it("groups enquiries by form and links to the inbox", () => {
+    expect(
+      activityRow({ ...base, kind: "enquiry", form: "contact", count: 1 })
+    ).toMatchObject({
+      icon: "enquiry",
+      title: "1 new enquiry",
+      detail: "From the contact form",
+      link: { to: "/sites/$siteId/enquiries", search: { status: "new" } },
+    })
   })
 })

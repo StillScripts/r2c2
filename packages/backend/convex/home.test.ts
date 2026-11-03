@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
 import { api } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
-import { ACTIVITY_LIMIT, VISIT_GAP_MS } from "./home"
+import { ACTIVITY_LIMIT, SEEN_REFRESH_MS, VISIT_GAP_MS } from "./home"
 import { addSite, errorCode, setup } from "../test/setup"
 
 afterEach(() => {
@@ -10,7 +10,7 @@ afterEach(() => {
 
 const seen = (t: ReturnType<typeof setup>) =>
   t.run(async (ctx) => {
-    const row = await ctx.db.query("preferences").first()
+    const row = await ctx.db.query("visits").first()
     return { lastSeenAt: row?.lastSeenAt, previousSeenAt: row?.previousSeenAt }
   })
 
@@ -43,7 +43,7 @@ const enquiry = (
   )
 
 describe("home.markSeen", () => {
-  test("starts a new visit only after a long gap", async () => {
+  test("refreshes now and then within a visit, and starts a new one after a long gap", async () => {
     vi.useFakeTimers({ now: 1_000_000 })
     const t = setup()
     const ann = t.withIdentity({ subject: "ann" })
@@ -53,24 +53,28 @@ describe("home.markSeen", () => {
 
     vi.setSystemTime(1_000_000 + 60_000)
     await ann.mutation(api.home.markSeen, {})
-    expect(await seen(t)).toEqual({ lastSeenAt: 1_060_000 })
+    expect(await seen(t)).toEqual({ lastSeenAt: 1_000_000 })
 
-    const later = 1_060_000 + VISIT_GAP_MS + 1
+    const refreshed = 1_000_000 + SEEN_REFRESH_MS + 1
+    vi.setSystemTime(refreshed)
+    await ann.mutation(api.home.markSeen, {})
+    expect(await seen(t)).toEqual({ lastSeenAt: refreshed })
+
+    const later = refreshed + VISIT_GAP_MS + 1
     vi.setSystemTime(later)
     await ann.mutation(api.home.markSeen, {})
     expect(await seen(t)).toEqual({
       lastSeenAt: later,
-      previousSeenAt: 1_060_000,
+      previousSeenAt: refreshed,
     })
   })
 
-  test("keeps the caller's view", async () => {
+  test("leaves preferences alone, so it doesn't re-run staff.me", async () => {
     const t = setup()
-    const ann = t.withIdentity({ subject: "ann" })
-    await ann.mutation(api.preferences.setView, { view: "alps" })
-    await ann.mutation(api.home.markSeen, {})
-    const row = await t.run((ctx) => ctx.db.query("preferences").first())
-    expect(row?.view).toBe("alps")
+    await t.withIdentity({ subject: "ann" }).mutation(api.home.markSeen, {})
+    expect(await t.run((ctx) => ctx.db.query("preferences").collect())).toEqual(
+      []
+    )
   })
 
   test("refuses signed-out callers", async () => {
@@ -116,13 +120,26 @@ describe("home.overview", () => {
 
     const { activity } = await ann.query(api.home.overview, {})
     expect(activity).toHaveLength(ACTIVITY_LIMIT)
-    expect(
-      activity.map(({ kind, title, detail }) => [kind, title, detail])
-    ).toEqual([
-      ["enquiry", "2 new enquiries", "From the contact form"],
-      ["draft", "Restored an earlier draft of /how", "a"],
-      ["live", "Rolled back /", "b"],
-      ["draft", "Created /new", "b"],
+    expect(activity).toEqual([
+      expect.objectContaining({ kind: "enquiry", form: "contact", count: 2 }),
+      expect.objectContaining({
+        kind: "page",
+        action: "page.restore",
+        path: "/how",
+        siteName: "a",
+      }),
+      expect.objectContaining({
+        kind: "page",
+        action: "page.rollback",
+        path: "/",
+        siteName: "b",
+      }),
+      expect.objectContaining({
+        kind: "page",
+        action: "page.create",
+        path: "/new",
+        siteName: "b",
+      }),
     ])
     expect(JSON.stringify(activity)).not.toContain("ann")
   })
@@ -130,9 +147,9 @@ describe("home.overview", () => {
   test("summarises what changed since the previous visit, and the drafts waiting", async () => {
     const { t, a, ann } = await twoSites()
     await t.run((ctx) =>
-      ctx.db.insert("preferences", {
+      ctx.db.insert("visits", {
         userId: "ann",
-        view: "harbour",
+        lastSeenAt: 110,
         previousSeenAt: 100,
       })
     )
@@ -159,6 +176,25 @@ describe("home.overview", () => {
       drafts: [{ siteId: a, pageId, path: "/how", at: 130 }],
     })
     expect(sites[0]?.newEnquiries).toBe(2)
+  })
+
+  test("links a page row to its page while it exists", async () => {
+    const { t, a, ann } = await twoSites()
+    const pageId = await t.run((ctx) =>
+      ctx.db.insert("pages", {
+        siteId: a,
+        path: "/",
+        title: "Home",
+        draftHtml: "",
+      })
+    )
+    await log(t, a, "page.publish", "/", 10)
+    await log(t, a, "page.publish", "/gone", 20)
+    const { activity } = await ann.query(api.home.overview, {})
+    expect(activity.map((row) => row.kind === "page" && row.pageId)).toEqual([
+      undefined,
+      pageId,
+    ])
   })
 
   test("is a first visit with no previous visit", async () => {

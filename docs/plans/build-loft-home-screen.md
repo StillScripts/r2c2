@@ -25,14 +25,14 @@ The talk-or-type input is built but stays behind a flag until the conversation s
 - **Drafts waiting:** nothing records them today. A page has `draftHtml` and `liveVersionId`, but the Loft can't tell whether the draft differs from what's live. You chose to track unpublished edits with a flag.
 - **Last visit:** `preferences` holds one row per user (`view`), created on first change. Spec §12 puts `lastSeenAt` there.
 - **Site details:** a site's address is `siteAddress(slug)` in `domains.ts`. `brandOf` in `sites.ts` gives the badge colour. `status` is `live` or `coming-soon`.
-- **The inbox query:** `inboxPage` and `INBOX_LIMIT` are private to `enquiries.ts`, so this plan exports them for reuse.
+- **The inbox query:** `inboxPage` and `INBOX_LIMIT` are private to `enquiries.ts`, so this plan exports them for reuse. The "your sites" lookup moves into `memberSites` in `sites.ts`, shared by `staff.me` and Home.
 
 ## Approach
 
 **"Since your last visit" without the summary wiping itself.** Home's data is a live query, so writing "seen now" would immediately turn the summary into "nothing new".
 
-- `preferences` gains `lastSeenAt` and `previousSeenAt`.
-- `home.markSeen` runs when Home mounts. It creates the caller's row if needed, with `view` at its default, since `view` is required. That means a visit to Home now creates a row too, and the schema comment says so. If `lastSeenAt` is more than 30 minutes old, a new visit has started: it moves `lastSeenAt` into `previousSeenAt`. Either way it then sets `lastSeenAt` to now.
+- A `visits` table holds `lastSeenAt` and `previousSeenAt`, one row per user. It's kept apart from `preferences` so that a visit doesn't re-run `staff.me`, which reads preferences for the view.
+- `home.markSeen` runs when Home mounts. Within a visit it refreshes `lastSeenAt` at most every 5 minutes, so it rarely re-runs the overview. If `lastSeenAt` is more than 30 minutes old, a new visit has started: it moves `lastSeenAt` into `previousSeenAt`. Either way it then sets `lastSeenAt` to now.
 - Home measures "since your last visit" from `previousSeenAt`, so it stays put for the whole visit and across reloads within it.
 - A first visit has no `previousSeenAt`, and gets a welcome summary instead.
 
@@ -48,12 +48,12 @@ The talk-or-type input is built but stays behind a flag until the conversation s
 
 - **`sites`:** id, name, `address`, `status`, `brand` and role, sorted by name.
 - **`activity`:** the newest 4 rows, merged across sites.
-  - **From the audit log:** each site's last 20 `auditLog` entries, keeping only the four page actions. Each becomes `{ kind: "live" | "draft", title, detail, at, siteId, path }`, with the spec's wording ("Published /pricing", "Rolled back /pricing", "Created /pricing", "Restored an earlier draft of /pricing"). Publish and rollback are `live`, and create and restore are `draft`. A row links to the page editor for that path, if the page still exists.
-  - **From new enquiries:** each site's `new` enquiries grouped by form, as one `enquiry` row per group: "2 new enquiries", "From the contact form", at the newest one's time. A row links to that site's inbox of new enquiries.
+  - **From the audit log:** one read of each site's newest 50 `auditLog` entries serves both Lately (the newest 20, keeping only the four page actions) and the summary's publishes. Rows are data, `{ kind: "page", action, path, siteId, siteName, at }`, and the Loft words them in `activityRow()` next to the other Home wording ("Published /pricing", "Rolled back /pricing", "Created /pricing", "Restored an earlier draft of /pricing"). Publish and rollback show as live, and create and restore as drafts. Only the rows shown are looked up to link to their page, if it still exists.
+  - **From new enquiries:** each site's `new` enquiries grouped by form, as one `{ kind: "enquiry", form, count }` row per group ("2 new enquiries", "From the contact form"), at the newest one's time. A row links to that site's inbox of new enquiries.
   - **No names:** activity carries no actor and no tool names. When teammates exist, rows for other people's actions can gain a name.
 - **`summary`:**
   - **Since `previousSeenAt`:** the distinct paths published, from `page.publish` entries with `at` after it (read with the index range, up to 50 per site), and the number of new enquiries that arrived.
-  - **Current state, not since your last visit:** the drafts waiting, meaning pages with `draftChangedAt` across your sites, each with its site, path and when it was last edited.
+  - **Current state, not since your last visit:** the drafts waiting, meaning pages with `draftChangedAt` across your sites (read through a `by_site_draft` index, so other pages aren't loaded), each with its site, path and when it was last edited.
 
   The "since" parts are null on a first visit.
 
@@ -75,7 +75,7 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 - **Sites:** a glass panel of SiteRows, each with the badge, the name, the address in mono and a live dot with "Live" or "Coming soon". Each row links to the site. The spec's "New site" row is left out, because sites are still created from the CLI.
 - **Dim:** the spec's Home dim (`rgba(8,22,34,0.2)`) over the view. A route sets it with `staticData.viewDim`, the shell passes the deepest screen's dim to `LoftView`, and later screens such as voice and the publish sheet can use the same mechanism.
 - **Chips on the view:** until the input ships, the chips sit straight on the view, so each one is a glass pill. Inside the input they use `fill-2`, as in the spec.
-- **Local clock:** times and the greeting render through a small `ClientOnly` wrapper, so the server's HTML can't disagree with the browser's clock.
+- **Local clock:** times and the greeting render through TanStack Router's `ClientOnly`, so the server's HTML can't disagree with the browser's clock. One `clockTime` formatter in `lib/format.ts` serves both `LocalTime` and the activity times.
 
 ## Alternatives considered
 
@@ -98,9 +98,9 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
 ## Action items
 
-- [x] Add `lastSeenAt` and `previousSeenAt` (optional numbers) to `preferences`, and optional `draftChangedAt` to `pages`, in `packages/backend/convex/schema.ts`.
+- [x] Add a `visits` table (`lastSeenAt`, `previousSeenAt`), and optional `draftChangedAt` with a `by_site_draft` index to `pages`, in `packages/backend/convex/schema.ts`.
 - [x] Set `draftChangedAt` in `writeDraft` (`pages.ts`). In `publishing.ts`, clear it on publish only when the draft still matches what was published, and set it on rollback. Test a save made during a publish. Add tests in `pages.test.ts` and `publishing.test.ts`.
-- [x] Export `DEFAULT_VIEW` (`preferences.ts`) and `inboxPage` and `INBOX_LIMIT` (`enquiries.ts`).
+- [x] Export `inboxPage` and `INBOX_LIMIT` (`enquiries.ts`), and share `memberSites` (`sites.ts`) between `staff.me` and Home.
 - [x] Add `packages/backend/convex/home.ts` with `markSeen` and `overview` (sites, activity, summary). Test it with `convex-test`:
   - a first visit and a new visit after 30 minutes
   - a reload within a visit

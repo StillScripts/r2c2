@@ -3,9 +3,9 @@ import { mutation } from "./_generated/server"
 import { requireUserId } from "./access"
 import { type View, view } from "./validators"
 
-export const DEFAULT_VIEW: View = "harbour"
+const DEFAULT_VIEW: View = "harbour"
 
-export const preferencesOf = (ctx: QueryCtx, userId: string) =>
+const preferencesOf = (ctx: QueryCtx, userId: string) =>
   ctx.db
     .query("preferences")
     .withIndex("by_user", (q) => q.eq("userId", userId))

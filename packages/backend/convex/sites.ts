@@ -11,6 +11,21 @@ import { siteAddress } from "./domains"
 import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
 
+/** The sites the user belongs to, with their role in each. */
+export async function memberSites(ctx: QueryCtx, userId: string) {
+  const memberships = await ctx.db
+    .query("memberships")
+    .withIndex("by_user_site", (q) => q.eq("userId", userId))
+    .collect()
+  const sites = await Promise.all(
+    memberships.map(async ({ siteId, role }) => {
+      const site = await ctx.db.get("sites", siteId)
+      return site && { site, role }
+    })
+  )
+  return sites.filter((entry) => entry !== null)
+}
+
 /** The site with this slug, or null. */
 export const findSite = (ctx: QueryCtx, slug: string) =>
   ctx.db

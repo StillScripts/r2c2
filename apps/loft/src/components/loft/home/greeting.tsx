@@ -1,4 +1,4 @@
-import { ClientOnly } from "@/components/client-only"
+import { ClientOnly } from "@tanstack/react-router"
 import { greetingFor } from "@/lib/home"
 
 /** "Morning, Daniel." by the browser's clock, so it's rendered only once mounted. */
