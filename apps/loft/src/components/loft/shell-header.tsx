@@ -74,8 +74,7 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
         className={`${PILL} min-w-0 gap-2 pr-3 pl-2 text-sm font-semibold`}
       >
         <SiteBadge name={site.name} brand={site.brand} />
-        <span className="hidden truncate sm:inline">{site.name}</span>
-        <span className="sr-only sm:hidden">{site.name}</span>
+        <span className="sr-only truncate sm:not-sr-only">{site.name}</span>
         <ChevronDown aria-hidden="true" className="size-3.5" />
       </MenuTrigger>
       <MenuContent align="start">
@@ -149,6 +148,7 @@ const initials = (name: string) =>
 
 /** The view, the time and your avatar. Opens the view switcher, your email and Sign out. */
 function ViewMenu({ me, onSignOut }: { me: Me; onSignOut: () => void }) {
+  const viewLabel = VIEWS[me.view].label
   const setView = useConvexMutation(
     api.preferences.setView
   ).withOptimisticUpdate((store, { view }) => {
@@ -159,10 +159,10 @@ function ViewMenu({ me, onSignOut }: { me: Me; onSignOut: () => void }) {
   return (
     <Menu>
       <MenuTrigger
-        aria-label={`${VIEWS[me.view].label} view, ${me.name}`}
+        aria-label={`${viewLabel} view, ${me.name}`}
         className={`${PILL} shrink-0 gap-2.5 sm:pr-1.5 sm:pl-4`}
       >
-        <span className="hidden text-sm sm:inline">{VIEWS[me.view].label}</span>
+        <span className="hidden text-sm sm:inline">{viewLabel}</span>
         <span className="hidden sm:inline">
           <LocalTime />
         </span>

@@ -4,18 +4,10 @@ export const parseSiteParams = (params: { siteId: string }) => ({
   siteId: params.siteId as Id<"sites">,
 })
 
-export const parsePageParams = (params: {
-  siteId: string
-  pageId: string
-}) => ({
-  ...parseSiteParams(params),
+export const parsePageParams = (params: { pageId: string }) => ({
   pageId: params.pageId as Id<"pages">,
 })
 
-export const parseEnquiryParams = (params: {
-  siteId: string
-  enquiryId: string
-}) => ({
-  ...parseSiteParams(params),
+export const parseEnquiryParams = (params: { enquiryId: string }) => ({
   enquiryId: params.enquiryId as Id<"enquiries">,
 })

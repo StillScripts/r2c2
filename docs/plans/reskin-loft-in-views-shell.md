@@ -38,11 +38,12 @@ Replace the stopgap header and single glass panel from `add-loft-views` with the
 - The single glass wrapper goes. Each screen's `main` becomes its own glass panel, at the spec's content widths.
 - The bordered boxes inside become `fill-1` rows and cards.
 - In-screen links to other screens (the site page's "Enquiries" and "Theme" links, the enquiries "Pages" link) move to the site switcher's menu. Links that belong to the screen stay: the editor's History link, an enquiry's link back to its list, and the page list.
-- `fullHeight` is re-measured for the new header.
+- The page editor and theme panel are `flex-1` in the shell's column, so they fill what the header leaves without a measured height.
+- A `sites/$siteId` layout route parses the site ID and prefetches the menu's enquiry count for every site screen.
 
 **Badges.**
 
-- `staff.me` adds each site's `brand`: the `--color-brand` value in its theme, or none, in which case the badge falls back to `fill-3`.
+- `staff.me` adds each site's `brand`: the `--color-brand` value in its theme, or none, in which case the badge falls back to `fill-3`. It's read with `readColours`, which moves from the Loft to `@workspace/core` so the badge and the Theme screen parse a theme the same way.
 - The badge's initials are the first two characters of the site's name.
 
 ## Action items

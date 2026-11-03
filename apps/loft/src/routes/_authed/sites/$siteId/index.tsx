@@ -12,17 +12,13 @@ import type { FormEvent } from "react"
 import { ConfirmButton } from "@/components/confirm-button"
 import { errorMessage } from "@/lib/errors"
 import { card, screen } from "@/lib/layout"
-import { parseSiteParams } from "@/lib/params"
-import { newEnquiriesQuery, pagesQuery, siteQuery } from "@/lib/queries"
+import { pagesQuery, siteQuery } from "@/lib/queries"
 
 export const Route = createFileRoute("/_authed/sites/$siteId/")({
-  params: { parse: parseSiteParams },
   loader: ({ context, params: { siteId } }) =>
     Promise.all([
       context.queryClient.ensureQueryData(siteQuery(siteId)),
       context.queryClient.ensureQueryData(pagesQuery(siteId)),
-      // For the enquiries count in the site menu
-      context.queryClient.ensureQueryData(newEnquiriesQuery(siteId)),
     ]),
   component: SitePages,
 })

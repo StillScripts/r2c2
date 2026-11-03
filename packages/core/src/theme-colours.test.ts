@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs"
 import { describe, expect, it } from "vite-plus/test"
 import {
   addColour,
@@ -24,16 +23,6 @@ describe("readColours", () => {
       { name: "brand", value: "#2f3bff" },
       { name: "soft", value: "oklch(0.9 0.05 260)" },
     ])
-  })
-
-  it("reads the marketing site's theme", () => {
-    const css = readFileSync(
-      new URL("../../../../sites/r2c2/theme.css", import.meta.url),
-      "utf8"
-    )
-    const colours = readColours(css)
-    expect(colours).toContainEqual({ name: "brand", value: "#2f3bff" })
-    expect(colours).toContainEqual({ name: "night-text", value: "#e9ecf2" })
   })
 
   it("uses the last value of a repeated token", () => {

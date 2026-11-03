@@ -1,4 +1,5 @@
 import { readdir, readFile } from "node:fs/promises"
+import { readColours } from "@workspace/core"
 import { describe, expect, it } from "vite-plus/test"
 import { checkPage } from "./check"
 import { loadTheme } from "./theme"
@@ -26,6 +27,13 @@ const themeOf = async (site: string) => loadTheme(await read(site, "theme.css"))
 describe.each(sites)("sites/$name", ({ name, pages }) => {
   it("has a theme that compiles", async () => {
     await expect(themeOf(name)).resolves.toBeDefined()
+  })
+
+  it("has a brand colour for its badge in the Loft", async () => {
+    expect(readColours(await read(name, "theme.css"))).toContainEqual({
+      name: "brand",
+      value: expect.any(String),
+    })
   })
 
   it.each(pages)("%s passes the house rules without warnings", async (file) => {

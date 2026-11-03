@@ -2,8 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, createFileRoute } from "@tanstack/react-router"
 import { enquirySummary } from "@workspace/core"
 import { when } from "@/lib/format"
-import { parseSiteParams } from "@/lib/params"
-import { type EnquiryStatus, enquiriesQuery, siteQuery } from "@/lib/queries"
+import { type EnquiryStatus, enquiriesQuery } from "@/lib/queries"
 import { cn } from "@workspace/ui/lib/utils"
 import { card, screen } from "@/lib/layout"
 
@@ -13,16 +12,12 @@ const TABS: [EnquiryStatus, string][] = [
 ]
 
 export const Route = createFileRoute("/_authed/sites/$siteId/enquiries/")({
-  params: { parse: parseSiteParams },
   validateSearch: (search): { status: EnquiryStatus } => ({
     status: search.status === "handled" ? "handled" : "new",
   }),
   loaderDeps: ({ search: { status } }) => ({ status }),
   loader: ({ context: { queryClient }, params: { siteId }, deps }) =>
-    Promise.all([
-      queryClient.ensureQueryData(siteQuery(siteId)),
-      queryClient.ensureQueryData(enquiriesQuery(siteId, deps.status)),
-    ]),
+    queryClient.ensureQueryData(enquiriesQuery(siteId, deps.status)),
   component: Inbox,
 })
 

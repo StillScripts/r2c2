@@ -1,4 +1,4 @@
-import { isSiteSlug } from "@workspace/core"
+import { isSiteSlug, readColours } from "@workspace/core"
 import { v } from "convex/values"
 import type { Id } from "./_generated/dataModel"
 import {
@@ -12,15 +12,15 @@ import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
 
 /** The site with this slug, or null. */
-/** The theme's `--color-brand` value, for the site's badge in the Loft, or null if it has none. */
-export const brandOf = (theme: string) =>
-  /(?<![\w-])--color-brand\s*:\s*([^;}]+?)\s*[;}]/.exec(theme)?.[1] ?? null
-
 export const findSite = (ctx: QueryCtx, slug: string) =>
   ctx.db
     .query("sites")
     .withIndex("by_slug", (q) => q.eq("slug", slug))
     .unique()
+
+/** The theme's `--color-brand` value, for the site's badge in the Loft, or null if it has none. */
+export const brandOf = (theme: string) =>
+  readColours(theme).find(({ name }) => name === "brand")?.value ?? null
 
 /** Create a coming-soon site with its own address as primary domain and an empty home page, then sync its routes. */
 export async function createSite(
