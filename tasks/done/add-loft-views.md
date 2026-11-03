@@ -1,6 +1,7 @@
 ---
 title: Add the Harbour, Coast and Alps views
 created: 2026-10-28
+completed: 2026-11-03
 plan: docs/plans/add-loft-views.md
 ---
 
