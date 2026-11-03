@@ -31,6 +31,10 @@ export function getRouter() {
 }
 
 declare module "@tanstack/react-router" {
+  interface StaticDataRouteOption {
+    /** A dim over the view for this screen, as a CSS colour (design spec §4.2). */
+    viewDim?: string
+  }
   interface Register {
     router: ReturnType<typeof getRouter>
   }

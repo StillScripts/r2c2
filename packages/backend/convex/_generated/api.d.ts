@@ -14,6 +14,7 @@ import type * as domains from "../domains.js";
 import type * as enquiries from "../enquiries.js";
 import type * as errors from "../errors.js";
 import type * as history from "../history.js";
+import type * as home from "../home.js";
 import type * as http from "../http.js";
 import type * as notifications from "../notifications.js";
 import type * as pages from "../pages.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   enquiries: typeof enquiries;
   errors: typeof errors;
   history: typeof history;
+  home: typeof home;
   http: typeof http;
   notifications: typeof notifications;
   pages: typeof pages;

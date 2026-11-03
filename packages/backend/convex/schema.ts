@@ -38,6 +38,8 @@ export default defineSchema({
     title: v.string(),
     draftHtml: v.string(),
     liveVersionId: v.optional(v.id("pageVersions")),
+    // When the draft last moved ahead of what's live; absent once it's published
+    draftChangedAt: v.optional(v.number()),
   }).index("by_site_path", ["siteId", "path"]),
 
   pageVersions: defineTable({
@@ -93,11 +95,14 @@ export default defineSchema({
     .index("by_user_site", ["userId", "siteId"])
     .index("by_site", ["siteId"]),
 
-  // One row per user, created on their first change; no row means the defaults
+  // One row per user, created on their first change or first visit to Home; no row means the defaults
   preferences: defineTable({
     // identity.subject, the Better Auth user ID
     userId: v.string(),
     view,
+    // When Home last saw the user, and when it last saw them before this visit
+    lastSeenAt: v.optional(v.number()),
+    previousSeenAt: v.optional(v.number()),
   }).index("by_user", ["userId"]),
 
   auditLog: defineTable({

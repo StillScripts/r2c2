@@ -38,7 +38,7 @@ The talk-or-type input is built but stays behind a flag until the conversation s
 
 **Drafts waiting.**
 
-- `pages` gains an optional `draftChanged` flag, where absent means false.
+- `pages` gains an optional `draftChangedAt` timestamp: set when the draft moves ahead of what's live, absent once it's published. The time lets the chip pick the most recently edited draft.
 - `writeDraft` sets it. That covers saving in the editor, restoring an earlier draft, and later the AI. The ID patch in `markLive` (`publishing.ts`) writes to the draft directly and deliberately leaves the flag alone.
 - Publishing clears it, but only when the draft still matches what was published. `markLive` already keeps an edit saved while a publish was running, so that edit stays waiting.
 - A rollback always sets it. The newer content is still in the draft and is now ahead of what's live. In the rare case where the draft equals the version rolled back to, it may flag a draft that isn't really waiting, and that's acceptable.
@@ -53,7 +53,7 @@ The talk-or-type input is built but stays behind a flag until the conversation s
   - **No names:** activity carries no actor and no tool names. When teammates exist, rows for other people's actions can gain a name.
 - **`summary`:**
   - **Since `previousSeenAt`:** the distinct paths published, from `page.publish` entries with `at` after it (read with the index range, up to 50 per site), and the number of new enquiries that arrived.
-  - **Current state, not since your last visit:** the drafts waiting, meaning pages with `draftChanged` across your sites, each with its site, path and when it was last edited.
+  - **Current state, not since your last visit:** the drafts waiting, meaning pages with `draftChangedAt` across your sites, each with its site, path and when it was last edited.
 
   The "since" parts are null on a first visit.
 
@@ -73,7 +73,9 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
 - **Lately:** an ActivityList glass panel with 30px icon chips. Its icons are `Globe` on `live-tint` for live, `Inbox` on lamp for an enquiry, and `File` on `fill-3` for a draft. Each row links to the page, the inbox or the editor. The spec's "All activity" link is left out until there's a page for it.
 - **Sites:** a glass panel of SiteRows, each with the badge, the name, the address in mono and a live dot with "Live" or "Coming soon". Each row links to the site. The spec's "New site" row is left out, because sites are still created from the CLI.
-- **Dim:** the spec's Home dim (`rgba(8,22,34,0.2)`) over the view, through a `dim` prop on `LoftView`.
+- **Dim:** the spec's Home dim (`rgba(8,22,34,0.2)`) over the view. A route sets it with `staticData.viewDim`, the shell passes the deepest screen's dim to `LoftView`, and later screens such as voice and the publish sheet can use the same mechanism.
+- **Chips on the view:** until the input ships, the chips sit straight on the view, so each one is a glass pill. Inside the input they use `fill-2`, as in the spec.
+- **Local clock:** times and the greeting render through a small `ClientOnly` wrapper, so the server's HTML can't disagree with the browser's clock.
 
 ## Alternatives considered
 
@@ -86,7 +88,7 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
 - In:
   - the `preferences` and `pages` fields, `home.markSeen` and `home.overview`
-  - `draftChanged` maintained by `writeDraft`, publish and rollback
+  - `draftChangedAt` maintained by `writeDraft`, publish and rollback
   - the Home screen with its greeting, summary, chips, Lately and Sites
   - CoreInput behind a flag, and the Home dim
 - Out:
@@ -96,10 +98,10 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
 ## Action items
 
-- [ ] Add `lastSeenAt` and `previousSeenAt` (optional numbers) to `preferences`, and optional `draftChanged` to `pages`, in `packages/backend/convex/schema.ts`.
-- [ ] Set `draftChanged` in `writeDraft` (`pages.ts`). In `publishing.ts`, clear it on publish only when the draft still matches what was published, and set it on rollback. Test a save made during a publish. Add tests in `pages.test.ts` and `publishing.test.ts`.
-- [ ] Export `DEFAULT_VIEW` (`preferences.ts`) and `inboxPage` and `INBOX_LIMIT` (`enquiries.ts`).
-- [ ] Add `packages/backend/convex/home.ts` with `markSeen` and `overview` (sites, activity, summary). Test it with `convex-test`:
+- [x] Add `lastSeenAt` and `previousSeenAt` (optional numbers) to `preferences`, and optional `draftChangedAt` to `pages`, in `packages/backend/convex/schema.ts`.
+- [x] Set `draftChangedAt` in `writeDraft` (`pages.ts`). In `publishing.ts`, clear it on publish only when the draft still matches what was published, and set it on rollback. Test a save made during a publish. Add tests in `pages.test.ts` and `publishing.test.ts`.
+- [x] Export `DEFAULT_VIEW` (`preferences.ts`) and `inboxPage` and `INBOX_LIMIT` (`enquiries.ts`).
+- [x] Add `packages/backend/convex/home.ts` with `markSeen` and `overview` (sites, activity, summary). Test it with `convex-test`:
   - a first visit and a new visit after 30 minutes
   - a reload within a visit
   - activity merged across two sites, newest first, capped at 4
@@ -107,14 +109,14 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
   - only your own sites
   - no actor in rows
   - a draft waiting
-- [ ] Add pure `summaryLine()` and `suggestions()` in `apps/loft/src/lib/home.ts`, with tests for:
+- [x] Add pure `summaryLine()` and `suggestions()` in `apps/loft/src/lib/home.ts`, with tests for:
   - nothing new
   - a first visit
   - one or several published paths
   - enquiries
   - drafts waiting
   - singular and plural wording
-- [ ] Add `components/loft/home/`:
+- [x] Add `components/loft/home/`:
   - `greeting.tsx`, client-only
   - `core-input.tsx`
   - `suggestion-chips.tsx`
@@ -123,13 +125,13 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
   Also add `lib/flags.ts` with `CONVERSATION_ENABLED`, and a `dim` prop on `LoftView`.
 
-- [ ] Rebuild `apps/loft/src/routes/_authed/index.tsx` as Home. Its loader prefetches `home.overview`, and `markSeen` runs on mount. "All sites" in the site menu still lands here.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Rebuild `apps/loft/src/routes/_authed/index.tsx` as Home. Its loader prefetches `home.overview`, and `markSeen` runs on mount. "All sites" in the site menu still lands here.
+- [x] Run `vp check`, `vp test` and `vp run build`.
 - [ ] Render Home with the built CSS over Coast at 1440px and 390px, and check the greeting and summary stay readable as text on the view. Then in local dev, publish a page, submit an enquiry, and come back after 30 minutes or with a hand-set `previousSeenAt` to see the summary and Lately update.
 
 ## Testing
 
-- **Backend:** `convex-test` suites for `home.markSeen` (visit rotation) and `home.overview` (merge, caps, grouping, wording inputs, isolation between users), plus `draftChanged` across save, restore, publish and rollback.
+- **Backend:** `convex-test` suites for `home.markSeen` (visit rotation) and `home.overview` (merge, caps, grouping, wording inputs, isolation between users), plus `draftChangedAt` across save, restore, publish and rollback.
 - **Loft:** unit tests for `summaryLine()` and `suggestions()`, which hold all the wording rules.
 - **Manual:** as in the last action item, including a first visit with no `previousSeenAt`, a user with no sites, and a site with no pages.
 
@@ -143,7 +145,7 @@ The cost is bounded: per site, it reads 20 audit rows, up to 100 new enquiries (
 
 - No new ADR is needed:
   - the `preferences` fields are the ones spec §12 suggests
-  - `draftChanged` is a derived flag on an existing table, which can be dropped once AI drafts carry their own state
+  - `draftChangedAt` is a derived flag on an existing table, which can be dropped once AI drafts carry their own state
 
 ## Open questions
 

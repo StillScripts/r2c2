@@ -266,16 +266,32 @@ describe("publishing.markLive", () => {
     ])
   })
 
-  test("keeps an edit saved while publish ran", async () => {
+  test("keeps an edit saved while publish ran, still waiting", async () => {
     const { t, pageId, release, page } = await site()
     await t.run((ctx) =>
-      ctx.db.patch("pages", pageId, { draftHtml: "<p>newer</p>" })
+      ctx.db.patch("pages", pageId, {
+        draftHtml: "<p>newer</p>",
+        draftChangedAt: 1,
+      })
     )
     const versionId = await t.mutation(internal.publishing.markLive, release())
     expect(await page()).toMatchObject({
       draftHtml: "<p>newer</p>",
       liveVersionId: versionId,
+      draftChangedAt: 1,
     })
+  })
+
+  test("marks a saved draft as waiting until it's published", async () => {
+    const { t, siteId, ed, pageId, release, page } = await site()
+    await ed.mutation(api.pages.saveDraft, {
+      siteId,
+      pageId,
+      draftHtml: "<p>draft</p>",
+    })
+    expect((await page())?.draftChangedAt).toEqual(expect.any(Number))
+    await t.mutation(internal.publishing.markLive, release())
+    expect(await page()).not.toHaveProperty("draftChangedAt")
   })
 
   test("reuses the version when the same release is published again, as the latest publish", async () => {
@@ -335,7 +351,10 @@ describe("publishing.markRolledBack", () => {
       versionId: first,
       actor: "ed",
     })
-    expect((await page())?.liveVersionId).toBe(first)
+    expect(await page()).toMatchObject({
+      liveVersionId: first,
+      draftChangedAt: expect.any(Number),
+    })
     expect(await registry()).toEqual([
       expect.objectContaining(contact("email")),
     ])

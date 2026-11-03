@@ -175,10 +175,10 @@ export const intake = httpAction(async (ctx, request) => {
 })
 
 /** The most enquiries the inbox shows per tab, and where the new count stops. */
-const INBOX_LIMIT = 100
+export const INBOX_LIMIT = 100
 
 /** Up to `INBOX_LIMIT` enquiries with a status, newest first, and whether there are more. */
-async function inboxPage(
+export async function inboxPage(
   ctx: QueryCtx,
   siteId: Id<"sites">,
   status: EnquiryStatus

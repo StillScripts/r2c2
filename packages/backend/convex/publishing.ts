@@ -265,7 +265,11 @@ export const markLive = internalMutation({
         ...release,
         ...published,
       }))
-    await ctx.db.patch("pages", pageId, { liveVersionId: versionId })
+    await ctx.db.patch("pages", pageId, {
+      liveVersionId: versionId,
+      // Unless an edit was saved while publish ran, the draft is now what's live
+      ...(page.draftHtml === draftHtml && { draftChangedAt: undefined }),
+    })
     await syncForms(ctx, siteId)
     await writeAudit(ctx, {
       siteId,
@@ -288,7 +292,11 @@ export const markRolledBack = internalMutation({
   handler: async (ctx, { siteId, pageId, versionId, actor }) => {
     const page = await ownPage(ctx, siteId, pageId)
     await ownVersion(ctx, pageId, versionId)
-    await ctx.db.patch("pages", pageId, { liveVersionId: versionId })
+    // The newer content stays in the draft, now ahead of what's live
+    await ctx.db.patch("pages", pageId, {
+      liveVersionId: versionId,
+      draftChangedAt: Date.now(),
+    })
     await syncForms(ctx, siteId)
     await writeAudit(ctx, {
       siteId,

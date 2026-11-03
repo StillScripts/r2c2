@@ -3,6 +3,7 @@ import {
   Outlet,
   createFileRoute,
   redirect,
+  useMatches,
   useRouter,
 } from "@tanstack/react-router"
 import { useEffect } from "react"
@@ -24,6 +25,14 @@ export const Route = createFileRoute("/_authed")({
 function AuthedLayout() {
   const router = useRouter()
   const { data: me } = useSuspenseQuery(meQuery)
+  // The deepest screen that asks for a dim gets it
+  const dim = useMatches({
+    select: (matches) =>
+      matches
+        .map((match) => match.staticData.viewDim)
+        .filter(Boolean)
+        .at(-1),
+  })
 
   async function signOut() {
     await authClient.signOut()
@@ -38,7 +47,7 @@ function AuthedLayout() {
 
   return (
     <div className="flex min-h-svh flex-col gap-4 px-4 pt-5 pb-4.5 sm:gap-5 sm:px-6 sm:py-5.5">
-      <LoftView view={me.view} />
+      <LoftView view={me.view} dim={dim} />
       <ShellHeader me={me} onSignOut={signOut} />
       <Outlet />
     </div>

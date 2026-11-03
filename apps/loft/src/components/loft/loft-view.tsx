@@ -11,7 +11,7 @@ import {
 const FRAME = "absolute bg-[#0b0e18]"
 
 /** The view behind the Loft: the scene, a vignette and, on desktop, the window frame. */
-export function LoftView({ view }: { view: View }) {
+export function LoftView({ view, dim }: { view: View; dim?: string }) {
   const [layers, setLayers] = useState<ViewLayers>({ shown: view })
   if (view !== layers.shown) setLayers(switchView(layers, view))
 
@@ -47,6 +47,7 @@ export function LoftView({ view }: { view: View }) {
           )
       )}
       <div className="absolute inset-0 bg-[radial-gradient(130%_100%_at_50%_35%,transparent_55%,rgb(5_7_15/0.5)_100%)]" />
+      {dim && <div className="absolute inset-0" style={{ background: dim }} />}
       <div className="hidden md:block">
         <div className={`${FRAME} inset-x-0 top-0 h-3.5`} />
         <div className={`${FRAME} inset-x-0 top-[22%] h-1.5 opacity-85`} />
