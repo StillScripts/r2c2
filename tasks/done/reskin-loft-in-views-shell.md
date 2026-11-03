@@ -1,6 +1,7 @@
 ---
 title: Move the Loft's screens into the views shell
 created: 2026-10-28
+completed: 2026-11-03
 plan: docs/plans/reskin-loft-in-views-shell.md
 ---
 
