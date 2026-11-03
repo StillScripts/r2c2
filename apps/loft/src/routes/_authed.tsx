@@ -5,11 +5,9 @@ import {
   redirect,
   useRouter,
 } from "@tanstack/react-router"
-import { Button } from "@workspace/ui/components/button"
 import { useEffect } from "react"
-import { LocalTime } from "@/components/loft/local-time"
 import { LoftView } from "@/components/loft/loft-view"
-import { ViewSwitcher } from "@/components/loft/view-switcher"
+import { ShellHeader } from "@/components/loft/shell-header"
 import { authClient } from "@/lib/auth-client"
 import { meQuery } from "@/lib/queries"
 
@@ -39,24 +37,10 @@ function AuthedLayout() {
   if (!me) return null
 
   return (
-    <div className="flex min-h-svh flex-col gap-3 p-3">
+    <div className="flex min-h-svh flex-col gap-4 px-4 pt-5 pb-4.5 sm:gap-5 sm:px-6 sm:py-5.5">
       <LoftView view={me.view} />
-      <header className="flex h-14 items-center justify-between gap-4 rounded-full px-5 glass">
-        <span className="font-serif text-2xl">Loft</span>
-        <div className="flex items-center gap-3 text-sm">
-          <ViewSwitcher view={me.view} />
-          <LocalTime />
-          <span className="hidden text-muted-foreground md:inline">
-            {me.email}
-          </span>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            Sign out
-          </Button>
-        </div>
-      </header>
-      <div className="rounded-3xl glass">
-        <Outlet />
-      </div>
+      <ShellHeader me={me} onSignOut={signOut} />
+      <Outlet />
     </div>
   )
 }

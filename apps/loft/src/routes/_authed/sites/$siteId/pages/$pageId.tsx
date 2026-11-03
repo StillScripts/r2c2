@@ -58,25 +58,18 @@ function PageEditor() {
   useEditorGuards({ unsaved, save })
 
   return (
-    <main className={cn("flex flex-col gap-3 p-4", fullHeight)}>
+    <main
+      className={cn("flex flex-col gap-3 rounded-3xl p-4 glass", fullHeight)}
+    >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex gap-3 text-sm text-muted-foreground">
-            <Link
-              to="/sites/$siteId"
-              params={{ siteId }}
-              className="hover:underline"
-            >
-              Pages
-            </Link>
-            <Link
-              to="/sites/$siteId/pages/$pageId/history"
-              params={{ siteId, pageId }}
-              className="hover:underline"
-            >
-              History
-            </Link>
-          </div>
+          <Link
+            to="/sites/$siteId/pages/$pageId/history"
+            params={{ siteId, pageId }}
+            className="text-sm text-muted-foreground hover:underline"
+          >
+            History
+          </Link>
           <h1 className="truncate text-lg font-medium">
             {page.title}{" "}
             <span className="font-mono text-sm text-muted-foreground">

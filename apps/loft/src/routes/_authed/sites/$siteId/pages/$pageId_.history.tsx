@@ -16,6 +16,8 @@ import {
   snapshotQuery,
   versionsQuery,
 } from "@/lib/queries"
+import { cn } from "@workspace/ui/lib/utils"
+import { card, screen } from "@/lib/layout"
 
 export const Route = createFileRoute(
   "/_authed/sites/$siteId/pages/$pageId_/history"
@@ -45,7 +47,7 @@ function PageHistory() {
   const { data: page } = useSuspenseQuery(pageQuery(siteId, pageId))
 
   return (
-    <main className="mx-auto flex max-w-6xl flex-col gap-6 p-6">
+    <main className={cn(screen, "max-w-6xl")}>
       <div>
         <Link
           to="/sites/$siteId/pages/$pageId"
@@ -96,7 +98,7 @@ function Versions({
           This page hasn't been published yet.
         </p>
       ) : (
-        <ul className="divide-y rounded-3xl border">
+        <ul className={cn("divide-y", card)}>
           {versions.map((version) => (
             <li
               key={version._id}
@@ -166,7 +168,7 @@ function DraftHistory({ siteId, pageId }: PageProps) {
         </p>
       ) : (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,20rem)_1fr]">
-          <ul className="divide-y self-start rounded-3xl border">
+          <ul className={cn("divide-y self-start", card)}>
             {snapshots.map((s) => (
               <li
                 key={s.ts}

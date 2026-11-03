@@ -1,6 +1,6 @@
 import { useConvexAction } from "@convex-dev/react-query"
 import { useMutation, useQuery, useSuspenseQuery } from "@tanstack/react-query"
-import { Link, createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { api } from "@workspace/backend/api"
 import type { Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
@@ -70,16 +70,11 @@ function ThemePanel() {
   useEditorGuards({ unsaved, save })
 
   return (
-    <main className={cn("flex flex-col gap-3 p-4", fullHeight)}>
+    <main
+      className={cn("flex flex-col gap-3 rounded-3xl p-4 glass", fullHeight)}
+    >
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
-          <Link
-            to="/sites/$siteId"
-            params={{ siteId }}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            {site.name}
-          </Link>
           <h1 className="text-lg font-medium">Theme</h1>
         </div>
         <div className="flex items-center gap-3 text-sm">
@@ -188,7 +183,7 @@ function ColourTokens({
 }) {
   const colours = readColours(theme)
   return (
-    <section className="flex max-h-[45%] flex-col gap-2 overflow-auto rounded-2xl border p-3">
+    <section className="flex max-h-[45%] flex-col gap-2 overflow-auto rounded-2xl bg-fill-1 p-3">
       <h2 className="text-sm font-medium">Colours</h2>
       {colours.length > 0 && (
         <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">

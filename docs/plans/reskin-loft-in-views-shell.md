@@ -31,7 +31,7 @@ Replace the stopgap header and single glass panel from `add-loft-views` with the
 - **Right:** the view pill (the view's name, `LocalTime` and the avatar initials) opens a menu with the view switcher (today's `ViewSwitcher`), your email and **Sign out**.
 - **Phone:** the pills shrink to the 44px home button, the site badge with its chevron, and the avatar. The same menus open from them.
 
-**Menus.** A `Menu` component added to `packages/ui` from shadcn's Base UI dropdown menu. `@base-ui/react` is already a dependency of `packages/ui`, so nothing new is installed. The menus are glass, with `fill-*` items, since glass isn't nested.
+**Menus.** A `Menu` component added to `packages/ui`, written on Base UI's `Menu` in shadcn's style, since this environment can't reach the shadcn registry. `@base-ui/react` is already a dependency of `packages/ui`, so nothing new is installed. The menus are glass, with `fill-*` items, since glass isn't nested.
 
 **Screens.**
 
@@ -47,17 +47,17 @@ Replace the stopgap header and single glass panel from `add-loft-views` with the
 
 ## Action items
 
-- [ ] Add `brand` to each site in `staff.me` (read with a small helper from `sites.theme`), with tests for a theme with a brand colour, one without, and an empty theme.
-- [ ] Add a `Menu` component to `packages/ui/src/components/` based on shadcn's Base UI dropdown menu, styled as glass.
-- [ ] Add `apps/loft/src/components/loft/`:
+- [x] Add `brand` to each site in `staff.me` (read with a small helper from `sites.theme`), with tests for a theme with a brand colour, one without, and an empty theme.
+- [x] Add a `Menu` component to `packages/ui/src/components/` based on shadcn's Base UI dropdown menu, styled as glass.
+- [x] Add `apps/loft/src/components/loft/`:
   - `shell-header.tsx`, holding the wordmark, the site switcher and the view pill.
   - `site-badge.tsx`
   - `loft-mark.tsx`, the Loft mark SVG from the reference files.
 
   `ViewSwitcher` moves into the view pill's menu.
 
-- [ ] Rework `apps/loft/src/routes/_authed.tsx` to use the header and drop the single glass wrapper. Re-measure `fullHeight`.
-- [ ] Restyle each screen with its own glass and `fill-*` rows:
+- [x] Rework `apps/loft/src/routes/_authed.tsx` to use the header and drop the single glass wrapper. Re-measure `fullHeight`.
+- [x] Restyle each screen with its own glass and `fill-*` rows:
   - `_authed/index.tsx` and `sites/$siteId/index.tsx`
   - `pages/$pageId.tsx` and `pages/$pageId_.history.tsx`
   - `enquiries/index.tsx` and `enquiries/$enquiryId.tsx`
@@ -65,8 +65,8 @@ Replace the stopgap header and single glass panel from `add-loft-views` with the
 
   Move the cross-screen links into the site menu.
 
-- [ ] Update spec §5 so the view switcher lives in the view pill's menu on every screen size.
-- [ ] Run `vp check`, `vp test` and `vp run build`.
+- [x] Update spec §5 so the view switcher lives in the view pill's menu on every screen size.
+- [x] Run `vp check`, `vp test` and `vp run build`.
 - [ ] Render each screen with the built CSS at 1440px and 390px wide over Coast (the brightest view), and check every route still works. Then in local dev, go through each route and both menus by keyboard.
 
 ## Open questions

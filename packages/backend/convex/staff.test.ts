@@ -134,7 +134,7 @@ describe("staff", () => {
     expect(await asAnn.query(api.staff.me, {})).toEqual({
       name: "Ann",
       email: "ann@r2c2.dev",
-      sites: [{ siteId: r2c2, name: "r2c2", role: "owner" }],
+      sites: [{ siteId: r2c2, name: "r2c2", role: "owner", brand: null }],
       view: "harbour",
     })
 

@@ -6,10 +6,12 @@ import type { Doc, Id } from "@workspace/backend/dataModel"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { cn } from "@workspace/ui/lib/utils"
 import type { FunctionArgs } from "convex/server"
 import type { FormEvent } from "react"
 import { ConfirmButton } from "@/components/confirm-button"
 import { errorMessage } from "@/lib/errors"
+import { card, screen } from "@/lib/layout"
 import { parseSiteParams } from "@/lib/params"
 import { newEnquiriesQuery, pagesQuery, siteQuery } from "@/lib/queries"
 
@@ -19,6 +21,7 @@ export const Route = createFileRoute("/_authed/sites/$siteId/")({
     Promise.all([
       context.queryClient.ensureQueryData(siteQuery(siteId)),
       context.queryClient.ensureQueryData(pagesQuery(siteId)),
+      // For the enquiries count in the site menu
       context.queryClient.ensureQueryData(newEnquiriesQuery(siteId)),
     ]),
   component: SitePages,
@@ -28,40 +31,10 @@ function SitePages() {
   const { siteId } = Route.useParams()
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const { data: pages } = useSuspenseQuery(pagesQuery(siteId))
-  const {
-    data: { count, capped },
-  } = useSuspenseQuery(newEnquiriesQuery(siteId))
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-6">
-      <div>
-        <Link to="/" className="text-sm text-muted-foreground hover:underline">
-          Your sites
-        </Link>
-        <div className="flex items-baseline justify-between gap-4">
-          <h1 className="text-2xl font-medium">{site.name}</h1>
-          <div className="flex gap-4 text-sm">
-            {site.role === "owner" && (
-              <Link
-                to="/sites/$siteId/theme"
-                params={{ siteId }}
-                className="hover:underline"
-              >
-                Theme
-              </Link>
-            )}
-            <Link
-              to="/sites/$siteId/enquiries"
-              params={{ siteId }}
-              search={{ status: "new" }}
-              className="hover:underline"
-            >
-              Enquiries
-              {count > 0 && ` (${count}${capped ? "+" : ""} new)`}
-            </Link>
-          </div>
-        </div>
-      </div>
+    <main className={cn(screen, "max-w-2xl")}>
+      <h1 className="font-serif text-4xl">{site.name}</h1>
       <SiteStatus
         siteId={siteId}
         status={site.status}
@@ -71,13 +44,13 @@ function SitePages() {
       {pages.length === 0 ? (
         <p className="text-muted-foreground">This site has no pages yet.</p>
       ) : (
-        <ul className="divide-y rounded-3xl border">
+        <ul className={cn("divide-y", card)}>
           {pages.map((page) => (
             <li key={page._id}>
               <Link
                 to="/sites/$siteId/pages/$pageId"
                 params={{ siteId, pageId: page._id }}
-                className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-muted"
+                className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-fill-2"
               >
                 <span className="flex flex-col">
                   <span>{page.title}</span>
@@ -132,7 +105,7 @@ function SiteStatus({
   const copy = STATUS_COPY[status]
 
   return (
-    <section className="flex flex-col gap-3 rounded-3xl border p-6">
+    <section className={cn("flex flex-col gap-3 p-5", card)}>
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-col">
           <h2 className="font-medium">{copy.heading}</h2>
@@ -197,7 +170,7 @@ function NewPageForm({ siteId }: { siteId: Id<"sites"> }) {
     <form
       method="post"
       onSubmit={onSubmit}
-      className="flex flex-col gap-4 rounded-3xl border p-6"
+      className={cn("flex flex-col gap-4 p-5", card)}
     >
       <h2 className="font-medium">New page</h2>
       <div className="flex flex-col gap-2">

@@ -242,8 +242,8 @@ All of these layers are decorative: `aria-hidden="true"` and `pointer-events: no
 **Behaviour:**
 
 - Each user picks a view, saved in Convex so it follows them across devices. Default to Harbour for new users (§14).
-- The switcher is a segmented control in the header (desktop) and in the profile menu (phone). Switching cross-fades the views.
-- The header shows the view's name and the local time, in mono (`7:12 pm`).
+- The switcher lives in the menu that the view pill (the view's name, the time and your avatar) opens, on every screen size, next to your email and Sign out. Switching cross-fades the views.
+- The view pill shows the view's name and the local time, in mono (`7:12 pm`). On a phone it shrinks to the avatar.
 - Picking a view by time of day (Coast in the morning, Harbour at night) is a nice later idea, not part of v1.
 
 **Adding a view later:** one SVG in the same 1440×900 frame, with the horizon around y 560–700 and the foreground at the bottom. Check that `text-muted` on glass still passes 4.5:1 over its brightest area.

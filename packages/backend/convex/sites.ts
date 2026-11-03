@@ -12,6 +12,10 @@ import { scheduleRouteSync } from "./routes"
 import { siteStatus } from "./validators"
 
 /** The site with this slug, or null. */
+/** The theme's `--color-brand` value, for the site's badge in the Loft, or null if it has none. */
+export const brandOf = (theme: string) =>
+  /(?<![\w-])--color-brand\s*:\s*([^;}]+?)\s*[;}]/.exec(theme)?.[1] ?? null
+
 export const findSite = (ctx: QueryCtx, slug: string) =>
   ctx.db
     .query("sites")
