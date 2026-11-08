@@ -6,12 +6,13 @@ import {
 } from "@workspace/core"
 import { v } from "convex/values"
 import { audit, ownDoc, siteMutation, siteQuery } from "./access"
-import type { Doc, Id } from "./_generated/dataModel"
+import type { Doc } from "./_generated/dataModel"
 import type { MutationCtx, QueryCtx } from "./_generated/server"
 import { authComponent } from "./auth"
 import { fail } from "./errors"
 import { draftAt, draftHistory, recordDraft } from "./history"
 import { assertUnclaimed } from "./publishing"
+import { assertPagesSite } from "./sites"
 
 const escapeText = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -50,12 +51,14 @@ export const list = siteQuery({
   },
 })
 
-/** The site's page at `rawPath` once it's normalised, or null if there's none yet. */
+/** The site's page at `rawPath` once it's normalised, or null if there's none yet. Refused on app sites. */
 export async function pageAt(
   ctx: QueryCtx,
-  siteId: Id<"sites">,
+  site: Doc<"sites">,
   rawPath: string
 ) {
+  assertPagesSite(site)
+  const siteId = site._id
   const path = parsePagePath(rawPath)
   if (!path) throw fail("invalid_path")
   const page = await ctx.db
@@ -68,7 +71,7 @@ export async function pageAt(
 export const create = siteMutation({
   args: { path: v.string(), title: v.string() },
   handler: async (ctx, args) => {
-    const { path, page: taken } = await pageAt(ctx, ctx.site._id, args.path)
+    const { path, page: taken } = await pageAt(ctx, ctx.site, args.path)
     if (taken) throw fail("path_taken")
 
     const title = args.title.trim() || path

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
-import { internal } from "./_generated/api"
-import { scheduled, setup } from "../test/setup"
+import { api, internal } from "./_generated/api"
+import { addMember, addSite, errorCode, scheduled, setup } from "../test/setup"
 import { brandOf } from "./sites"
 
 afterEach(() => {
@@ -26,6 +26,7 @@ describe("sites:create", () => {
       name: "Acme Dental",
       slug: "acme-dental",
       status: "coming-soon",
+      kind: "pages",
     })
     expect(state.domains).toEqual([
       expect.objectContaining({
@@ -40,6 +41,30 @@ describe("sites:create", () => {
     expect(state.log).toEqual([
       expect.objectContaining({ action: "site.create", actor: "system" }),
     ])
+    expect(await scheduled(t)).toEqual([
+      ["routes:sync", { siteId, version: 1 }],
+    ])
+  })
+
+  test("creates an app site with no pages", async () => {
+    const t = setup()
+    const siteId = await t.mutation(internal.sites.create, {
+      name: "Surf",
+      slug: "surf",
+      kind: "app",
+    })
+
+    const state = await t.run(async (ctx) => ({
+      site: await ctx.db.get("sites", siteId),
+      domains: await ctx.db.query("domains").collect(),
+      pages: await ctx.db.query("pages").collect(),
+    }))
+    expect(state.site).toMatchObject({ kind: "app", status: "coming-soon" })
+    expect(state.site?.liveBuildId).toBeUndefined()
+    expect(state.domains).toEqual([
+      expect.objectContaining({ hostname: "surf.localhost", kind: "address" }),
+    ])
+    expect(state.pages).toEqual([])
     expect(await scheduled(t)).toEqual([
       ["routes:sync", { siteId, version: 1 }],
     ])
@@ -68,6 +93,53 @@ describe("sites:create", () => {
     await expect(
       t.mutation(internal.sites.create, { name: "B", slug: "a" })
     ).rejects.toThrow("already exists")
+  })
+})
+
+describe("site kinds", () => {
+  async function appSite() {
+    const t = setup()
+    const siteId = await t.mutation(internal.sites.create, {
+      name: "Surf",
+      slug: "surf",
+      kind: "app",
+    })
+    await addMember(t, siteId, { userId: "ann", role: "owner" })
+    return { t, siteId, ann: t.withIdentity({ subject: "ann" }) }
+  }
+
+  test("a site stored without a kind is a pages site", async () => {
+    const t = setup()
+    const siteId = await addSite(t, "a", { userId: "ann", role: "owner" })
+    const site = await t
+      .withIdentity({ subject: "ann" })
+      .query(api.sites.get, { siteId })
+    expect(site.kind).toBe("pages")
+  })
+
+  test("an app site refuses new pages", async () => {
+    const { siteId, ann } = await appSite()
+    expect((await ann.query(api.sites.get, { siteId })).kind).toBe("app")
+    await expect(
+      ann.mutation(api.pages.create, { siteId, path: "/about", title: "About" })
+    ).rejects.toEqual(errorCode("app_site"))
+  })
+
+  test("an app site refuses a theme", async () => {
+    const { siteId, ann } = await appSite()
+    await expect(
+      ann.mutation(internal.sites.setTheme, { siteId, theme: "@theme {}" })
+    ).rejects.toEqual(errorCode("app_site"))
+  })
+
+  test("an app site can't be imported into", async () => {
+    const { t } = await appSite()
+    await expect(
+      t.mutation(internal.seed.importSite, {
+        slug: "surf",
+        pages: [{ path: "/", html: "<html></html>" }],
+      })
+    ).rejects.toEqual(errorCode("app_site"))
   })
 })
 

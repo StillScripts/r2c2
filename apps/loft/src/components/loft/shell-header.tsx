@@ -21,6 +21,7 @@ import {
   Inbox,
   LayoutGrid,
   LogOut,
+  Package,
   Palette,
 } from "lucide-react"
 import { LocalTime } from "@/components/loft/local-time"
@@ -67,6 +68,8 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
   const { siteId } = site
   const { data: enquiries } = useQuery(newEnquiriesQuery(siteId))
   const others = sites.filter((other) => other.siteId !== siteId)
+  const isApp = site.kind === "app"
+  const [HomeIcon, homeLabel] = isApp ? [Package, "Build"] : [File, "Pages"]
 
   return (
     <Menu>
@@ -83,8 +86,8 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
           <MenuLinkItem
             render={<Link to="/sites/$siteId" params={{ siteId }} />}
           >
-            <File aria-hidden="true" />
-            Pages
+            <HomeIcon aria-hidden="true" />
+            {homeLabel}
           </MenuLinkItem>
           <MenuLinkItem
             render={
@@ -104,7 +107,7 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
               </span>
             )}
           </MenuLinkItem>
-          {site.role === "owner" && (
+          {site.role === "owner" && !isApp && (
             <MenuLinkItem
               render={<Link to="/sites/$siteId/theme" params={{ siteId }} />}
             >

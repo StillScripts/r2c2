@@ -95,10 +95,10 @@ export const importSite = internalMutation({
     if (!site) throw fail("not_found")
     const log = (action: string, target: string) =>
       writeAudit(ctx, { siteId: site._id, actor: "system", action, target })
-    if (theme !== undefined) await writeTheme(ctx, site._id, theme, "system")
+    if (theme !== undefined) await writeTheme(ctx, site, theme, "system")
 
     for (const { path: rawPath, html } of pages) {
-      const { path, page } = await pageAt(ctx, site._id, rawPath)
+      const { path, page } = await pageAt(ctx, site, rawPath)
       if (page) await keepDraft(ctx, page)
       else await log("page.create", path)
       const target = page ?? (await emptyPage(ctx, site._id, path))

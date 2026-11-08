@@ -281,6 +281,14 @@ If any fails, fall back to the Cache API (`caches.default` with `Cache-Tag`) and
 - The AI gets the site's kit and the house rules as context on every edit. The MCP server exposes the same kit as resources.
 - In the Loft this stays nearly invisible: "Start from a kit" for a new site, a few starters for a new page, and one small theme panel with a live preview.
 
+**App sites.** A site kind, `app`, whose content is one prebuilt static build (an `index.html` plus JS, CSS and media) deployed as-is instead of pages written in the Loft. The first is the surf game at `surf.lofty.page`, deployed from its own repo. A site is either pages or one app build, never both. App sites reuse hostname routing, R2, immutable versions, Workers Cache and the page security policy unchanged; staff only until `lofty.page` is on the Public Suffix List ([ADR-015](docs/decisions/ADR-015-give-each-site-a-lofty-page-address.md)). No server code, `/_api` routes or loosened policy for apps.
+
+- Data: `sites.kind` (`pages` | `app`, missing means `pages`) and `sites.liveBuildId`; an `appBuilds` table (files, `htmlHash`, who and when) for history and rollback; a `deployTokens` table holding only token hashes.
+- R2: every file of a build at `sites/<siteId>/builds/<buildId>/<path>`, immutable. `buildId` is the first 16 hex characters of a SHA-256 over the sorted file list and file hashes, so a re-deploy uploads nothing. The build's rewritten `index.html` goes to `versions/<hash>.html` and `live/index.html` as a page publish does.
+- Deploy: `apps:startDeploy` checks the file list (root `index.html`, allow-listed extensions with no SVG and no other HTML, relative paths without `..`, 10 MB a file, 50 MB a build), claims the site and returns presigned R2 PUT URLs for files not yet stored. The client uploads straight to R2. `apps:finishDeploy` confirms every object, rewrites `./` URLs in `index.html` to `/_build/<buildId>/`, checks it against the app shell rules (no inline scripts, styles, handlers or `style` attributes, no third-party URLs), then makes it live and records the build. Rollback repeats the last writes with an older build's HTML.
+- Serving: `/` is the live page as today. `/_build/<buildId>/<path>` serves build files with the immutable asset headers, keeping the path's case because bundlers emit mixed-case names.
+- From other repos: a per-site deploy token lets CI deploy one site and nothing else, through `POST /deploy/start` and `POST /deploy/finish`.
+
 ## 12. HTML house rules
 
 Every page is checked at publish in `packages/html`, whether it came from a person, the Loft's AI or an MCP client. A failure stops the publish and returns specific, fixable messages with line numbers, such as: `Line 12: bg-[#1f5b8a] isn't a theme colour. Use bg-brand.`

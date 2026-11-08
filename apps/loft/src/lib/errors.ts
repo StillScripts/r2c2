@@ -16,6 +16,8 @@ const MESSAGES: Messages = {
   form_conflict: ({ form }) =>
     `Another live page has a form named "${form}" with different fields. Make them match, or rename one.`,
   page_busy: "This page is being published. Try again in a moment.",
+  app_site:
+    "This site is deployed from a build, so it has no pages or theme to edit.",
 }
 
 /** A readable message for an error from a Convex function. */

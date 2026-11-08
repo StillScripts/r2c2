@@ -23,7 +23,12 @@ sites, create one from the CLI, then add its owner with `staff:create`:
 ```bash
 npx convex env set SITES_DOMAIN lofty.page   # production only
 vp exec convex run sites:create '{"name": "Acme Dental", "slug": "acme-dental"}'
+vp exec convex run sites:create '{"name": "Surf", "slug": "surf", "kind": "app"}'  # an app site
 ```
+
+A site is either `pages`, edited in the Loft (the default), or an `app`, served from one
+prebuilt build with no pages or theme
+([ADR-019](../../docs/decisions/ADR-019-add-an-app-site-kind.md)).
 
 A slug is one DNS label and can't be a reserved name like `www` or `app`
 (`RESERVED_SLUGS` in `@workspace/core`). The address stays with the site: owners can't
