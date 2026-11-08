@@ -1,4 +1,9 @@
-import type { EnquiryIntake, EnquirySource, RouteEntry } from "@workspace/core"
+import type {
+  BuildFile,
+  EnquiryIntake,
+  EnquirySource,
+  RouteEntry,
+} from "@workspace/core"
 import type { FormDefinition, FormField } from "@workspace/html"
 import { literals } from "convex-helpers/validators"
 import { type Infer, type ObjectType, v } from "convex/values"
@@ -30,6 +35,12 @@ export const formDefinition = v.object({
   name: v.string(),
   fields: v.array(formField),
 })
+/** A file of an app build as a deploy lists it, with its full SHA-256 in hex. */
+export const buildFile = v.object({
+  path: v.string(),
+  bytes: v.number(),
+  hash: v.string(),
+})
 export const enquirySource = v.object({
   page: v.string(),
   referrer: v.optional(v.string()),
@@ -57,5 +68,6 @@ export type SharedShapes = [
   Expect<Same<Infer<typeof formField>, FormField>>,
   Expect<Same<Infer<typeof formDefinition>, FormDefinition>>,
   Expect<Same<Infer<typeof enquirySource>, EnquirySource>>,
+  Expect<Same<Infer<typeof buildFile>, BuildFile>>,
   Expect<Same<ObjectType<typeof enquiryIntake>, EnquiryIntake>>,
 ]

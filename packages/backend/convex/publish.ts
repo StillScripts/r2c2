@@ -25,9 +25,7 @@ import { ELEMENTS_JS } from "../elements.gen"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { action, type ActionCtx } from "./_generated/server"
-import { getObjectText, objectExists, putObject } from "./storage"
-
-const HTML = "text/html; charset=utf-8"
+import { getObjectText, objectExists, putHtml, putObject } from "./storage"
 
 type PublishResult =
   | Extract<Release, { ok: false }>
@@ -58,7 +56,7 @@ const writeLive = (
   path: string,
   html: string,
   metadata: LivePageMetadata
-) => putObject(liveKey(siteId, path), html, HTML, metadata)
+) => putHtml(liveKey(siteId, path), html, metadata)
 
 /** Run `work` while holding the page's claim, letting it go however `work` ends. */
 async function whileClaimed<T>(
@@ -108,7 +106,7 @@ export const publish = action({
           css,
           ASSET_CONTENT_TYPES.css!
         ),
-        putObject(versionKey(siteId, hash), html, HTML),
+        putHtml(versionKey(siteId, hash), html),
       ])
       // Last, so the edge never serves a page whose CSS or script isn't in R2 yet
       await writeLive(siteId, context.page.path, html, { page: pageId, hash })

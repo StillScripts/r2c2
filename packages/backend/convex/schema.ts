@@ -1,6 +1,7 @@
 import { defineSchema, defineTable } from "convex/server"
 import { v } from "convex/values"
 import {
+  buildFile,
   domainKind,
   domainStatus,
   enquirySource,
@@ -68,7 +69,19 @@ export default defineSchema({
     htmlHash: v.string(),
     deployedBy: v.string(),
     deployedAt: v.number(),
-  }).index("by_site_deployed", ["siteId", "deployedAt"]),
+  })
+    .index("by_site_deployed", ["siteId", "deployedAt"])
+    .index("by_site_build", ["siteId", "buildId"]),
+
+  // A deploy or rollback in progress on an app site, so only one runs at a time
+  appClaims: defineTable({
+    siteId: v.id("sites"),
+    buildId: v.string(),
+    // the files a deploy waits for; absent for a rollback
+    files: v.optional(v.array(buildFile)),
+    actor: v.string(),
+    expiresAt: v.number(),
+  }).index("by_site", ["siteId"]),
 
   // A publish or rollback in progress, so only one runs per page at a time
   pageClaims: defineTable({
