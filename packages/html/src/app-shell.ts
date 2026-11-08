@@ -1,5 +1,6 @@
 import type { Element } from "domhandler"
 import { textContent } from "domutils"
+import { scheme } from "./allowlist"
 import { type Issue, issueAt } from "./issues"
 import { elements, locator, parse, serialise } from "./parse"
 
@@ -15,20 +16,26 @@ export type AppShellOptions = {
 }
 
 // Attributes that load something; links (`<a>`, `<area>`) only navigate
-const URL_ATTRIBUTES = ["src", "href", "poster", "data", "action", "formaction"]
-const SRCSET_ATTRIBUTES = ["srcset", "imagesrcset"]
+const URL_ATTRIBUTES = new Set([
+  "src",
+  "href",
+  "poster",
+  "data",
+  "action",
+  "formaction",
+])
+const SRCSET_ATTRIBUTES = new Set(["srcset", "imagesrcset"])
 const LINK_TAGS = new Set(["a", "area"])
-
-const SCHEME = /^[a-z][a-z0-9+.-]*:/i
 
 type Rewrite = { url: string } | { rule: string; message: string }
 
 function rewriteUrl(url: string, { base, files }: AppShellOptions): Rewrite {
   const trimmed = url.trim()
-  if (!trimmed || trimmed.startsWith("#") || /^data:/i.test(trimmed)) {
+  const protocol = scheme(trimmed)
+  if (!trimmed || trimmed.startsWith("#") || protocol === "data") {
     return { url }
   }
-  if (SCHEME.test(trimmed) || trimmed.startsWith("//")) {
+  if (protocol || trimmed.startsWith("//")) {
     return {
       rule: "third-party-url",
       message: `${trimmed} isn't in the build. Apps load every file from their own build.`,
@@ -110,9 +117,9 @@ export function buildAppShell(
           "style-attribute",
           "style attributes aren't allowed. Use a CSS file."
         )
-      } else if (URL_ATTRIBUTES.includes(name) && !LINK_TAGS.has(tag)) {
+      } else if (URL_ATTRIBUTES.has(name) && !LINK_TAGS.has(tag)) {
         attribs[name] = rewrite(element, value)
-      } else if (SRCSET_ATTRIBUTES.includes(name)) {
+      } else if (SRCSET_ATTRIBUTES.has(name)) {
         attribs[name] = value
           .split(",")
           .map((candidate) => {

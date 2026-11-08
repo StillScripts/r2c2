@@ -6,7 +6,7 @@ import { expect } from "vite-plus/test"
 import type { Id } from "../convex/_generated/dataModel"
 import schema from "../convex/schema"
 import historySchema from "../node_modules/@convex-dev/table-history/dist/esm/component/schema.js"
-import type { Role } from "../convex/validators"
+import type { Role, SiteKind } from "../convex/validators"
 
 const modules = import.meta.glob("../convex/**/*.*s")
 // table-history has no /test export, so register its component files directly
@@ -27,13 +27,15 @@ export const setup = () => {
 export async function addSite(
   t: ReturnType<typeof setup>,
   slug: string,
-  member?: { userId: string; role: Role }
+  member?: { userId: string; role: Role },
+  kind?: SiteKind
 ): Promise<Id<"sites">> {
   return t.run(async (ctx) => {
     const siteId = await ctx.db.insert("sites", {
       name: slug,
       slug,
       status: "live",
+      kind,
       theme: "",
     })
     if (member) await ctx.db.insert("memberships", { siteId, ...member })

@@ -8,6 +8,7 @@ import {
   type QueryCtx,
 } from "./_generated/server"
 import { writeAudit } from "./access"
+import { isActive } from "./claims"
 import { fail } from "./errors"
 import { findSite, kindOf } from "./sites"
 import { buildFile } from "./validators"
@@ -39,7 +40,7 @@ async function claimSite(ctx: MutationCtx, siteId: Id<"sites">, claim: Claim) {
     .withIndex("by_site", (q) => q.eq("siteId", siteId))
     .unique()
   if (held) {
-    if (held.expiresAt > Date.now()) throw fail("deploy_busy")
+    if (isActive(held)) throw fail("deploy_busy")
     await ctx.db.delete("appClaims", held._id)
   }
   return ctx.db.insert("appClaims", {
@@ -93,8 +94,8 @@ export const claimDeploy = internalMutation({
 export const deployClaim = internalQuery({
   args: { claimId: v.id("appClaims") },
   handler: async (ctx, { claimId }) => {
-    const { siteId, buildId, files, expiresAt } = await claimOf(ctx, claimId)
-    if (!files || expiresAt <= Date.now()) throw fail("deploy_expired")
+    const { siteId, buildId, files, ...claim } = await claimOf(ctx, claimId)
+    if (!files || !isActive(claim)) throw fail("deploy_expired")
     return { siteId, buildId, files }
   },
 })

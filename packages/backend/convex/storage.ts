@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3"
 import { R2 } from "@convex-dev/r2"
+import { HTML_CONTENT_TYPE } from "@workspace/core"
 import { components } from "./_generated/api"
 import { internalAction } from "./_generated/server"
 
@@ -33,13 +34,11 @@ export async function putObject(
   return key
 }
 
-export const HTML = "text/html; charset=utf-8"
-
 export const putHtml = (
   key: string,
   html: string,
   metadata?: Record<string, string>
-) => putObject(key, html, HTML, metadata)
+) => putObject(key, html, HTML_CONTENT_TYPE, metadata)
 
 /** The object's size in bytes, or null when R2 has no such object. */
 export async function objectSize(key: string) {

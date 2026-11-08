@@ -3,6 +3,7 @@
 import {
   BUILD_PREFIX,
   BUILD_SHELL,
+  type BuildFile,
   buildFileProblems,
   buildIdOf,
   buildKey,
@@ -15,6 +16,7 @@ import { v } from "convex/values"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { type ActionCtx, internalAction } from "./_generated/server"
+import { whileClaimed } from "./claims"
 import { getObjectText, objectSize, putHtml, uploadUrl } from "./storage"
 import { buildFile } from "./validators"
 
@@ -32,17 +34,15 @@ type StartResult =
 
 const actor = v.optional(v.string())
 
-/** Run `work` while holding the site's claim, letting it go however `work` ends. */
-async function whileClaimed<T>(
-  ctx: ActionCtx,
-  claimId: Id<"appClaims">,
-  work: () => Promise<T>
-) {
-  try {
-    return await work()
-  } finally {
-    await ctx.runMutation(internal.deploying.release, { claimId })
-  }
+const releaseSite = (ctx: ActionCtx, claimId: Id<"appClaims">) => () =>
+  ctx.runMutation(internal.deploying.release, { claimId })
+
+/** The files R2 doesn't hold at their listed size. */
+async function unstored(files: BuildFile[], keyOf: (path: string) => string) {
+  const sizes = await Promise.all(
+    files.map((file) => objectSize(keyOf(file.path)))
+  )
+  return files.filter((file, i) => sizes[i] !== file.bytes)
 }
 
 const shellIssue = ({ line, message }: Issue) =>
@@ -72,20 +72,16 @@ export const startDeploy = internalAction({
     )
     const keyOf = (path: string) => buildKey(siteId, buildId, path)
     try {
-      const sizes = stored
-        ? files.map((file) => file.bytes)
-        : await Promise.all(files.map((file) => objectSize(keyOf(file.path))))
+      const missing = stored ? [] : await unstored(files, keyOf)
       const uploads = await Promise.all(
-        files
-          .filter((file, i) => sizes[i] !== file.bytes)
-          .map(async ({ path }) => ({
-            path,
-            url: await uploadUrl(keyOf(path)),
-          }))
+        missing.map(async ({ path }) => ({
+          path,
+          url: await uploadUrl(keyOf(path)),
+        }))
       )
       return { ok: true, deployId: claimId, buildId, uploads }
     } catch (error) {
-      await ctx.runMutation(internal.deploying.release, { claimId })
+      await releaseSite(ctx, claimId)()
       throw error
     }
   },
@@ -106,7 +102,7 @@ export const finishDeploy = internalAction({
       internal.deploying.deployClaim,
       { claimId: deployId }
     )
-    return whileClaimed(ctx, deployId, async () => {
+    return whileClaimed(releaseSite(ctx, deployId), async () => {
       const keyOf = (path: string) => buildKey(siteId, buildId, path)
       const sizes = await Promise.all(
         files.map((file) => objectSize(keyOf(file.path)))
@@ -146,7 +142,7 @@ export const rollback = internalAction({
       internal.deploying.claimRollback,
       { slug, buildId, actor }
     )
-    await whileClaimed(ctx, claimId, async () => {
+    await whileClaimed(releaseSite(ctx, claimId), async () => {
       const html = await getObjectText(versionKey(siteId, htmlHash))
       await writeLive(siteId, html, htmlHash)
       await ctx.runMutation(internal.deploying.markRolledBack, { claimId })

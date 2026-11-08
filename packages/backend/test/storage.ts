@@ -2,7 +2,7 @@
 export const writes: { key: string; metadata?: object }[] = []
 export const stored = new Map<string, string>()
 
-export const HTML = "text/html; charset=utf-8"
+import { HTML_CONTENT_TYPE } from "@workspace/core"
 
 export async function putObject(
   key: string,
@@ -16,7 +16,7 @@ export async function putObject(
 }
 
 export const putHtml = (key: string, html: string, metadata?: object) =>
-  putObject(key, html, HTML, metadata)
+  putObject(key, html, HTML_CONTENT_TYPE, metadata)
 
 export const objectSize = async (key: string) => {
   const body = stored.get(key)

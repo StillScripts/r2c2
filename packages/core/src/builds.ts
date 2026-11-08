@@ -1,5 +1,5 @@
 import { HASH_LENGTH, sha256Hex } from "./hash"
-import { BUILD_CONTENT_TYPES } from "./urls"
+import { BUILD_CONTENT_TYPES, buildFileType, HTML_CONTENT_TYPE } from "./urls"
 
 export const BUILD_SHELL = "index.html"
 export const MAX_BUILD_FILE_BYTES = 10 * 1024 * 1024
@@ -14,17 +14,9 @@ export type BuildFile = { path: string; bytes: number; hash: string }
 const SEGMENT = /^[A-Za-z0-9_@+~.-]+$/
 const SHA256 = /^[0-9a-f]{64}$/
 
-const extensionOf = (path: string) =>
-  /\.([^./]+)$/.exec(path)?.[1]?.toLowerCase()
-
 /** The content type a build file is stored with, or undefined if builds can't hold it. */
-export function buildContentType(path: string) {
-  if (path === BUILD_SHELL) return "text/html; charset=utf-8"
-  const ext = extensionOf(path)
-  return ext && Object.hasOwn(BUILD_CONTENT_TYPES, ext)
-    ? BUILD_CONTENT_TYPES[ext]
-    : undefined
-}
+export const buildContentType = (path: string) =>
+  path === BUILD_SHELL ? HTML_CONTENT_TYPE : buildFileType(path)
 
 function pathProblem(path: string) {
   if (path.length > MAX_BUILD_PATH_LENGTH) {

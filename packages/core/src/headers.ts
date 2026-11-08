@@ -1,3 +1,5 @@
+import { HTML_CONTENT_TYPE } from "./urls"
+
 export const CSP = [
   "default-src 'self'",
   "script-src 'self' https://challenges.cloudflare.com",
@@ -15,7 +17,7 @@ export const pageTag = (pageId: string) => `page-${pageId}`
 const htmlHeaders = (cacheControl: string, tags: string[]) => ({
   "cache-control": cacheControl,
   "cache-tag": tags.join(","),
-  "content-type": "text/html; charset=utf-8",
+  "content-type": HTML_CONTENT_TYPE,
   "content-security-policy": CSP,
   "strict-transport-security": "max-age=31536000",
   "x-content-type-options": "nosniff",

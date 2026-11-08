@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, test, vi } from "vite-plus/test"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { DEPLOY_CLAIM_MS } from "./deploying"
-import { errorCode, setup } from "../test/setup"
+import { addSite, errorCode, setup } from "../test/setup"
 import { resetStorage, stored, writes } from "../test/storage"
 
 vi.mock("./storage", () => import("../test/storage"))
@@ -35,16 +35,7 @@ const listOf = (build: Build) =>
 
 async function appSite(kind: "app" | "pages" = "app") {
   const t = setup()
-  const siteId = await t.run((ctx) =>
-    ctx.db.insert("sites", {
-      name: "Surf",
-      slug: "surf",
-      status: "live",
-      kind,
-      theme: "",
-    })
-  )
-  return { t, siteId }
+  return { t, siteId: await addSite(t, "surf", undefined, kind) }
 }
 
 type T = Awaited<ReturnType<typeof appSite>>["t"]
