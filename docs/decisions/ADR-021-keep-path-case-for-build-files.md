@@ -37,5 +37,5 @@ Paths under `/_build/` skip lowercasing. The gateway hands them to the renderer 
 
 ## Related
 
-- Task: tasks/active/serve-app-build-files.md
+- Task: tasks/done/serve-app-build-files.md
 - Builds on: [ADR-020](ADR-020-serve-app-builds-under-build-prefix.md)

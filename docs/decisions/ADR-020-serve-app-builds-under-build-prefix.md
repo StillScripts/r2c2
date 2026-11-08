@@ -45,6 +45,6 @@ Each build's files keep their own names and folders. They are stored at `sites/<
 
 ## Related
 
-- Task: tasks/active/serve-app-build-files.md
+- Task: tasks/done/serve-app-build-files.md
 - Spec: SPEC §5, SPEC §11 "App sites"
 - Builds on: [ADR-019](ADR-019-add-an-app-site-kind.md)

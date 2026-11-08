@@ -1,6 +1,7 @@
 ---
 title: Serve app build files at the edge
 created: 2026-11-08
+completed: 2026-11-08
 ---
 
 Add `BUILD_PREFIX` (`/_build/`), `buildKey(siteId, buildId, path)` and `parseBuildPath` to `@workspace/core`, and a renderer route that serves `sites/<siteId>/builds/<buildId>/<path>` from R2 with the immutable asset headers. Keep the path's case, decode it, reject `..`, and serve only allow-listed extensions (`ASSET_CONTENT_TYPES` plus `json`; no SVG, no HTML). Record the `/_build/` and path-case ADRs.
