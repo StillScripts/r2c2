@@ -1,6 +1,7 @@
 import { env, exports } from "cloudflare:workers"
 import {
   comingSoonHeaders,
+  buildKey,
   liveKey,
   type RouteEntry,
   routeKey,
@@ -37,6 +38,19 @@ describe("gateway", () => {
     await env.SITES.put(liveKey("site_n", "/about"), "<p>About</p>")
     const response = await get("https://Normalised.Test./About/?utm_source=x")
     expect(await response.text()).toBe("<p>About</p>")
+  })
+
+  it("keeps the case of build file paths", async () => {
+    await live("app.test", "site_app")
+    await env.SITES.put(
+      buildKey("site_app", "0123456789abcdef", "assets/Index-AbC.js"),
+      "app()"
+    )
+    const response = await get(
+      "https://app.test/_build/0123456789abcdef/assets/Index-AbC.js?v=1"
+    )
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe("app()")
   })
 
   it("returns an uncached 404 for an unknown host", async () => {

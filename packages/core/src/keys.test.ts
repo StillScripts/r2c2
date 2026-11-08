@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test"
 import {
   assetKey,
+  buildKey,
   elementsKey,
   liveKey,
   notFoundKey,
@@ -20,6 +21,9 @@ describe("R2 and KV keys", () => {
   it("builds the immutable keys", () => {
     expect(versionKey("s_r2c2", "abc")).toBe("sites/s_r2c2/versions/abc.html")
     expect(assetKey("s_r2c2", "abc", "css")).toBe("sites/s_r2c2/assets/abc.css")
+    expect(buildKey("s_r2c2", "b1", "assets/Index-AbC.js")).toBe(
+      "sites/s_r2c2/builds/b1/assets/Index-AbC.js"
+    )
     expect(elementsKey("abc")).toBe("shared/elements/abc.js")
   })
 

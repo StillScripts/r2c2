@@ -7,4 +7,4 @@ Add `BUILD_PREFIX` (`/_build/`), `buildKey(siteId, buildId, path)` and `parseBui
 
 Done when: an object at `builds/<buildId>/assets/Index-AbC.js` is served at `/_build/<buildId>/assets/Index-AbC.js` with immutable headers, and `..`, `.html`, `.svg` and missing files return the site's 404.
 
-Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore)
+Related: [SPEC §5](../../SPEC.md#5-contracts-packagescore), [ADR-020](../../docs/decisions/ADR-020-serve-app-builds-under-build-prefix.md), [ADR-021](../../docs/decisions/ADR-021-keep-path-case-for-build-files.md)

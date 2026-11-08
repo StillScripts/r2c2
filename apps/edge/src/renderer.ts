@@ -3,6 +3,8 @@ import {
   assetHeaders,
   ASSETS_PREFIX,
   assetKey,
+  BUILD_PREFIX,
+  buildKey,
   ELEMENTS_PREFIX,
   elementsKey,
   type LivePageMetadata,
@@ -11,6 +13,7 @@ import {
   notFoundKey,
   pageHeaders,
   parseAssetName,
+  parseBuildPath,
   siteTag,
 } from "@workspace/core"
 import { builtInPage, notFound } from "./responses"
@@ -41,12 +44,25 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
           : null
       )
     }
+    if (pathname.startsWith(BUILD_PREFIX)) {
+      const file = parseBuildPath(pathname)
+      return this.#asset(
+        file && {
+          ...file,
+          key: buildKey(this.#siteId, file.buildId, file.path),
+        },
+        () => this.#notFound()
+      )
+    }
     return this.#page(pathname)
   }
 
-  async #asset(asset: { key: string; contentType: string } | null) {
+  async #asset(
+    asset: { key: string; contentType: string } | null,
+    missing: () => Response | Promise<Response> = notFound
+  ) {
     const object = asset && (await this.env.SITES.get(asset.key))
-    if (!asset || !object) return notFound()
+    if (!asset || !object) return missing()
     return new Response(object.body, {
       headers: assetHeaders(asset.contentType),
     })

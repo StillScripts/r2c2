@@ -11,6 +11,10 @@ export const versionKey = (siteId: string, hash: string) =>
 export const assetKey = (siteId: string, hash: string, ext: string) =>
   `${site(siteId)}/assets/${hash}.${ext}`
 
+/** A file of an app build, at its path inside the build such as `assets/index-AbC.js`. */
+export const buildKey = (siteId: string, buildId: string, path: string) =>
+  `${site(siteId)}/builds/${buildId}/${path}`
+
 export const notFoundKey = (siteId: string) => `${site(siteId)}/404.html`
 
 export const elementsKey = (hash: string) => `shared/elements/${hash}.js`
