@@ -42,6 +42,6 @@ An app build ([ADR-020](ADR-020-serve-app-builds-under-build-prefix.md)) can be 
 
 ## Related
 
-- Task: tasks/active/add-app-build-deploys.md
+- Task: tasks/done/add-app-build-deploys.md
 - Spec: SPEC §11 "App sites"
 - Builds on: [ADR-020](ADR-020-serve-app-builds-under-build-prefix.md)
