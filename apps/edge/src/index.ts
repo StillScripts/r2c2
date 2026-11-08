@@ -4,6 +4,7 @@ import {
   normalisePath,
   redirectLocation,
   FORMS_PREFIX,
+  BUILD_PREFIX,
 } from "@workspace/core"
 import { handleForm } from "./forms"
 import { lookup } from "./lookup"
@@ -34,7 +35,10 @@ async function route(
     })
   }
 
-  const path = normalisePath(url.pathname)
+  // Build files keep their case; the renderer checks them with parseBuildPath (ADR-021)
+  const path = url.pathname.startsWith(BUILD_PREFIX)
+    ? url.pathname
+    : normalisePath(url.pathname)
   if (!path) return notFound()
 
   url.pathname = path

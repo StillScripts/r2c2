@@ -140,11 +140,14 @@ Rollback is the same steps 3 and 4 with an older version.
 sites/<siteId>/live/<path>/index.html     current page, one read per miss
 sites/<siteId>/versions/<hash>.html       every publish, immutable
 sites/<siteId>/assets/<hash>.<ext>        CSS, JS, images, immutable
+sites/<siteId>/builds/<buildId>/<path>    every file of an app build, immutable
 sites/<siteId>/404.html                   per-site not-found page
 shared/elements/<hash>.js                 custom elements script
 ```
 
 Path rules: `/` → `index.html`; `/about` and `/about/` → `about/index.html`; lowercase; no `..`.
+
+Build files: `/_build/<buildId>/<path>` → `builds/<buildId>/<path>`, decoded but keeping the path's case, no `..` or empty segments, and only `ASSET_CONTENT_TYPES` plus `json`, so no HTML or SVG ([ADR-020](docs/decisions/ADR-020-serve-app-builds-under-build-prefix.md), [ADR-021](docs/decisions/ADR-021-keep-path-case-for-build-files.md)).
 
 **Response headers**
 
@@ -152,6 +155,7 @@ Path rules: `/` → `index.html`; `/about` and `/about/` → `about/index.html`;
 | ------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Page HTML     | `public, max-age=0, s-maxage=60, stale-while-revalidate=86400` | `cache-tag: site-<id>,page-<pageId>`, `etag: "<hash>"`, CSP, HSTS, `x-content-type-options: nosniff` |
 | Hashed assets | `public, max-age=31536000, immutable`                          |                                                                                                      |
+| Build files   | `public, max-age=31536000, immutable`                          | a missing or refused file gets the site's 404                                                        |
 | `/_api/*`     | `no-store`                                                     |                                                                                                      |
 | 404           | `public, max-age=0, s-maxage=60`                               |                                                                                                      |
 

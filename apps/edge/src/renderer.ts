@@ -3,6 +3,8 @@ import {
   assetHeaders,
   ASSETS_PREFIX,
   assetKey,
+  BUILD_PREFIX,
+  buildKey,
   ELEMENTS_PREFIX,
   elementsKey,
   type LivePageMetadata,
@@ -11,6 +13,7 @@ import {
   notFoundKey,
   pageHeaders,
   parseAssetName,
+  parseBuildPath,
   siteTag,
 } from "@workspace/core"
 import { builtInPage, notFound } from "./responses"
@@ -22,31 +25,47 @@ export class Renderer extends WorkerEntrypoint<Cloudflare.Env, RendererProps> {
     return this.ctx.props.siteId
   }
 
-  fetch(request: Request) {
+  async fetch(request: Request) {
     const { pathname } = new URL(request.url)
     if (pathname.startsWith(ASSETS_PREFIX)) {
       const asset = parseAssetName(pathname.slice(ASSETS_PREFIX.length))
-      return this.#asset(
-        asset && {
-          ...asset,
-          key: assetKey(this.#siteId, asset.hash, asset.ext),
-        }
+      return (
+        (await this.#asset(
+          asset && {
+            ...asset,
+            key: assetKey(this.#siteId, asset.hash, asset.ext),
+          }
+        )) ?? notFound()
       )
     }
     if (pathname.startsWith(ELEMENTS_PREFIX)) {
       const script = parseAssetName(pathname.slice(ELEMENTS_PREFIX.length))
-      return this.#asset(
-        script?.ext === "js"
-          ? { ...script, key: elementsKey(script.hash) }
-          : null
+      return (
+        (await this.#asset(
+          script?.ext === "js"
+            ? { ...script, key: elementsKey(script.hash) }
+            : null
+        )) ?? notFound()
+      )
+    }
+    if (pathname.startsWith(BUILD_PREFIX)) {
+      const file = parseBuildPath(pathname.slice(BUILD_PREFIX.length))
+      return (
+        (await this.#asset(
+          file && {
+            ...file,
+            key: buildKey(this.#siteId, file.buildId, file.path),
+          }
+        )) ?? this.#notFound()
       )
     }
     return this.#page(pathname)
   }
 
+  /** The asset's response, or null when it isn't one we serve or R2 has no such object. */
   async #asset(asset: { key: string; contentType: string } | null) {
     const object = asset && (await this.env.SITES.get(asset.key))
-    if (!asset || !object) return notFound()
+    if (!asset || !object) return null
     return new Response(object.body, {
       headers: assetHeaders(asset.contentType),
     })

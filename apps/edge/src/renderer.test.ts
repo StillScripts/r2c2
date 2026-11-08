@@ -2,6 +2,7 @@ import { env, exports } from "cloudflare:workers"
 import {
   assetHeaders,
   assetKey,
+  buildKey,
   elementsKey,
   liveKey,
   type LivePageMetadata,
@@ -117,5 +118,58 @@ describe("renderer assets", () => {
     expect(headersOf(response)).toMatchObject(
       assetHeaders("text/javascript; charset=utf-8")
     )
+  })
+})
+
+describe("renderer build files", () => {
+  const BUILD = "fedcba9876543210"
+
+  it("serves a build file under its own name and case, as immutable", async () => {
+    const siteId = site()
+    await env.SITES.put(
+      buildKey(siteId, BUILD, "assets/Index-AbC.js"),
+      "console.log(1)"
+    )
+    const response = await request(
+      siteId,
+      `/_build/${BUILD}/assets/Index-AbC.js`
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.text()).toBe("console.log(1)")
+    expect(headersOf(response)).toMatchObject(
+      assetHeaders("text/javascript; charset=utf-8")
+    )
+  })
+
+  it("doesn't serve another site's build", async () => {
+    const owner = site()
+    await env.SITES.put(buildKey(owner, BUILD, "a.js"), "a")
+    const response = await request(site(), `/_build/${BUILD}/a.js`)
+    expect(response.status).toBe(404)
+  })
+
+  it.each([
+    ["an encoded parent segment", `/_build/${BUILD}/assets/..%2Fa.js`],
+    ["HTML", `/_build/${BUILD}/index.html`],
+    ["SVG", `/_build/${BUILD}/logo.svg`],
+    ["a missing file", `/_build/${BUILD}/missing.js`],
+    ["the wrong case", `/_build/${BUILD}/assets/index-abc.js`],
+  ])("returns the site's 404 for %s", async (_, path) => {
+    const siteId = site()
+    for (const file of [
+      "index.html",
+      "logo.svg",
+      "a.js",
+      "assets/Index-AbC.js",
+    ]) {
+      await env.SITES.put(buildKey(siteId, BUILD, file), "x")
+    }
+    await env.SITES.put(notFoundKey(siteId), "<h1>Lost?</h1>")
+    const response = await request(siteId, path)
+
+    expect(response.status).toBe(404)
+    expect(await response.text()).toBe("<h1>Lost?</h1>")
+    expect(headersOf(response)).toMatchObject(notFoundHeaders(siteId))
   })
 })

@@ -19,16 +19,20 @@ export function parseHostname(input: string): string | null {
   }
 }
 
-export function normalisePath(pathname: string): string | null {
+/** Decode a URL path into its segments, keeping case and empty segments, or null if it could escape: bad encoding, a backslash, NUL, `.` or `..`. */
+export function pathSegments(pathname: string): string[] | null {
   let decoded: string
   try {
-    decoded = decodeURIComponent(pathname).toLowerCase()
+    decoded = decodeURIComponent(pathname)
   } catch {
     return null
   }
   if (/[\\\0]/.test(decoded)) return null
+  const segments = decoded.split("/")
+  return segments.some((s) => s === "." || s === "..") ? null : segments
+}
 
-  const segments = decoded.split("/").filter(Boolean)
-  if (segments.includes(".") || segments.includes("..")) return null
-  return `/${segments.join("/")}`
+export function normalisePath(pathname: string): string | null {
+  const segments = pathSegments(pathname)
+  return segments && `/${segments.filter(Boolean).join("/").toLowerCase()}`
 }
