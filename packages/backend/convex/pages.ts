@@ -12,6 +12,7 @@ import { authComponent } from "./auth"
 import { fail } from "./errors"
 import { draftAt, draftHistory, recordDraft } from "./history"
 import { assertUnclaimed } from "./publishing"
+import { assertPagesSite } from "./sites"
 
 const escapeText = (text: string) =>
   text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -68,6 +69,7 @@ export async function pageAt(
 export const create = siteMutation({
   args: { path: v.string(), title: v.string() },
   handler: async (ctx, args) => {
+    assertPagesSite(ctx.site)
     const { path, page: taken } = await pageAt(ctx, ctx.site._id, args.path)
     if (taken) throw fail("path_taken")
 

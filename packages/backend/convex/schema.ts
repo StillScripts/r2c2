@@ -8,6 +8,7 @@ import {
   formDefinition,
   formField,
   role,
+  siteKind,
   siteStatus,
   view,
 } from "./validators"
@@ -17,6 +18,9 @@ export default defineSchema({
     name: v.string(),
     slug: v.string(),
     status: siteStatus,
+    // missing means "pages", so sites from before app sites need no migration
+    kind: v.optional(siteKind),
+    liveBuildId: v.optional(v.id("appBuilds")),
     // CSS with the site's @theme tokens and @utility component classes
     theme: v.string(),
     // Bumped on every change KV must reflect, so stale route syncs skip
@@ -51,6 +55,20 @@ export default defineSchema({
   })
     .index("by_page_hash", ["pageId", "hash"])
     .index("by_page_published", ["pageId", "publishedAt"]),
+
+  // Every build deployed to an app site, for history and rollback
+  appBuilds: defineTable({
+    siteId: v.id("sites"),
+    // first 16 hex characters of a SHA-256 over the sorted paths and file hashes
+    buildId: v.string(),
+    files: v.array(
+      v.object({ path: v.string(), bytes: v.number(), contentType: v.string() })
+    ),
+    // the rewritten index.html, at versions/<htmlHash>.html
+    htmlHash: v.string(),
+    deployedBy: v.string(),
+    deployedAt: v.number(),
+  }).index("by_site_deployed", ["siteId", "deployedAt"]),
 
   // A publish or rollback in progress, so only one runs per page at a time
   pageClaims: defineTable({

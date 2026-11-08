@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authed/sites/$siteId/theme")({
       context.queryClient.ensureQueryData(siteQuery(siteId)),
       context.queryClient.ensureQueryData(pagesQuery(siteId)),
     ])
-    if (site.role !== "owner") {
+    if (site.role !== "owner" || site.kind === "app") {
       throw redirect({ to: "/sites/$siteId", params: { siteId } })
     }
   },

@@ -7,4 +7,4 @@ Add `kind` (`pages` | `app`, missing means `pages`) and `liveBuildId` to `sites`
 
 Done when: an app site can be created from the CLI and shows the coming-soon page at its address; page sites behave exactly as before.
 
-Related: [SPEC §11](../../SPEC.md#11-later-specs-outlines)
+Related: [SPEC §11](../../SPEC.md#11-later-specs-outlines), [ADR-019](../../docs/decisions/ADR-019-add-an-app-site-kind.md)

@@ -7,7 +7,7 @@ import { writeAudit } from "./access"
 import { draftHistory, recordDraft } from "./history"
 import { pageAt, writeDraft } from "./pages"
 import { scheduleRouteSync } from "./routes"
-import { createSite, findSite, writeTheme } from "./sites"
+import { assertPagesSite, createSite, findSite, writeTheme } from "./sites"
 
 /** The slug of the site the seed creates, and the default for `staff:create`. */
 export const SEED_SLUG = "r2c2"
@@ -95,7 +95,8 @@ export const importSite = internalMutation({
     if (!site) throw fail("not_found")
     const log = (action: string, target: string) =>
       writeAudit(ctx, { siteId: site._id, actor: "system", action, target })
-    if (theme !== undefined) await writeTheme(ctx, site._id, theme, "system")
+    assertPagesSite(site)
+    if (theme !== undefined) await writeTheme(ctx, site, theme, "system")
 
     for (const { path: rawPath, html } of pages) {
       const { path, page } = await pageAt(ctx, site._id, rawPath)

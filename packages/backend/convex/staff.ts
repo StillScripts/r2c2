@@ -11,7 +11,7 @@ import { writeAudit } from "./access"
 import { authComponent, createAuth } from "./auth"
 import { SEED_SLUG } from "./seed"
 import { viewOf } from "./preferences"
-import { brandOf, findSite } from "./sites"
+import { brandOf, findSite, kindOf } from "./sites"
 import { role, type Role } from "./validators"
 
 /**
@@ -115,7 +115,13 @@ export const me = query({
       memberships.map(async ({ siteId, role }) => {
         const site = await ctx.db.get("sites", siteId)
         return (
-          site && { siteId, name: site.name, role, brand: brandOf(site.theme) }
+          site && {
+            siteId,
+            name: site.name,
+            kind: kindOf(site),
+            role,
+            brand: brandOf(site.theme),
+          }
         )
       })
     )
