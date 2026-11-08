@@ -27,12 +27,12 @@ describe("parseBuildPath", () => {
   const BUILD = "0123456789abcdef"
 
   it("keeps the path's case and decodes it", () => {
-    expect(parseBuildPath(`/_build/${BUILD}/assets/Index-AbC.js`)).toEqual({
+    expect(parseBuildPath(`${BUILD}/assets/Index-AbC.js`)).toEqual({
       buildId: BUILD,
       path: "assets/Index-AbC.js",
       contentType: "text/javascript; charset=utf-8",
     })
-    expect(parseBuildPath(`/_build/${BUILD}/My%20Level.JSON`)).toEqual({
+    expect(parseBuildPath(`${BUILD}/My%20Level.JSON`)).toEqual({
       buildId: BUILD,
       path: "My Level.JSON",
       contentType: "application/json; charset=utf-8",
@@ -40,19 +40,18 @@ describe("parseBuildPath", () => {
   })
 
   it.each([
-    ["outside the prefix", `/assets/${BUILD}.js`],
-    ["a malformed build ID", "/_build/ABCDEF0123456789/a.js"],
-    ["no file", `/_build/${BUILD}/`],
-    ["a parent segment", `/_build/${BUILD}/assets/../secret.js`],
-    ["an encoded parent segment", `/_build/${BUILD}/assets/%2e%2e/secret.js`],
-    ["an encoded slash escape", `/_build/${BUILD}/..%2Fsecret.js`],
-    ["a backslash", `/_build/${BUILD}/assets%5csecret.js`],
-    ["an empty segment", `/_build/${BUILD}/assets//a.js`],
-    ["bad encoding", `/_build/${BUILD}/%E0%A4%A.js`],
-    ["HTML", `/_build/${BUILD}/index.html`],
-    ["SVG", `/_build/${BUILD}/logo.svg`],
-    ["no extension", `/_build/${BUILD}/assets.js/file`],
-  ])("rejects %s", (_, pathname) => {
-    expect(parseBuildPath(pathname)).toBeNull()
+    ["a malformed build ID", "ABCDEF0123456789/a.js"],
+    ["no file", `${BUILD}/`],
+    ["a parent segment", `${BUILD}/assets/../secret.js`],
+    ["an encoded parent segment", `${BUILD}/assets/%2e%2e/secret.js`],
+    ["an encoded slash escape", `${BUILD}/..%2Fsecret.js`],
+    ["a backslash", `${BUILD}/assets%5csecret.js`],
+    ["an empty segment", `${BUILD}/assets//a.js`],
+    ["bad encoding", `${BUILD}/%E0%A4%A.js`],
+    ["HTML", `${BUILD}/index.html`],
+    ["SVG", `${BUILD}/logo.svg`],
+    ["no extension", `${BUILD}/assets.js/file`],
+  ])("rejects %s", (_, rest) => {
+    expect(parseBuildPath(rest)).toBeNull()
   })
 })

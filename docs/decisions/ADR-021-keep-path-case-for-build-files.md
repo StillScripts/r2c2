@@ -14,7 +14,7 @@ The gateway lowercases every page path with `normalisePath` (`packages/core/src/
 
 ## Decision
 
-Paths under `/_build/` skip lowercasing. The gateway hands them to the renderer as they arrive, and `parseBuildPath` decodes them, keeps their case, and refuses backslashes, NUL, empty, `.` and `..` segments. Page paths stay lowercased exactly as before. The file extension is matched case-insensitively, so `Data.JSON` is still JSON.
+Paths under `/_build/` skip lowercasing. The gateway hands them to the renderer as they arrive, and `parseBuildPath` decodes them with the same `pathSegments` check `normalisePath` uses, keeps their case, and refuses backslashes, NUL, empty, `.` and `..` segments. Page paths stay lowercased exactly as before. The file extension is matched case-insensitively, so `Data.JSON` is still JSON.
 
 ## Alternatives Considered
 
@@ -33,7 +33,7 @@ Paths under `/_build/` skip lowercasing. The gateway hands them to the renderer 
 ## Consequences
 
 - `/_build/<id>/Index.js` and `/_build/<id>/index.js` are different files; a wrong-case request gets the site's 404.
-- The `..` and encoding checks that `normalisePath` gives pages are repeated in `parseBuildPath`, and both are tested.
+- Pages and build files share one decoding and traversal check, `pathSegments` in `packages/core/src/paths.ts`; only lowercasing and the empty-segment rule differ.
 
 ## Related
 

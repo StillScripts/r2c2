@@ -1,4 +1,5 @@
 import { HASH_LENGTH } from "./hash"
+import { pathSegments } from "./paths"
 
 export const ASSETS_PREFIX = "/assets/"
 export const ELEMENTS_PREFIX = "/_elements/"
@@ -43,22 +44,14 @@ export function parseAssetName(name: string) {
 }
 
 /**
- * Split a `/_build/<buildId>/<path>` URL path, decoding it but keeping its case, or
+ * Split the `<buildId>/<path>` after `/_build/`, decoding it but keeping its case, or
  * return null if it isn't a build file we serve.
  */
-export function parseBuildPath(pathname: string) {
-  if (!pathname.startsWith(BUILD_PREFIX)) return null
-  let decoded: string
-  try {
-    decoded = decodeURIComponent(pathname.slice(BUILD_PREFIX.length))
-  } catch {
+export function parseBuildPath(rest: string) {
+  const [buildId = "", ...segments] = pathSegments(rest) ?? []
+  if (!BUILD_ID.test(buildId) || !segments.length || segments.includes("")) {
     return null
   }
-  if (/[\\\0]/.test(decoded)) return null
-
-  const [buildId = "", ...segments] = decoded.split("/")
-  if (!BUILD_ID.test(buildId) || !segments.length) return null
-  if (segments.some((s) => s === "" || s === "." || s === "..")) return null
 
   const ext = /\.([^.]+)$/.exec(segments.at(-1)!)?.[1]?.toLowerCase()
   const contentType = typeOf(BUILD_CONTENT_TYPES, ext)
