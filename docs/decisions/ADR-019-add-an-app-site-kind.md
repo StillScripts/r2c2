@@ -40,7 +40,7 @@ A site has a kind, stored as `sites.kind`: `pages` (Loft pages, as today) or `ap
 
 ## Consequences
 
-- Code that works on pages or themes must refuse app sites; `assertPagesSite` does this in `pages:create`, `writeTheme` and `seed:importSite`.
+- Code that works on pages or themes must refuse app sites; `assertPagesSite` does this in `pageAt`, which every page creation goes through, and in `writeTheme`.
 - The coming-soon page, status toggle, domains and enquiries work for app sites unchanged.
 - Converting a site between kinds would mean deciding what happens to its pages or builds, so it isn't offered. Create a new site instead.
 - Later app-site work (serving build files, deploys, tokens, build history) builds on `kind`, `liveBuildId` and `appBuilds`.

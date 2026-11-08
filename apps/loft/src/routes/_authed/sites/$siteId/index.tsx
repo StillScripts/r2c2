@@ -41,6 +41,7 @@ function SiteScreen() {
   const { data: site } = useSuspenseQuery(siteQuery(siteId))
   const { data: pages } = useSuspenseQuery(pagesQuery(siteId))
   const isApp = site.kind === "app"
+  const hasBuild = site.liveBuildId !== undefined
 
   return (
     <main className={cn(screen, "max-w-2xl")}>
@@ -52,12 +53,12 @@ function SiteScreen() {
         isOwner={site.role === "owner"}
         isServing={
           isApp
-            ? site.liveBuildId !== undefined
+            ? hasBuild
             : pages.some((page) => page.path === "/" && page.isLive)
         }
       />
       {isApp ? (
-        <AppBuild hasBuild={site.liveBuildId !== undefined} />
+        <AppBuild hasBuild={hasBuild} />
       ) : (
         <>
           <PageList siteId={siteId} pages={pages} />
@@ -117,14 +118,14 @@ function PageList({
 const STATUS_COPY = {
   live: {
     heading: "Live",
-    hint: (shows: string) => `Visitors see ${shows}.`,
+    hint: null,
     action: "Switch to Coming soon",
     confirm: "Switch to Coming soon?",
     next: "coming-soon",
   },
   "coming-soon": {
     heading: "Coming soon",
-    hint: () => "Visitors see a holding page on every path.",
+    hint: "Visitors see a holding page on every path.",
     action: "Go live",
     confirm: "Take this site live?",
     next: "live",
@@ -156,7 +157,7 @@ function SiteStatus({
         <div className="flex flex-col">
           <h2 className="font-medium">{copy.heading}</h2>
           <p className="text-sm text-muted-foreground">
-            {copy.hint(content.shows)}
+            {copy.hint ?? `Visitors see ${content.shows}.`}
           </p>
         </div>
         {isOwner && (

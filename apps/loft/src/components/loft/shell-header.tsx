@@ -69,6 +69,7 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
   const { data: enquiries } = useQuery(newEnquiriesQuery(siteId))
   const others = sites.filter((other) => other.siteId !== siteId)
   const isApp = site.kind === "app"
+  const [HomeIcon, homeLabel] = isApp ? [Package, "Build"] : [File, "Pages"]
 
   return (
     <Menu>
@@ -85,12 +86,8 @@ function SiteSwitcher({ site, sites }: { site: Site; sites: Site[] }) {
           <MenuLinkItem
             render={<Link to="/sites/$siteId" params={{ siteId }} />}
           >
-            {isApp ? (
-              <Package aria-hidden="true" />
-            ) : (
-              <File aria-hidden="true" />
-            )}
-            {isApp ? "Build" : "Pages"}
+            <HomeIcon aria-hidden="true" />
+            {homeLabel}
           </MenuLinkItem>
           <MenuLinkItem
             render={
