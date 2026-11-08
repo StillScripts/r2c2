@@ -9,7 +9,10 @@
  */
 
 import type * as access from "../access.js";
+import type * as apps from "../apps.js";
 import type * as auth from "../auth.js";
+import type * as claims from "../claims.js";
+import type * as deploying from "../deploying.js";
 import type * as domains from "../domains.js";
 import type * as enquiries from "../enquiries.js";
 import type * as errors from "../errors.js";
@@ -37,7 +40,10 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   access: typeof access;
+  apps: typeof apps;
   auth: typeof auth;
+  claims: typeof claims;
+  deploying: typeof deploying;
   domains: typeof domains;
   enquiries: typeof enquiries;
   errors: typeof errors;

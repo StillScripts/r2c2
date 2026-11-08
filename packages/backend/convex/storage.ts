@@ -5,6 +5,7 @@ import {
   PutObjectCommand,
 } from "@aws-sdk/client-s3"
 import { R2 } from "@convex-dev/r2"
+import { HTML_CONTENT_TYPE } from "@workspace/core"
 import { components } from "./_generated/api"
 import { internalAction } from "./_generated/server"
 
@@ -33,17 +34,31 @@ export async function putObject(
   return key
 }
 
-export async function objectExists(key: string) {
+export const putHtml = (
+  key: string,
+  html: string,
+  metadata?: Record<string, string>
+) => putObject(key, html, HTML_CONTENT_TYPE, metadata)
+
+/** The object's size in bytes, or null when R2 has no such object. */
+export async function objectSize(key: string) {
   try {
-    await r2.client.send(
+    const head = await r2.client.send(
       new HeadObjectCommand({ Bucket: r2.config.bucket, Key: key })
     )
-    return true
+    return head.ContentLength ?? 0
   } catch (error) {
-    if (error instanceof NotFound) return false
+    if (error instanceof NotFound) return null
     throw error
   }
 }
+
+export const objectExists = async (key: string) =>
+  (await objectSize(key)) !== null
+
+/** A presigned URL that PUTs one object at `key` straight to R2 for 15 minutes (ADR-022). */
+export const uploadUrl = async (key: string) =>
+  (await r2.generateUploadUrl(key)).url
 
 export async function getObjectText(key: string) {
   const response = await fetch(await r2.getUrl(key))

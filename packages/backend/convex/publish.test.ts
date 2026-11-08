@@ -9,24 +9,9 @@ import {
 } from "vite-plus/test"
 import { api } from "./_generated/api"
 import { addSite, setup } from "../test/setup"
+import { resetStorage, stored, writes } from "../test/storage"
 
-const writes = vi.hoisted(() => [] as { key: string; metadata?: object }[])
-const stored = vi.hoisted(() => new Map<string, string>())
-
-vi.mock("./storage", () => ({
-  putObject: async (
-    key: string,
-    body: string,
-    _type: string,
-    metadata?: object
-  ) => {
-    writes.push({ key, metadata })
-    stored.set(key, body)
-    return key
-  },
-  objectExists: async (key: string) => stored.has(key),
-  getObjectText: async (key: string) => stored.get(key)!,
-}))
+vi.mock("./storage", () => import("../test/storage"))
 
 const DRAFT = `<html lang="en"><head><title>Home</title><meta name="description" content="Hi"></head><body><h1>Hello</h1></body></html>`
 
@@ -47,10 +32,7 @@ async function site() {
 
 const FORM = `<site-form name="contact"><form method="post" action="/_api/forms/contact"><label for="e">Email</label><input id="e" name="email" type="email"><button type="submit">Send</button></form></site-form>`
 
-beforeEach(() => {
-  writes.length = 0
-  stored.clear()
-})
+beforeEach(resetStorage)
 
 afterEach(() => {
   vi.unstubAllEnvs()

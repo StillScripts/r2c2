@@ -58,7 +58,8 @@ export const isAllowedAttribute = (tag: string, name: string) =>
   GLOBAL_ATTRIBUTES.some((allowed) => matches(allowed, name)) ||
   (TAG_ATTRIBUTES[tag]?.includes(name) ?? false)
 
-const scheme = (url: string) =>
+/** A URL's scheme, lowercased and ignoring the whitespace and control characters browsers drop. */
+export const scheme = (url: string) =>
   url
     .replace(/[\s\p{Cc}]/gu, "")
     .toLowerCase()

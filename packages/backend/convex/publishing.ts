@@ -1,13 +1,14 @@
 import { primaryDomain } from "@workspace/core"
 import type { FormDefinition } from "@workspace/html"
 import { v } from "convex/values"
-import type { Doc, Id } from "./_generated/dataModel"
+import type { Id } from "./_generated/dataModel"
 import {
   internalMutation,
   type MutationCtx,
   type QueryCtx,
 } from "./_generated/server"
 import { loadSite, writeAudit } from "./access"
+import { isActive } from "./claims"
 import { fail } from "./errors"
 import { recordDraft } from "./history"
 import { domainsOf } from "./routes"
@@ -105,8 +106,6 @@ const claimOf = (ctx: QueryCtx, pageId: Id<"pages">) =>
     .query("pageClaims")
     .withIndex("by_page", (q) => q.eq("pageId", pageId))
     .unique()
-
-const isActive = (claim: Doc<"pageClaims">) => claim.expiresAt > Date.now()
 
 /** Refuse a change to the page's draft while a publish or rollback holds it. */
 export async function assertUnclaimed(ctx: QueryCtx, pageId: Id<"pages">) {

@@ -25,9 +25,8 @@ import { ELEMENTS_JS } from "../elements.gen"
 import { internal } from "./_generated/api"
 import type { Id } from "./_generated/dataModel"
 import { action, type ActionCtx } from "./_generated/server"
-import { getObjectText, objectExists, putObject } from "./storage"
-
-const HTML = "text/html; charset=utf-8"
+import { whileClaimed } from "./claims"
+import { getObjectText, objectExists, putHtml, putObject } from "./storage"
 
 type PublishResult =
   | Extract<Release, { ok: false }>
@@ -58,20 +57,10 @@ const writeLive = (
   path: string,
   html: string,
   metadata: LivePageMetadata
-) => putObject(liveKey(siteId, path), html, HTML, metadata)
+) => putHtml(liveKey(siteId, path), html, metadata)
 
-/** Run `work` while holding the page's claim, letting it go however `work` ends. */
-async function whileClaimed<T>(
-  ctx: ActionCtx,
-  claimId: Id<"pageClaims">,
-  work: () => Promise<T>
-) {
-  try {
-    return await work()
-  } finally {
-    await ctx.runMutation(internal.publishing.release, { claimId })
-  }
-}
+const releasePage = (ctx: ActionCtx, claimId: Id<"pageClaims">) => () =>
+  ctx.runMutation(internal.publishing.release, { claimId })
 
 /**
  * Publish a page's draft: build the release, write its CSS, version and live copy to
@@ -84,7 +73,7 @@ export const publish = action({
       siteId,
       pageId,
     })
-    return whileClaimed(ctx, context.claimId, async () => {
+    return whileClaimed(releasePage(ctx, context.claimId), async () => {
       const draftHtml = context.page.draftHtml
       const release = await buildRelease(draftHtml, {
         theme: await loadTheme(context.theme),
@@ -108,7 +97,7 @@ export const publish = action({
           css,
           ASSET_CONTENT_TYPES.css!
         ),
-        putObject(versionKey(siteId, hash), html, HTML),
+        putHtml(versionKey(siteId, hash), html),
       ])
       // Last, so the edge never serves a page whose CSS or script isn't in R2 yet
       await writeLive(siteId, context.page.path, html, { page: pageId, hash })
@@ -140,7 +129,7 @@ export const rollback = action({
       internal.publishing.claimRollback,
       { siteId, pageId, versionId }
     )
-    await whileClaimed(ctx, claimId, async () => {
+    await whileClaimed(releasePage(ctx, claimId), async () => {
       const html = await getObjectText(versionKey(siteId, version.hash))
       await writeLive(siteId, page.path, html, {
         page: pageId,

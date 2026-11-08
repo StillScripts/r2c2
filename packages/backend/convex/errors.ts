@@ -16,6 +16,9 @@ export type ErrorCode =
   | "form_conflict"
   | "page_busy"
   | "app_site"
+  | "pages_site"
+  | "deploy_busy"
+  | "deploy_expired"
 
 /** The details a code carries alongside it, for the Loft's messages. */
 export type ErrorDetails = {

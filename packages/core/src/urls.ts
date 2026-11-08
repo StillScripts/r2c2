@@ -6,6 +6,8 @@ export const ELEMENTS_PREFIX = "/_elements/"
 /** App build files, served under their own names and case (ADR-020, ADR-021). */
 export const BUILD_PREFIX = "/_build/"
 
+export const HTML_CONTENT_TYPE = "text/html; charset=utf-8"
+
 /** File types the edge serves as assets. SVG is left out: it can carry script. */
 export const ASSET_CONTENT_TYPES: Record<string, string> = {
   css: "text/css; charset=utf-8",
@@ -32,6 +34,10 @@ export const BUILD_CONTENT_TYPES: Record<string, string> = {
 const typeOf = (types: Record<string, string>, ext: string | undefined) =>
   ext && Object.hasOwn(types, ext) ? types[ext] : undefined
 
+/** The content type of a build file other than its root `index.html`, or undefined if builds can't hold it. */
+export const buildFileType = (path: string) =>
+  typeOf(BUILD_CONTENT_TYPES, /\.([^./]+)$/.exec(path)?.[1]?.toLowerCase())
+
 const HEX_ID = `[0-9a-f]{${HASH_LENGTH}}`
 const HASHED_NAME = new RegExp(`^(${HEX_ID})\\.([a-z0-9]+)$`)
 const BUILD_ID = new RegExp(`^${HEX_ID}$`)
@@ -53,8 +59,7 @@ export function parseBuildPath(rest: string) {
     return null
   }
 
-  const ext = /\.([^.]+)$/.exec(segments.at(-1)!)?.[1]?.toLowerCase()
-  const contentType = typeOf(BUILD_CONTENT_TYPES, ext)
+  const contentType = buildFileType(segments.at(-1)!)
   return contentType ? { buildId, path: segments.join("/"), contentType } : null
 }
 
