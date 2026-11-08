@@ -47,5 +47,5 @@ A site has a kind, stored as `sites.kind`: `pages` (Loft pages, as today) or `ap
 
 ## Related
 
-- Task: tasks/active/add-app-site-kind.md
+- Task: tasks/done/add-app-site-kind.md
 - Spec: SPEC §11, "App sites"
